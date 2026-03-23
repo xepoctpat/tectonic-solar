@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Space-Earth Monitor</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- App Stylesheets -->
+  <link rel="stylesheet" href="src/css/variables.css" />
+  <link rel="stylesheet" href="src/css/base.css" />
+  <link rel="stylesheet" href="src/css/components.css" />
+  <link rel="stylesheet" href="src/css/map.css" />
+  <link rel="stylesheet" href="src/css/notifications.css" />
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ===== HEADER ===== -->
+  <header>
+    <h1>🌍 Space-Earth Monitor</h1>
+    <div class="header-status">
+      <span>Connected</span>
+      <span>•</span>
+      <span>Real-Time</span>
+    </div>
+  </header>
+
+  <!-- ===== NAVIGATION TABS ===== -->
+  <nav class="tabs" role="tablist" aria-label="Application sections">
+    <button class="tab-btn active" data-tab="map" role="tab" aria-selected="true" aria-controls="map-tab">Map</button>
+    <button class="tab-btn" data-tab="space" role="tab" aria-selected="false" aria-controls="space-tab">Space Weather</button>
+    <button class="tab-btn" data-tab="seismic" role="tab" aria-selected="false" aria-controls="seismic-tab">Seismic</button>
+    <button class="tab-btn" data-tab="env" role="tab" aria-selected="false" aria-controls="env-tab">Environment</button>
+    <button class="tab-btn" data-tab="correlation" role="tab" aria-selected="false" aria-controls="correlation-tab">Correlation</button>
+    <button class="tab-btn" data-tab="settings" role="tab" aria-selected="false" aria-controls="settings-tab">Settings</button>
+  </nav>
+
+  <!-- ===== TOAST NOTIFICATION CONTAINER ===== -->
+  <div id="toast-container" role="alert" aria-live="assertive"></div>
+
+  <!-- ===== TAB PANELS ===== -->
+  <div class="tabs-container">
+
+    <!-- MAP TAB -->
+    <section id="map-tab" class="tab-content active" role="tabpanel" aria-labelledby="">
+
+      <div class="tab-header">
+        <h2>Global Map</h2>
+        <div class="map-controls">
+          <button data-map-type="standard" id="map-standard">Standard</button>
+          <button data-map-type="satellite" id="map-satellite" class="active">Satellite</button>
+          <button data-map-type="terrain" id="map-terrain">Terrain</button>
+          <button data-map-type="dark" id="map-dark">Dark</button>
+          <button id="btn-refresh-eq" class="btn btn-primary" style="margin-left:auto">Refresh Data</button>
+        </div>
+      </div>
+
+      <div class="map-main">
+        <aside class="map-sidebar" aria-label="Map controls">
+
+          <div class="control-section">
+            <h3>Layers</h3>
+            <label><input type="checkbox" id="l-earthquakes" checked> Earthquakes</label>
+            <label><input type="checkbox" id="l-vectors" checked> Motion Vectors</label>
+            <label><input type="checkbox" id="l-convergent" checked> Convergent</label>
+            <label><input type="checkbox" id="l-divergent" checked> Divergent</label>
+            <label><input type="checkbox" id="l-transform" checked> Transform</label>
+          </div>
+
+          <div class="control-section">
+            <h3>Regions</h3>
+            <button class="region-btn" data-region="world">World</button>
+            <button class="region-btn" data-region="ring">Ring of Fire</button>
+            <button class="region-btn" data-region="japan">Japan</button>
+            <button class="region-btn" data-region="cali">California</button>
+          </div>
+
+          <div class="control-section">
+            <h3>Info</h3>
+            <div class="info-box">
+              <div class="info-item">
+                <span class="label">Last Update:</span>
+                <span class="value" id="map-update">Just now</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Data Source:</span>
+                <span class="value" id="data-source">USGS</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Earthquakes:</span>
+                <span class="value" id="eq-count">—</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Zoom:</span>
+                <span class="value" id="zoom-display">Z2</span>
+              </div>
+            </div>
+          </div>
+
+        </aside>
+
+        <div id="map-display" class="map-display" aria-label="Interactive earthquake and tectonic map"></div>
+      </div>
+
+      <div class="map-footer">
+        <div class="legend">
+          <span class="legend-item"><span class="color" style="background:#FF3333"></span> Convergent</span>
+          <span class="legend-item"><span class="color" style="background:#4CAF50"></span> Divergent</span>
+          <span class="legend-item"><span class="color" style="background:#FF9800"></span> Transform</span>
+          <span class="legend-item"><span class="color dot" style="background:#FFC107"></span> Earthquakes</span>
+        </div>
+        <span class="attribution">Data: USGS | NOAA | OpenStreetMap</span>
+      </div>
+
+    </section>
+
+    <!-- SPACE WEATHER TAB -->
+    <section id="space-tab" class="tab-content" role="tabpanel">
+
+      <div class="tab-header">
+        <h2>Space Weather</h2>
+        <button id="btn-refresh-space" class="btn btn-primary">Refresh</button>
+      </div>
+
+      <div class="content-grid">
+
+        <div class="data-card">
+          <h3>Solar Wind <small style="font-weight:normal;color:var(--color-text-secondary)">(Live NOAA)</small></h3>
+          <div class="metric">
+            <span class="label">Speed</span>
+            <span><span class="value" id="solar-wind-speed">450</span><span class="unit">km/s</span></span>
+          </div>
+          <div class="metric">
+            <span class="label">Density</span>
+            <span><span class="value" id="solar-wind-density">5.0</span><span class="unit">p/cm³</span></span>
+          </div>
+          <div class="metric">
+            <span class="label">Bz Component</span>
+            <span><span class="value" id="solar-wind-bz">0.0</span><span class="unit">nT</span></span>
+          </div>
+          <div class="metric">
+            <span class="label">Last Update</span>
+            <span class="value" id="space-last-update">Loading…</span>
+          </div>
+          <canvas id="solar-wind-chart" width="300" height="150" aria-label="Solar wind speed chart"></canvas>
+        </div>
+
+        <div class="data-card">
+          <h3>Geomagnetic Activity <small style="font-weight:normal;color:var(--color-text-secondary)">(Live NOAA)</small></h3>
+          <div class="metric">
+            <span class="label">Kp Index</span>
+            <span>
+              <span class="value" id="kp-value">3</span>
+              <span class="status" id="kp-status">Quiet</span>
+            </span>
+          </div>
+          <div class="metric">
+            <span class="label">Dst Index</span>
+            <span><span class="value" id="dst-value">-15</span><span class="unit">nT</span></span>
+          </div>
+          <canvas id="kp-chart" width="300" height="150" aria-label="Kp index chart"></canvas>
+        </div>
+
+        <div class="data-card">
+          <h3>Solar Flares (X-ray Flux)</h3>
+          <div class="metric">
+            <span class="label">Recent Flares Detected</span>
+            <span class="value" id="flare-count">0</span>
+          </div>
+          <div class="metric">
+            <span class="label">Latest Flare Class</span>
+            <span class="value" id="latest-flare">None</span>
+          </div>
+          <div id="flare-list" style="margin-top:12px;font-size:12px;color:var(--color-text-secondary)">
+            Loading flare data…
+          </div>
+        </div>
+
+        <div class="data-card">
+          <h3>Browser Notifications</h3>
+          <div class="metric">
+            <span class="label">Status</span>
+            <span class="value" id="notification-status">Checking…</span>
+          </div>
+          <div class="metric">
+            <span class="label">Alert Thresholds</span>
+            <span class="value">M6+ EQ, Kp≥6</span>
+          </div>
+          <button id="btn-enable-notifications" class="btn btn-primary btn-full" style="margin-top:12px">
+            Enable Notifications
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SEISMIC TAB -->
+    <section id="seismic-tab" class="tab-content" role="tabpanel">
+
+      <div class="tab-header">
+        <h2>Seismic Activity</h2>
+        <button id="btn-refresh-seismic" class="btn btn-primary">Refresh</button>
+      </div>
+
+      <div class="content-grid">
+
+        <div class="data-card wide">
+          <h3>Recent Earthquakes (24h)</h3>
+          <div class="earthquake-list">
+            <div class="eq-item">
+              <span class="mag m6">6.2</span>
+              <div class="eq-info">
+                <div class="location">Japan Region — 38.0°N, 140.0°E</div>
+                <div class="time">2 hours ago • Depth: 45 km</div>
+              </div>
+            </div>
+            <div class="eq-item">
+              <span class="mag m5">5.8</span>
+              <div class="eq-info">
+                <div class="location">Tonga — 15.0°S, 173.0°W</div>
+                <div class="time">5 hours ago • Depth: 55 km</div>
+              </div>
+            </div>
+            <div class="eq-item">
+              <span class="mag m5">5.2</span>
+              <div class="eq-info">
+                <div class="location">Indonesia — 2.5°S, 118.0°E</div>
+                <div class="time">8 hours ago • Depth: 90 km</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <h3>Statistics</h3>
+          <div class="stat"><span class="label">M5.0+ Count</span><span class="value">12</span></div>
+          <div class="stat"><span class="label">Largest Today</span><span class="value">M6.2</span></div>
+          <div class="stat"><span class="label">Total Count</span><span class="value">284</span></div>
+          <canvas id="magnitude-chart" width="250" height="180" aria-label="Magnitude distribution chart"></canvas>
+        </div>
+
+        <div class="data-card">
+          <h3>Earthquake Probability</h3>
+          <div class="region-prob">
+            <div class="region-item">
+              <span class="region-name">Ring of Fire</span>
+              <div class="prob-bar"><div class="prob-fill" style="width:75%"></div></div>
+              <span class="percent">75%</span>
+            </div>
+            <div class="region-item">
+              <span class="region-name">Japan</span>
+              <div class="prob-bar"><div class="prob-fill" style="width:70%"></div></div>
+              <span class="percent">70%</span>
+            </div>
+            <div class="region-item">
+              <span class="region-name">California</span>
+              <div class="prob-bar"><div class="prob-fill" style="width:65%"></div></div>
+              <span class="percent">65%</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ENVIRONMENT TAB -->
+    <section id="env-tab" class="tab-content" role="tabpanel">
+
+      <div class="tab-header">
+        <h2>Environmental Data</h2>
+        <div class="location-selector">
+          <label for="location-select">Location:</label>
+          <select id="location-select" class="form-control" style="width:auto"></select>
+        </div>
+      </div>
+
+      <div class="content-grid">
+
+        <div class="data-card">
+          <h3>Current Weather</h3>
+          <div class="metric large">
+            <span class="value" id="temp">22.5</span>
+            <span class="unit">°C</span>
+          </div>
+          <div class="metric">
+            <span class="label">Condition</span>
+            <span class="value">Partly Cloudy</span>
+          </div>
+          <div class="metric">
+            <span class="label">Humidity</span>
+            <span class="value">65%</span>
+          </div>
+          <div class="metric">
+            <span class="label">Pressure</span>
+            <span><span class="value">1013</span><span class="unit">hPa</span></span>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <h3>Air Quality</h3>
+          <div class="metric large">
+            <span class="value" id="aqi">45</span>
+            <span class="status">Good</span>
+          </div>
+          <div class="metric">
+            <span class="label">PM2.5</span>
+            <span><span class="value">12</span><span class="unit">µg/m³</span></span>
+          </div>
+          <div class="metric">
+            <span class="label">PM10</span>
+            <span><span class="value">25</span><span class="unit">µg/m³</span></span>
+          </div>
+          <canvas id="aqi-chart" width="250" height="150" aria-label="Air quality index chart"></canvas>
+        </div>
+
+        <div class="data-card">
+          <h3>Nearby Sensors</h3>
+          <div class="sensor-list">
+            <div class="sensor-item"><span class="sensor-name">Sensor #1</span><span class="sensor-value">23.2°C</span></div>
+            <div class="sensor-item"><span class="sensor-name">Sensor #2</span><span class="sensor-value">22.1°C</span></div>
+            <div class="sensor-item"><span class="sensor-name">Sensor #3</span><span class="sensor-value">21.8°C</span></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CORRELATION TAB -->
+    <section id="correlation-tab" class="tab-content" role="tabpanel">
+
+      <div class="tab-header">
+        <h2>Space Weather – Earthquake Correlation</h2>
+        <button id="btn-refresh-correlation" class="btn btn-primary">Refresh</button>
+      </div>
+
+      <div class="correlation-info">
+
+        <div class="info-card">
+          <h3>Research-Based Correlation</h3>
+          <p>Studies have shown a <strong>statistically significant correlation</strong> between
+             geomagnetic storms and earthquake probability with a <strong>27–28 day lag</strong>.</p>
+          <p class="citation">Source: Nature 2020, AGU 2025 studies (p&lt;0.0001)</p>
+          <p class="disclaimer"><em>Note: USGS states no proven causal relationship exists.
+             This visualization is for research purposes only.</em></p>
+        </div>
+
+        <div class="info-card">
+          <h3>Correlation Window Analysis</h3>
+          <div id="correlation-window">
+            <div class="window-indicator">
+              <span class="date" id="window-start">Loading…</span>
+              <span class="arrow">→</span>
+              <span class="date" id="window-end">Loading…</span>
+            </div>
+            <div class="window-status" id="window-status">Checking correlation window…</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="timeline-container">
+        <h3>30-Day Timeline</h3>
+        <canvas id="correlation-timeline" aria-label="30-day geomagnetic storm and earthquake correlation timeline"></canvas>
+      </div>
+
+      <div class="correlation-stats">
+        <div class="stat-card">
+          <h4>Geomagnetic Storms (Last 30 days)</h4>
+          <div class="value" id="storm-count">0</div>
+        </div>
+        <div class="stat-card">
+          <h4>Major Earthquakes (Last 30 days)</h4>
+          <div class="value" id="major-eq-count">0</div>
+        </div>
+        <div class="stat-card">
+          <h4>Correlation Matches</h4>
+          <div class="value" id="correlation-strength">—</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- SETTINGS TAB -->
+    <section id="settings-tab" class="tab-content" role="tabpanel">
+
+      <div class="tab-header">
+        <h2>Alert Settings</h2>
+        <div style="display:flex;gap:8px">
+          <button id="btn-reset-settings" class="btn btn-secondary">Reset Defaults</button>
+          <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
+        </div>
+      </div>
+
+      <div class="content-grid">
+
+        <div class="data-card">
+          <h3>Alert Thresholds</h3>
+
+          <div class="setting-item">
+            <label for="alert-eq-mag">Earthquake Magnitude Threshold</label>
+            <input type="number" id="alert-eq-mag" value="6.0" step="0.1" min="4.0" max="9.0" class="form-control">
+          </div>
+
+          <div class="setting-item">
+            <label for="alert-kp">Kp Index Threshold</label>
+            <input type="number" id="alert-kp" value="6" step="1" min="4" max="9" class="form-control">
+          </div>
+
+          <div class="setting-item">
+            <label for="alert-flare">Minimum Solar Flare Class</label>
+            <select id="alert-flare" class="form-control">
+              <option value="C">C-Class or higher</option>
+              <option value="M" selected>M-Class or higher</option>
+              <option value="X">X-Class only</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="alert-enabled" checked>
+              Enable all notifications
+            </label>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <h3>About This Application</h3>
+          <p>Real-time monitoring of space weather events and seismic activity, with correlation analysis.</p>
+
+          <h4 style="margin-top:16px;font-size:var(--font-size-sm);color:var(--color-primary)">Data Sources</h4>
+          <ul style="margin:8px 0;padding-left:20px;font-size:12px;line-height:1.8">
+            <li>NOAA Space Weather Prediction Center</li>
+            <li>USGS Earthquake Catalog</li>
+            <li>Research: Nature 2020, AGU 2025</li>
+          </ul>
+
+          <h4 style="margin-top:16px;font-size:var(--font-size-sm);color:var(--color-primary)">Features</h4>
+          <ul style="margin:8px 0;padding-left:20px;font-size:12px;line-height:1.8">
+            <li>Live solar wind &amp; Kp index from NOAA</li>
+            <li>Browser notifications for major events</li>
+            <li>27–28 day space weather / earthquake correlation</li>
+            <li>Interactive global earthquake map (Leaflet)</li>
+            <li>Tectonic plate boundaries &amp; motion vectors</li>
+            <li>Settings persistence via localStorage</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /.tabs-container -->
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <span>Data: USGS | NOAA | OpenStreetMap</span>
+    <span id="footer-status">Loading…</span>
+  </footer>
+
+</div><!-- /.app-layout -->
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- App entry point (ES module) -->
+<script type="module" src="src/js/main.js"></script>
+
+</body>
+</html>
