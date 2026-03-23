@@ -19,7 +19,6 @@ export function checkEarthquakeAlerts(earthquakes) {
         sendNotification(
           `🌍 Major Earthquake M${eq.mag.toFixed(1)}`,
           `${eq.place} – Depth: ${eq.depth}km`,
-          '🔴',
         );
       }
     }
@@ -38,21 +37,46 @@ export function updateSeismicDisplay(earthquakes) {
     const sorted = [...earthquakes].sort((a, b) => (b.date || 0) - (a.date || 0));
     const recent = sorted.slice(0, 25);
 
-    container.innerHTML = recent.length === 0
-      ? '<p style="color:var(--color-text-secondary);font-size:var(--font-size-sm)">No earthquakes in this feed window.</p>'
-      : recent.map(eq => {
-          const magClass = eq.mag >= 6 ? 'm6' : 'm5';
-          const timeAgo = _timeAgo(eq.date);
-          const depth = eq.depth != null ? `${eq.depth.toFixed(0)} km` : '?';
-          return `
-            <div class="eq-item">
-              <span class="mag ${magClass}">${eq.mag.toFixed(1)}</span>
-              <div class="eq-info">
-                <div class="location">${eq.place || 'Unknown location'}</div>
-                <div class="time">${timeAgo} · Depth: ${depth}</div>
-              </div>
-            </div>`;
-        }).join('');
+    // Clear existing content
+    container.innerHTML = '';
+
+    if (recent.length === 0) {
+      const emptyMsg = document.createElement('p');
+      emptyMsg.style.color = 'var(--color-text-secondary)';
+      emptyMsg.style.fontSize = 'var(--font-size-sm)';
+      emptyMsg.textContent = 'No earthquakes in this feed window.';
+      container.appendChild(emptyMsg);
+    } else {
+      recent.forEach(eq => {
+        const magClass = eq.mag >= 6 ? 'm6' : 'm5';
+        const timeAgo = _timeAgo(eq.date);
+        const depth = eq.depth != null ? `${eq.depth.toFixed(0)} km` : '?';
+
+        const item = document.createElement('div');
+        item.className = 'eq-item';
+
+        const magSpan = document.createElement('span');
+        magSpan.className = `mag ${magClass}`;
+        magSpan.textContent = eq.mag.toFixed(1);
+        item.appendChild(magSpan);
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'eq-info';
+
+        const locationDiv = document.createElement('div');
+        locationDiv.className = 'location';
+        locationDiv.textContent = eq.place || 'Unknown location';
+
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'time';
+        timeDiv.textContent = `${timeAgo} · Depth: ${depth}`;
+
+        infoDiv.appendChild(locationDiv);
+        infoDiv.appendChild(timeDiv);
+        item.appendChild(infoDiv);
+        container.appendChild(item);
+      });
+    }
   }
 
   // ---- Update statistics ----

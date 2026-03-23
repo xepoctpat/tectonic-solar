@@ -20,12 +20,20 @@ function drawLineChart(canvas, values, color = '#32B8C6') {
   ctx.strokeStyle = color;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  values.forEach((v, i) => {
-    const x = (i / (values.length - 1)) * width;
-    const y = height - Math.max(0, Math.min(1, v)) * (height - 4) - 2;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
+
+  if (values.length === 1) {
+    // Single point: draw a horizontal line across the canvas
+    const y = height - Math.max(0, Math.min(1, values[0])) * (height - 4) - 2;
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+  } else {
+    values.forEach((v, i) => {
+      const x = (i / (values.length - 1)) * width;
+      const y = height - Math.max(0, Math.min(1, v)) * (height - 4) - 2;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+  }
   ctx.stroke();
 }
 

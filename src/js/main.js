@@ -12,7 +12,6 @@ import {
   setEarthquakeAlertCallback,
   setEarthquakeDisplayCallback,
   applyMagnitudeFilter,
-  registerMagnitudeFilterSetter,
 } from './map.js';
 import { fetchNOAASpaceWeather, refreshSpaceData } from './spaceWeather.js';
 import { checkEarthquakeAlerts, refreshEarthquakeData, updateSeismicDisplay } from './seismic.js';
@@ -22,12 +21,20 @@ import { drawSpaceCharts } from './charts.js';
 import { loadSettings, syncSettingsForm, saveAlertSettings, toggleAlerts, resetSettings } from './settings.js';
 import { requestNotificationPermission, initNotificationStatus } from './notifications.js';
 import { REFRESH_INTERVALS } from './config.js';
-import { setMagnitudeFilter } from './store.js';
+import { setDataModeChangeListener } from './store.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // ---- Load persisted settings ----
   loadSettings();
   syncSettingsForm();
+
+  // ---- Register data-mode listener (keeps store free of DOM dependencies) ----
+  setDataModeChangeListener(mode => {
+    const dot  = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    if (dot)  dot.className = `status-dot status-${mode}`;
+    if (text) text.textContent = mode === 'live' ? 'Live' : mode === 'demo' ? 'Demo' : 'Loading…';
+  });
 
   // ---- Initialise tabs ----
   initTabs();
@@ -39,9 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Wire earthquake callbacks to avoid circular imports
   setEarthquakeAlertCallback(checkEarthquakeAlerts);
   setEarthquakeDisplayCallback(updateSeismicDisplay);
-
-  // Wire magnitude filter setter into map module
-  registerMagnitudeFilterSetter(setMagnitudeFilter);
 
   fetchRealEarthquakeData();
   addTectonicOverlays();
@@ -72,8 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const magSlider = document.getElementById('mag-filter');
   if (magSlider) {
     magSlider.addEventListener('input', () => {
-      const val = parseFloat(magSlider.value);
-      applyMagnitudeFilter(val);
+      applyMagnitudeFilter(parseFloat(magSlider.value));
     });
   }
 

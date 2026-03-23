@@ -48,12 +48,22 @@ export function addHistoricalStorm(storm) {
 }
 
 // ---- Connection / data-source state ----
-/** 'live' | 'demo' – displayed in header status indicator. */
+/** 'live' | 'demo' | 'loading' – displayed in header status indicator. */
 export let dataMode = 'loading';
+
+/**
+ * Optional listener invoked whenever dataMode changes.
+ * Register via setDataModeChangeListener() from a UI module.
+ */
+export let dataModeChangeListener = null;
+
+export function setDataModeChangeListener(listener) {
+  dataModeChangeListener = listener;
+}
+
 export function setDataMode(mode) {
   dataMode = mode;
-  const dot = document.getElementById('status-dot');
-  const text = document.getElementById('status-text');
-  if (dot) dot.className = `status-dot status-${mode}`;
-  if (text) text.textContent = mode === 'live' ? 'Live' : mode === 'demo' ? 'Demo' : 'Loading…';
+  if (typeof dataModeChangeListener === 'function') {
+    dataModeChangeListener(mode);
+  }
 }

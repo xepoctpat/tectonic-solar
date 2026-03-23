@@ -7,7 +7,7 @@ import {
   DEMO_EARTHQUAKES,
   USGS_APIS,
 } from './config.js';
-import { setHistoricalEarthquakes, magnitudeFilter, setDataMode } from './store.js';
+import { setHistoricalEarthquakes, magnitudeFilter, setDataMode, setMagnitudeFilter } from './store.js';
 import { setText } from './utils.js';
 
 // ---- Module-level callbacks (set by main.js to avoid circular imports) ----
@@ -157,6 +157,8 @@ export function addEarthquakeMarkers(earthquakes) {
 
   // Apply magnitude filter
   const filtered = earthquakes.filter(eq => eq.mag >= magnitudeFilter);
+  // Check whether the earthquakes layer is currently enabled
+  const layerEnabled = document.getElementById('l-earthquakes')?.checked ?? true;
 
   filtered.forEach(eq => {
     const iconSize = Math.max(10, eq.mag * 4);
@@ -177,22 +179,39 @@ export function addEarthquakeMarkers(earthquakes) {
       iconAnchor: [iconSize / 2, iconSize / 2],
     });
 
-    const depthLabel = eq.depth != null
+    // Build popup with DOM nodes to avoid XSS from external USGS strings
+    const depthText = eq.depth != null ? `${eq.depth.toFixed(0)} km` : '?';
+    const depthZone = eq.depth != null
       ? (eq.depth < 35 ? '🟥 Shallow' : eq.depth < 100 ? '🟧 Intermediate' : '🟦 Deep')
       : '—';
 
-    const marker = L.marker([eq.lat, eq.lon], { icon })
-      .bindPopup(`
-        <div style="color:#000;font-family:Arial;min-width:200px">
-          <h3 style="margin:0 0 10px 0;color:${iconColor}">M${eq.mag.toFixed(1)} Earthquake</h3>
-          <p style="margin:5px 0"><strong>Location:</strong> ${eq.place || 'Unknown'}</p>
-          <p style="margin:5px 0"><strong>Depth:</strong> ${eq.depth != null ? eq.depth.toFixed(0) + ' km' : '?'} ${depthLabel}</p>
-          <p style="margin:5px 0"><strong>Coordinates:</strong> ${eq.lat.toFixed(3)}°, ${eq.lon.toFixed(3)}°</p>
-          <p style="margin:5px 0"><strong>Time:</strong> ${eq.time || 'Recent'}</p>
-        </div>
-      `)
-      .addTo(map);
+    const popup = document.createElement('div');
+    popup.style.cssText = 'color:#000;font-family:Arial;min-width:200px';
 
+    const title = document.createElement('h3');
+    title.style.cssText = `margin:0 0 10px 0;color:${iconColor}`;
+    title.textContent = `M${eq.mag.toFixed(1)} Earthquake`;
+    popup.appendChild(title);
+
+    [
+      ['Location', eq.place || 'Unknown'],
+      ['Depth', `${depthText} ${depthZone}`],
+      ['Coordinates', `${eq.lat.toFixed(3)}°, ${eq.lon.toFixed(3)}°`],
+      ['Time', eq.time || 'Recent'],
+    ].forEach(([label, value]) => {
+      const p = document.createElement('p');
+      p.style.margin = '5px 0';
+      const strong = document.createElement('strong');
+      strong.textContent = `${label}: `;
+      p.appendChild(strong);
+      p.appendChild(document.createTextNode(value));
+      popup.appendChild(p);
+    });
+
+    const marker = L.marker([eq.lat, eq.lon], { icon }).bindPopup(popup);
+
+    // Only add to map if the layer is enabled
+    if (layerEnabled) marker.addTo(map);
     earthquakeMarkers.push(marker);
   });
 
@@ -233,9 +252,11 @@ export async function fetchRealEarthquakeData() {
     }));
 
     allEarthquakes = earthquakes;
+    // Run alert checks BEFORE updating the historical store to avoid the
+    // new events being seen as "already alerted" by the duplicate suppressor.
+    if (_earthquakeAlertCallback) _earthquakeAlertCallback(earthquakes);
     setHistoricalEarthquakes(earthquakes);
     addEarthquakeMarkers(earthquakes);
-    if (_earthquakeAlertCallback) _earthquakeAlertCallback(earthquakes);
     if (_earthquakeDisplayCallback) _earthquakeDisplayCallback(earthquakes);
 
     setText('footer-status', 'Real Data – USGS & NOAA');
@@ -261,12 +282,7 @@ export async function fetchRealEarthquakeData() {
  * @param {number} minMag - Minimum magnitude to show (e.g. 4.5).
  */
 export function applyMagnitudeFilter(minMag) {
-  setMagnitudeFilterInStore(minMag);
+  setMagnitudeFilter(minMag);
   setText('mag-filter-value', minMag.toFixed(1));
-  addEarthquakeMarkers(allEarthquakes); // re-renders using updated magnitudeFilter from store
+  addEarthquakeMarkers(allEarthquakes);
 }
-
-// Dynamic import workaround: get setMagnitudeFilter at call time
-let _setMagnitudeFilter = null;
-export function registerMagnitudeFilterSetter(fn) { _setMagnitudeFilter = fn; }
-function setMagnitudeFilterInStore(val) { if (_setMagnitudeFilter) _setMagnitudeFilter(val); }

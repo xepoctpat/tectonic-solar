@@ -151,7 +151,6 @@ export function checkSpaceWeatherAlerts() {
     sendNotification(
       '⚠️ Geomagnetic Storm Alert',
       `Kp index: ${kp.value.toFixed(1)} (${kp.status})`,
-      '⚡',
     );
   }
 
@@ -171,7 +170,6 @@ export function checkSpaceWeatherAlerts() {
         sendNotification(
           `☀️ ${flare.class}${flare.level} Solar Flare Detected`,
           `Detected at ${flareTime.toLocaleTimeString()}`,
-          '🌞',
         );
       }
     }

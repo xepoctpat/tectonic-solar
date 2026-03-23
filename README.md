@@ -19,7 +19,7 @@ No build step. No API key. No backend. Pure ES modules + public CORS APIs.
 | Solar Wind Bt/Bz | NOAA DSCOVR/ACE Mag | 1-min JSON feed |
 | Kp Geomagnetic Index | NOAA SWPC | Real-time + 3-day history |
 | X-ray Flux / Solar Flares | NOAA GOES-Primary | 7-day JSON |
-| Dst Index | NOAA / Kyoto WDC | JSON |
+| Dst Index | NOAA / Kyoto WDC | Planned — not yet implemented |
 | Weather | Open-Meteo | Free API, no key |
 | Air Quality (PM2.5, AQI) | Open-Meteo Air Quality | Free API, no key |
 | Map Tiles | OpenStreetMap / Esri / CARTO | CDN |

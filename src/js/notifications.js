@@ -36,13 +36,12 @@ export async function requestNotificationPermission() {
  * @param {string} message
  * @param {string} [icon]
  */
-export function sendNotification(title, message, icon) {
+export function sendNotification(title, message) {
   if (!alertSettings.enabled) return;
 
   if (Notification.permission === 'granted') {
     const notification = new Notification(title, {
       body: message,
-      icon: icon || '🌍',
       tag: 'space-earth-monitor',
       requireInteraction: false,
     });
@@ -71,15 +70,27 @@ export function sendNotification(title, message, icon) {
 export function showInAppNotification(title, message, type = 'info') {
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  toast.innerHTML = `
-    <div class="toast-header">
-      <strong>${title}</strong>
-      <button class="toast-close" aria-label="Close notification">&times;</button>
-    </div>
-    <div class="toast-body">${message}</div>
-  `;
 
-  const closeBtn = toast.querySelector('.toast-close');
+  const header = document.createElement('div');
+  header.className = 'toast-header';
+
+  const titleEl = document.createElement('strong');
+  titleEl.textContent = title;
+  header.appendChild(titleEl);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'toast-close';
+  closeBtn.setAttribute('aria-label', 'Close notification');
+  closeBtn.textContent = '×';
+  header.appendChild(closeBtn);
+
+  const body = document.createElement('div');
+  body.className = 'toast-body';
+  body.textContent = message;
+
+  toast.appendChild(header);
+  toast.appendChild(body);
+
   closeBtn.addEventListener('click', () => toast.remove());
 
   const container = document.getElementById('toast-container');
