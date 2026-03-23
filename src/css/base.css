@@ -77,7 +77,18 @@ footer {
   100% { box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
 }
 
-/* ===== SCROLLBAR ===== */
+/* ===== STATUS INDICATOR DOT ===== */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-live    { background: #4CAF50; box-shadow: 0 0 6px #4CAF50; animation: pulse 2s infinite; }
+.status-demo    { background: #FF9800; }
+.status-loading { background: var(--color-text-secondary); }
 ::-webkit-scrollbar {
   width: 6px;
 }

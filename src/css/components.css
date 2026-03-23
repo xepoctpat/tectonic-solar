@@ -483,6 +483,23 @@
   font-style: italic;
 }
 
+/* ===== FLARE LOG ENTRIES ===== */
+.flare-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+}
+
+.flare-entry:last-child { border-bottom: none; }
+
+.flare-class {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-orange-400);
+  min-width: 40px;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .correlation-info,

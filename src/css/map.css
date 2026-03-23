@@ -113,6 +113,33 @@
   height: 100%;
 }
 
+/* ===== MAGNITUDE FILTER SLIDER ===== */
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: none;
+}
+
 /* ===== MAP CONTROLS ===== */
 .map-controls {
   display: flex;

@@ -1,13 +1,55 @@
 // ===== API ENDPOINTS =====
 export const NOAA_APIS = {
-  solarWind: 'https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json',
+  // Real-time magnetometer data (Bt, Bz field components)
+  solarWindMag: 'https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json',
+  // Real-time solar wind plasma (speed, density, temperature) – more accurate source
+  solarWindPlasma: 'https://services.swpc.noaa.gov/json/rtsw/rtsw_plasma_1m.json',
+  // 1-minute Kp index
   kpIndex: 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json',
+  // 3-day Kp history for charting
+  kpHistory: 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json',
+  // GOES X-ray flux (solar flares, 7-day window)
   xrayFlux: 'https://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json',
+  // Proton flux (radiation storm indicator)
   protonFlux: 'https://services.swpc.noaa.gov/json/goes/primary/integral-protons-plot-6-hour.json',
+  // Dst index (geomagnetic disturbance storm time)
+  dst: 'https://services.swpc.noaa.gov/products/kyoto-dst.json',
 };
 
+// Legacy alias kept for backward compatibility
+export const NOAA_APIS_SOLAR_WIND = 'https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json';
+
 export const USGS_APIS = {
+  // M4.5+ past day (main real-time feed)
   earthquakes: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson',
+  // M2.5+ past week (richer history for correlation & stats)
+  earthquakesWeek: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson',
+  // M4.5+ past 7 days (wider window for correlation analysis)
+  earthquakesWeekM45: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson',
+};
+
+// ===== OPEN-METEO FREE WEATHER API (no API key required) =====
+export const OPEN_METEO_APIS = {
+  /**
+   * Current weather – returns temperature, humidity, condition, wind, pressure, precipitation.
+   * @param {number} lat  Latitude
+   * @param {number} lon  Longitude
+   * @returns {string} URL
+   */
+  weather: (lat, lon) =>
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+    `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,` +
+    `wind_speed_10m,wind_direction_10m,pressure_msl,precipitation&timezone=auto`,
+
+  /**
+   * Current air quality – returns PM2.5, PM10, AQI (European standard).
+   * @param {number} lat  Latitude
+   * @param {number} lon  Longitude
+   * @returns {string} URL
+   */
+  airQuality: (lat, lon) =>
+    `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}` +
+    `&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,european_aqi&timezone=auto`,
 };
 
 // ===== DEFAULT ALERT SETTINGS =====
@@ -20,8 +62,9 @@ export const DEFAULT_ALERT_SETTINGS = {
 
 // ===== REFRESH INTERVALS (milliseconds) =====
 export const REFRESH_INTERVALS = {
-  earthquakes: 60_000,   // 1 minute
-  spaceWeather: 300_000, // 5 minutes
+  earthquakes: 60_000,    // 1 minute
+  spaceWeather: 300_000,  // 5 minutes
+  environment: 600_000,   // 10 minutes
 };
 
 // ===== MAP TILE LAYERS =====
@@ -99,13 +142,39 @@ export const DEMO_STORMS = [
   { kp: 7.1, date: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000) },
 ];
 
-// ===== LOCATION OPTIONS (environment tab) =====
+// ===== LOCATION OPTIONS (environment tab) – include coordinates for API calls =====
 export const LOCATIONS = {
-  'Stara Pazova, Serbia': { temp: 22.5 },
-  'Belgrade, Serbia': { temp: 23.1 },
-  'Tokyo, Japan': { temp: 18.4 },
-  'New York, USA': { temp: 15.2 },
+  'Stara Pazova, Serbia': { lat: 44.97, lon: 20.17 },
+  'Belgrade, Serbia':     { lat: 44.82, lon: 20.46 },
+  'Tokyo, Japan':         { lat: 35.68, lon: 139.69 },
+  'New York, USA':        { lat: 40.71, lon: -74.01 },
+  'Los Angeles, USA':     { lat: 34.05, lon: -118.24 },
+  'London, UK':           { lat: 51.51, lon: -0.13 },
+  'Sydney, Australia':    { lat: -33.87, lon: 151.21 },
 };
+
+// ===== WMO WEATHER INTERPRETATION CODES (ISO 4677) =====
+export const WMO_CODES = {
+  0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
+  45: 'Fog', 48: 'Icy fog',
+  51: 'Light drizzle', 53: 'Moderate drizzle', 55: 'Dense drizzle',
+  61: 'Slight rain', 63: 'Moderate rain', 65: 'Heavy rain',
+  71: 'Slight snow', 73: 'Moderate snow', 75: 'Heavy snow',
+  77: 'Snow grains',
+  80: 'Slight showers', 81: 'Moderate showers', 82: 'Violent showers',
+  85: 'Slight snow showers', 86: 'Heavy snow showers',
+  95: 'Thunderstorm', 96: 'Thunderstorm w/ hail', 99: 'Thunderstorm w/ heavy hail',
+};
+
+// ===== EUROPEAN AQI SCALE =====
+export const AQI_LEVELS = [
+  { max: 20,  label: 'Good',          color: '#50C878' },
+  { max: 40,  label: 'Fair',          color: '#9ACD32' },
+  { max: 60,  label: 'Moderate',      color: '#FFC107' },
+  { max: 80,  label: 'Poor',          color: '#FF9800' },
+  { max: 100, label: 'Very Poor',     color: '#F44336' },
+  { max: Infinity, label: 'Extremely Poor', color: '#9C27B0' },
+];
 
 // ===== SETTINGS STORAGE KEY =====
 export const SETTINGS_STORAGE_KEY = 'space-earth-monitor-settings';

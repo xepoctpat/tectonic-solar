@@ -10,15 +10,19 @@ import {
   switchMapType,
   zoomToRegion,
   setEarthquakeAlertCallback,
+  setEarthquakeDisplayCallback,
+  applyMagnitudeFilter,
+  registerMagnitudeFilterSetter,
 } from './map.js';
 import { fetchNOAASpaceWeather, refreshSpaceData } from './spaceWeather.js';
-import { checkEarthquakeAlerts, refreshEarthquakeData } from './seismic.js';
-import { initLocationSelector } from './environment.js';
+import { checkEarthquakeAlerts, refreshEarthquakeData, updateSeismicDisplay } from './seismic.js';
+import { initLocationSelector, fetchEnvironmentData } from './environment.js';
 import { refreshCorrelationData, updateCorrelationWindow } from './correlation.js';
 import { drawSpaceCharts } from './charts.js';
 import { loadSettings, syncSettingsForm, saveAlertSettings, toggleAlerts, resetSettings } from './settings.js';
 import { requestNotificationPermission, initNotificationStatus } from './notifications.js';
 import { REFRESH_INTERVALS } from './config.js';
+import { setMagnitudeFilter } from './store.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // ---- Load persisted settings ----
@@ -32,8 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const map = initializeMap();
   registerMap(map);
 
-  // Wire earthquake alert callback to avoid circular imports
+  // Wire earthquake callbacks to avoid circular imports
   setEarthquakeAlertCallback(checkEarthquakeAlerts);
+  setEarthquakeDisplayCallback(updateSeismicDisplay);
+
+  // Wire magnitude filter setter into map module
+  registerMagnitudeFilterSetter(setMagnitudeFilter);
 
   fetchRealEarthquakeData();
   addTectonicOverlays();
@@ -60,6 +68,15 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => zoomToRegion(btn.getAttribute('data-region')));
   });
 
+  // Magnitude filter slider
+  const magSlider = document.getElementById('mag-filter');
+  if (magSlider) {
+    magSlider.addEventListener('input', () => {
+      const val = parseFloat(magSlider.value);
+      applyMagnitudeFilter(val);
+    });
+  }
+
   // Refresh earthquake button
   document.getElementById('btn-refresh-eq')?.addEventListener('click', () => refreshEarthquakeData(fetchRealEarthquakeData));
   document.getElementById('btn-refresh-seismic')?.addEventListener('click', () => refreshEarthquakeData(fetchRealEarthquakeData));
@@ -75,6 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---- Environment ----
   initLocationSelector();
 
+  document.getElementById('btn-refresh-env')?.addEventListener('click', () => {
+    const select = document.getElementById('location-select');
+    if (select) fetchEnvironmentData(select.value);
+  });
+
   // ---- Correlation ----
   updateCorrelationWindow();
   document.getElementById('btn-refresh-correlation')?.addEventListener('click', refreshCorrelationData);
@@ -87,6 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---- Auto-refresh intervals ----
   setInterval(fetchRealEarthquakeData, REFRESH_INTERVALS.earthquakes);
   setInterval(fetchNOAASpaceWeather, REFRESH_INTERVALS.spaceWeather);
+  setInterval(() => {
+    const select = document.getElementById('location-select');
+    if (select) fetchEnvironmentData(select.value);
+  }, REFRESH_INTERVALS.environment);
 
   // ---- Resize handler: invalidate Leaflet map size ----
   window.addEventListener('resize', () => {

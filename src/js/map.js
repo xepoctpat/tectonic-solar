@@ -7,16 +7,19 @@ import {
   DEMO_EARTHQUAKES,
   USGS_APIS,
 } from './config.js';
-import { setHistoricalEarthquakes } from './store.js';
+import { setHistoricalEarthquakes, magnitudeFilter, setDataMode } from './store.js';
 import { setText } from './utils.js';
-// Optional alert callback (set by main.js to avoid circular dependency)
-let _earthquakeAlertCallback = null;
-export function setEarthquakeAlertCallback(fn) {
-  _earthquakeAlertCallback = fn;
-}
 
-// Module-level map state
+// ---- Module-level callbacks (set by main.js to avoid circular imports) ----
+let _earthquakeAlertCallback = null;
+let _earthquakeDisplayCallback = null;
+
+export function setEarthquakeAlertCallback(fn)   { _earthquakeAlertCallback = fn; }
+export function setEarthquakeDisplayCallback(fn) { _earthquakeDisplayCallback = fn; }
+
+// ---- Module-level map state ----
 let map = null;
+let allEarthquakes = [];   // raw fetched list (unfiltered)
 let earthquakeMarkers = [];
 let tectonicOverlays = [];
 let currentTileLayer = null;
@@ -152,26 +155,39 @@ export function addEarthquakeMarkers(earthquakes) {
   earthquakeMarkers.forEach(marker => map.removeLayer(marker));
   earthquakeMarkers = [];
 
-  earthquakes.forEach(eq => {
+  // Apply magnitude filter
+  const filtered = earthquakes.filter(eq => eq.mag >= magnitudeFilter);
+
+  filtered.forEach(eq => {
     const iconSize = Math.max(10, eq.mag * 4);
-    let iconColor = '#FFC107';
-    if (eq.mag >= 6) iconColor = '#F44336';
+    // Colour encodes magnitude band
+    let iconColor = '#FFC107'; // M4–5.4
+    if (eq.mag >= 6)   iconColor = '#F44336';
     else if (eq.mag >= 5.5) iconColor = '#FF9800';
+
+    // Border thickness encodes depth: shallow = thick border
+    const borderPx = eq.depth != null
+      ? (eq.depth < 35 ? 3 : eq.depth < 100 ? 2 : 1)
+      : 2;
 
     const icon = L.divIcon({
       className: 'earthquake-marker',
-      html: `<div style="width:${iconSize}px;height:${iconSize}px;background:${iconColor};border:2px solid white;border-radius:50%;box-shadow:0 0 10px rgba(255,255,255,0.5)"></div>`,
+      html: `<div style="width:${iconSize}px;height:${iconSize}px;background:${iconColor};border:${borderPx}px solid white;border-radius:50%;box-shadow:0 0 10px rgba(255,255,255,0.5)"></div>`,
       iconSize: [iconSize, iconSize],
       iconAnchor: [iconSize / 2, iconSize / 2],
     });
 
+    const depthLabel = eq.depth != null
+      ? (eq.depth < 35 ? '🟥 Shallow' : eq.depth < 100 ? '🟧 Intermediate' : '🟦 Deep')
+      : '—';
+
     const marker = L.marker([eq.lat, eq.lon], { icon })
       .bindPopup(`
-        <div style="color:#000;font-family:Arial">
-          <h3 style="margin:0 0 10px 0;color:${iconColor}">M${eq.mag} Earthquake</h3>
-          <p style="margin:5px 0"><strong>Location:</strong> ${eq.place}</p>
-          <p style="margin:5px 0"><strong>Depth:</strong> ${eq.depth} km</p>
-          <p style="margin:5px 0"><strong>Coordinates:</strong> ${eq.lat.toFixed(2)}°, ${eq.lon.toFixed(2)}°</p>
+        <div style="color:#000;font-family:Arial;min-width:200px">
+          <h3 style="margin:0 0 10px 0;color:${iconColor}">M${eq.mag.toFixed(1)} Earthquake</h3>
+          <p style="margin:5px 0"><strong>Location:</strong> ${eq.place || 'Unknown'}</p>
+          <p style="margin:5px 0"><strong>Depth:</strong> ${eq.depth != null ? eq.depth.toFixed(0) + ' km' : '?'} ${depthLabel}</p>
+          <p style="margin:5px 0"><strong>Coordinates:</strong> ${eq.lat.toFixed(3)}°, ${eq.lon.toFixed(3)}°</p>
           <p style="margin:5px 0"><strong>Time:</strong> ${eq.time || 'Recent'}</p>
         </div>
       `)
@@ -180,7 +196,8 @@ export function addEarthquakeMarkers(earthquakes) {
     earthquakeMarkers.push(marker);
   });
 
-  setText('eq-count', earthquakes.length);
+  setText('eq-count', filtered.length);
+  setText('eq-filter-count', filtered.length);
 }
 
 // ===== LAYER TOGGLE =====
@@ -212,21 +229,44 @@ export async function fetchRealEarthquakeData() {
       depth: feature.geometry.coordinates[2],
       time: new Date(feature.properties.time).toLocaleString(),
       date: new Date(feature.properties.time),
+      url: feature.properties.url,
     }));
 
+    allEarthquakes = earthquakes;
     setHistoricalEarthquakes(earthquakes);
     addEarthquakeMarkers(earthquakes);
     if (_earthquakeAlertCallback) _earthquakeAlertCallback(earthquakes);
+    if (_earthquakeDisplayCallback) _earthquakeDisplayCallback(earthquakes);
 
     setText('footer-status', 'Real Data – USGS & NOAA');
     setText('map-update', new Date().toLocaleTimeString());
     setText('data-source', 'USGS');
+    setDataMode('live');
   } catch {
     const demo = DEMO_EARTHQUAKES.map(eq => ({ ...eq, date: new Date(), time: new Date().toLocaleString() }));
+    allEarthquakes = demo;
     setHistoricalEarthquakes(demo);
     addEarthquakeMarkers(DEMO_EARTHQUAKES);
+    if (_earthquakeDisplayCallback) _earthquakeDisplayCallback(demo);
     setText('footer-status', 'Demo Mode');
     setText('map-update', 'Demo');
     setText('data-source', 'Demo');
+    setDataMode('demo');
   }
 }
+
+// ===== MAGNITUDE FILTER =====
+/**
+ * Apply a minimum magnitude filter and re-render markers from cached data.
+ * @param {number} minMag - Minimum magnitude to show (e.g. 4.5).
+ */
+export function applyMagnitudeFilter(minMag) {
+  setMagnitudeFilterInStore(minMag);
+  setText('mag-filter-value', minMag.toFixed(1));
+  addEarthquakeMarkers(allEarthquakes); // re-renders using updated magnitudeFilter from store
+}
+
+// Dynamic import workaround: get setMagnitudeFilter at call time
+let _setMagnitudeFilter = null;
+export function registerMagnitudeFilterSetter(fn) { _setMagnitudeFilter = fn; }
+function setMagnitudeFilterInStore(val) { if (_setMagnitudeFilter) _setMagnitudeFilter(val); }
