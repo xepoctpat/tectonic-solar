@@ -39,13 +39,17 @@ export async function requestNotificationPermission() {
 export function sendNotification(title, message) {
   if (!alertSettings.enabled) return;
 
-  if (Notification.permission === 'granted') {
-    const notification = new Notification(title, {
+    const options = {
       body: message,
       tag: 'space-earth-monitor',
       requireInteraction: false,
-    });
+    };
 
+    if (icon) {
+      options.icon = icon;
+    }
+
+    const notification = new Notification(title, options);
     notification.onclick = function () {
       window.focus();
       notification.close();
