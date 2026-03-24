@@ -217,6 +217,111 @@ export function drawSpaceCharts() {
 }
 
 /**
+ * Draw the cross-lag scan: event-rate ratio vs lag day (0–60).
+ * A horizontal dashed line at ratio=1 represents the null hypothesis.
+ * The 25–30 day range is highlighted to show the hypothesis window.
+ *
+ * @param {Array<{lag:number, eventRatio:number}>} lagData - from scanAllLags()
+ */
+export function drawLagScanChart(lagData = []) {
+  const canvas = document.getElementById('lag-scan-chart');
+  if (!canvas) return;
+
+  destroyChart('lagScan');
+
+  if (!lagData.length) return;
+
+  const labels = lagData.map(d => d.lag);
+  const ratios = lagData.map(d => parseFloat(d.eventRatio.toFixed(3)));
+
+  // Coloring: hypothesis window (25–30d) in amber, rest in teal
+  const pointColors = ratios.map((_, i) =>
+    (i >= 25 && i <= 30) ? '#FF9800' : colorVar('--color-primary', '#32B8C6'),
+  );
+  const pointSizes = ratios.map((_, i) => (i >= 25 && i <= 30) ? 6 : 2);
+
+  chartInstances.lagScan = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Event ratio (window / control)',
+          data: ratios,
+          borderColor: colorVar('--color-primary', '#32B8C6'),
+          backgroundColor: 'rgba(50, 184, 198, 0.07)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: pointSizes,
+          pointBackgroundColor: pointColors,
+          pointBorderColor: pointColors,
+          borderWidth: 2,
+        },
+        {
+          label: 'Null: no effect (ratio = 1)',
+          data: Array(lagData.length).fill(1.0),
+          borderColor: 'rgba(160,160,160,0.55)',
+          borderDash: [6, 4],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            color: colorVar('--color-text-secondary', '#626c71'),
+            font: { size: 11 },
+          },
+        },
+        tooltip: {
+          callbacks: {
+            title: items => `Lag: ${items[0].label} days`,
+            label: item => {
+              if (item.datasetIndex === 1) return 'Null (1.00)';
+              const r = Number(item.raw);
+              const marker = r > 1.15 ? ' ▲ elevated' : r < 0.85 ? ' ▼ suppressed' : ' ≈ null';
+              return `Ratio: ${r.toFixed(2)}${marker}`;
+            },
+          },
+        },
+        // Shade the hypothesis window 25–30d
+        annotation: undefined,
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Lag (days after storm)',
+            color: colorVar('--color-text-secondary', '#626c71'),
+          },
+          ticks: {
+            color: colorVar('--color-text-secondary', '#626c71'),
+            maxTicksLimit: 16,
+          },
+          grid: { color: colorVar('--color-border', 'rgba(0,0,0,0.1)') },
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Event ratio',
+            color: colorVar('--color-text-secondary', '#626c71'),
+          },
+          ticks: { color: colorVar('--color-text-secondary', '#626c71') },
+          grid: { color: colorVar('--color-border', 'rgba(0,0,0,0.1)') },
+        },
+      },
+      animation: { duration: 900 },
+    },
+  });
+}
+
+/**
  * Draw 30-day storm vs seismic timeline.
  * @param {Array<{kp:number, date:Date}>} storms
  * @param {Array<{mag:number, date:Date}>} earthquakes

@@ -490,6 +490,67 @@
 
       </div>
 
+      <!-- ===== AI PREDICTION ROW ===== -->
+      <div class="correlation-info" style="margin-top:0">
+
+        <div class="info-card" id="prediction-card">
+          <h3>📊 Statistical Prediction</h3>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-bottom:12px">
+            Empirical conditional probability of M5+ seismicity in the current 27–30 day
+            post-storm window, computed from the historical corpus in your browser.
+          </p>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+            <div style="font-size:2.6rem;font-weight:700;color:var(--color-primary)" id="pred-probability">—</div>
+            <div>
+              <div style="font-size:var(--font-size-sm);font-weight:600" id="pred-label">Awaiting analysis…</div>
+              <div style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-top:4px">
+                Confidence: <strong id="pred-confidence">—</strong>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:var(--font-size-xs);color:var(--color-text-secondary)" id="pred-detail">
+            Run analysis to compute prediction.
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>🗄️ Data Foundation</h3>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-bottom:12px">
+            Load 2 years of global M5+ earthquakes from USGS ComCat into your browser's
+            IndexedDB. Required for statistically powered lag scan and prediction.
+          </p>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:var(--font-size-sm)">
+            <div>Historical USGS M5+: <strong id="data-eq-status">Not loaded</strong></div>
+            <div>Storm seed (SC25): <strong id="data-storm-status">Not loaded</strong></div>
+            <div>Corpus span: <strong id="data-span">—</strong></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button id="btn-load-historical" class="btn btn-primary" style="font-size:var(--font-size-sm)">
+              ⬇ Load 2-Year History
+            </button>
+            <button id="btn-run-analysis" class="btn btn-secondary" style="font-size:var(--font-size-sm)">
+              ▶ Run Analysis
+            </button>
+          </div>
+          <div id="data-load-status" style="margin-top:8px;font-size:var(--font-size-xs);color:var(--color-text-secondary)"></div>
+        </div>
+
+      </div>
+
+      <!-- ===== CROSS-LAG SCAN ===== -->
+      <div class="timeline-container" style="margin-top:0">
+        <h3>0–60 Day Hypothesis Test: Event Ratio vs. Lag</h3>
+        <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-bottom:8px">
+          For each lag L, the ratio of M5+ earthquakes in the [storm+L±3d] window vs a matched
+          control window. Ratio &gt;1 = elevated seismicity. <strong style="color:#FF9800">Amber dots</strong> = 27–28d hypothesis zone.
+          A null result (ratio ≈ 1 everywhere) falsifies the hypothesis.
+        </p>
+        <canvas id="lag-scan-chart" height="180" aria-label="Cross-lag scan: event ratio 0-60 days after geomagnetic storm"></canvas>
+        <div id="lag-scan-verdict" style="margin-top:10px;font-size:var(--font-size-sm);padding:8px 12px;border-radius:6px;background:var(--color-surface)">
+          Run analysis to see hypothesis test result.
+        </div>
+      </div>
+
       <div class="timeline-container">
         <h3>30-Day Timeline (Storms vs. M5+ Earthquakes)</h3>
         <canvas id="correlation-timeline" aria-label="30-day geomagnetic storm and earthquake correlation timeline"></canvas>
