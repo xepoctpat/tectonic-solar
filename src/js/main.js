@@ -1,4 +1,5 @@
 // ===== MAIN APPLICATION ENTRY POINT =====
+import { errorLogger } from './error-logger.js';
 import { initTabs, registerMap } from './tabs.js';
 import {
   initializeMap,
@@ -22,8 +23,27 @@ import { loadSettings, syncSettingsForm, saveAlertSettings, toggleAlerts, resetS
 import { requestNotificationPermission, initNotificationStatus } from './notifications.js';
 import { REFRESH_INTERVALS } from './config.js';
 import { setDataModeChangeListener } from './store.js';
+import { initDB } from './db.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // ---- Register Service Worker (PWA) ----
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js');
+      console.log('Service Worker registered:', reg);
+    } catch (err) {
+      console.warn('Service Worker registration failed:', err);
+    }
+  }
+
+  // ---- Initialize IndexedDB ----
+  try {
+    await initDB();
+    console.log('IndexedDB initialized');
+  } catch (err) {
+    console.warn('IndexedDB init failed:', err);
+  }
+
   // ---- Load persisted settings ----
   loadSettings();
   syncSettingsForm();
@@ -72,12 +92,24 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => zoomToRegion(btn.getAttribute('data-region')));
   });
 
-  // Magnitude filter slider
-  const magSlider = document.getElementById('mag-filter');
-  if (magSlider) {
-    magSlider.addEventListener('input', () => {
-      applyMagnitudeFilter(parseFloat(magSlider.value));
+  // Dark mode toggle
+  const darkModeToggle = document.getElementById('dark-mode-toggle');
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener('click', () => {
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      darkModeToggle.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('darkMode', isDark ? 'true' : 'false');
+      // Re-render charts for dark mode colors
+      import('./charts.js').then(({ drawSpaceCharts }) => drawSpaceCharts());
     });
+  }
+
+  // Initialize dark mode from localStorage
+  const savedDarkMode = localStorage.getItem('darkMode');
+  if (savedDarkMode === 'true') {
+    document.documentElement.classList.add('dark');
+    if (darkModeToggle) darkModeToggle.textContent = '☀️';
   }
 
   // Refresh earthquake button

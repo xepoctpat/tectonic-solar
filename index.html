@@ -6,8 +6,16 @@
   <title>Space-Earth Monitor</title>
   <meta name="description" content="Real-time monitoring of space weather, seismic activity, and their potential correlation.">
 
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#218D8D">
+  <link rel="icon" href="data:,">
+
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Chart.js CSS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- App Stylesheets -->
   <link rel="stylesheet" href="src/css/variables.css" />
@@ -24,6 +32,7 @@
   <header>
     <h1>🌍 Space-Earth Monitor</h1>
     <div class="header-status">
+      <button id="dark-mode-toggle" class="btn-secondary" style="padding: 4px 8px; font-size: 14px;">🌙</button>
       <span class="status-dot status-loading" id="status-dot"></span>
       <span id="status-text">Loading…</span>
       <span>•</span>

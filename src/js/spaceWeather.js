@@ -1,9 +1,11 @@
 // ===== SPACE WEATHER MODULE =====
 import { NOAA_APIS } from './config.js';
 import { spaceWeatherCache, alertSettings, addHistoricalStorm, setSolarWindHistory, setKpHistory, solarWindHistory, kpHistory } from './store.js';
-import { getKpStatus, detectFlares, setText, setStyle } from './utils.js';
+import { getKpStatus, detectFlares, setText, setStyle, fetchWithRetry } from './utils.js';
 import { sendNotification, showInAppNotification } from './notifications.js';
 import { drawRealSolarWindChart, drawRealKpChart } from './charts.js';
+import { addStorm } from './db.js';
+import { errorLogger } from './error-logger.js';
 
 // ===== FETCH NOAA DATA =====
 /**
@@ -13,13 +15,28 @@ import { drawRealSolarWindChart, drawRealKpChart } from './charts.js';
  */
 export async function fetchNOAASpaceWeather() {
   try {
+    const plasmaPromise = NOAA_APIS.solarWindPlasma
+      ? fetchWithRetry(NOAA_APIS.solarWindPlasma)
+          .then(r => r.json())
+          .catch(async (err) => {
+            // Log non-critical upstream failure
+            await errorLogger.logError(err, {
+              endpoint: NOAA_APIS.solarWindPlasma,
+              type: 'upstream_failure',
+              severity: 'non_critical',
+              description: 'NOAA plasma data unavailable',
+            });
+            return [];
+          })
+      : Promise.resolve([]);
+
     // Fetch all feeds in parallel for speed
     const [magData, plasmaData, kpData, kp3DayData, xrayData] = await Promise.all([
-      fetch(NOAA_APIS.solarWindMag).then(r => r.json()),
-      fetch(NOAA_APIS.solarWindPlasma).then(r => r.json()).catch(() => []),
-      fetch(NOAA_APIS.kpIndex).then(r => r.json()),
-      fetch(NOAA_APIS.kpHistory).then(r => r.json()).catch(() => []),
-      fetch(NOAA_APIS.xrayFlux).then(r => r.json()).catch(() => []),
+      fetchWithRetry(NOAA_APIS.solarWindMag).then(r => r.json()),
+      plasmaPromise,
+      fetchWithRetry(NOAA_APIS.kpIndex).then(r => r.json()),
+      fetchWithRetry(NOAA_APIS.kpHistory).then(r => r.json()).catch(() => []),
+      fetchWithRetry(NOAA_APIS.xrayFlux).then(r => r.json()).catch(() => []),
     ]);
 
     // ---- Solar wind (magnetic field Bt/Bz from magnetometer feed) ----
@@ -55,7 +72,10 @@ export async function fetchNOAASpaceWeather() {
       };
 
       if (kpValue >= 5) {
-        addHistoricalStorm({ kp: kpValue, date: new Date(latestKp.time_tag) });
+        const storm = { kp: kpValue, date: new Date(latestKp.time_tag) };
+        addHistoricalStorm(storm);
+        // Also save to IndexedDB for persistence
+        addStorm(storm).catch(err => console.warn('Failed to save storm to DB:', err));
       }
     }
 
