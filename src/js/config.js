@@ -1,31 +1,46 @@
 // ===== API ENDPOINTS =====
+const LOCAL_PROXY_PORT = '3000';
+const LOCAL_PROXY_BASE =
+  typeof window !== 'undefined' && window.location.port === LOCAL_PROXY_PORT
+    ? `${window.location.origin}/api`
+    : '';
+
+export const IS_PROXY_MODE = Boolean(LOCAL_PROXY_BASE);
+
+function resolveApiUrl(proxyPath, directUrl) {
+  return LOCAL_PROXY_BASE ? `${LOCAL_PROXY_BASE}${proxyPath}` : directUrl;
+}
+
 export const NOAA_APIS = {
   // Real-time magnetometer data (Bt, Bz field components)
-  solarWindMag: 'https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json',
-  // Real-time solar wind plasma (speed, density, temperature) – more accurate source
-  solarWindPlasma: 'https://services.swpc.noaa.gov/json/rtsw/rtsw_plasma_1m.json',
+  solarWindMag: resolveApiUrl('/noaa/rtsw-mag', 'https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json'),
+  // Real-time solar wind plasma (speed, density, temperature) – enabled in proxy mode
+  // Direct browser mode (:8000) can hit CORS blocks on this endpoint, so it is disabled there.
+  solarWindPlasma: IS_PROXY_MODE
+    ? resolveApiUrl('/noaa/rtsw-plasma', 'https://services.swpc.noaa.gov/json/rtsw/rtsw_plasma_1m.json')
+    : null,
   // 1-minute Kp index
-  kpIndex: 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json',
+  kpIndex: resolveApiUrl('/noaa/kp-1m', 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json'),
   // 3-day Kp history for charting
-  kpHistory: 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json',
+  kpHistory: resolveApiUrl('/noaa/kp-history', 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json'),
   // GOES X-ray flux (solar flares, 7-day window)
-  xrayFlux: 'https://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json',
+  xrayFlux: resolveApiUrl('/noaa/xrays', 'https://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json'),
   // Proton flux (radiation storm indicator)
-  protonFlux: 'https://services.swpc.noaa.gov/json/goes/primary/integral-protons-plot-6-hour.json',
+  protonFlux: resolveApiUrl('/noaa/protons', 'https://services.swpc.noaa.gov/json/goes/primary/integral-protons-plot-6-hour.json'),
   // Dst index (geomagnetic disturbance storm time)
-  dst: 'https://services.swpc.noaa.gov/products/kyoto-dst.json',
+  dst: resolveApiUrl('/noaa/dst', 'https://services.swpc.noaa.gov/products/kyoto-dst.json'),
 };
 
 // Legacy alias kept for backward compatibility
-export const NOAA_APIS_SOLAR_WIND = 'https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json';
+export const NOAA_APIS_SOLAR_WIND = NOAA_APIS.solarWindMag;
 
 export const USGS_APIS = {
   // M4.5+ past day (main real-time feed)
-  earthquakes: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson',
+  earthquakes: resolveApiUrl('/usgs/eq-4.5-day', 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson'),
   // M2.5+ past week (richer history for correlation & stats)
-  earthquakesWeek: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson',
+  earthquakesWeek: resolveApiUrl('/usgs/eq-2.5-week', 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson'),
   // M4.5+ past 7 days (wider window for correlation analysis)
-  earthquakesWeekM45: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson',
+  earthquakesWeekM45: resolveApiUrl('/usgs/eq-4.5-week', 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson'),
 };
 
 // ===== OPEN-METEO FREE WEATHER API (no API key required) =====
@@ -37,9 +52,12 @@ export const OPEN_METEO_APIS = {
    * @returns {string} URL
    */
   weather: (lat, lon) =>
-    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,` +
-    `wind_speed_10m,wind_direction_10m,pressure_msl,precipitation&timezone=auto`,
+    resolveApiUrl(
+      `/openmeteo/weather?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`,
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+      `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,` +
+      `wind_speed_10m,wind_direction_10m,pressure_msl,precipitation&timezone=auto`,
+    ),
 
   /**
    * Current air quality – returns PM2.5, PM10, AQI (European standard).
@@ -48,8 +66,11 @@ export const OPEN_METEO_APIS = {
    * @returns {string} URL
    */
   airQuality: (lat, lon) =>
-    `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}` +
-    `&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,european_aqi&timezone=auto`,
+    resolveApiUrl(
+      `/openmeteo/air-quality?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`,
+      `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}` +
+      `&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,european_aqi&timezone=auto`,
+    ),
 };
 
 // ===== DEFAULT ALERT SETTINGS =====

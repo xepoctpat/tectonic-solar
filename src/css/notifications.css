@@ -64,6 +64,22 @@
   padding: 12px 15px;
   color: var(--color-text);
   font-size: 13px;
+  position: relative;
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--color-primary);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  animation: toast-progress 8s linear forwards;
+}
+
+@keyframes toast-progress {
+  from { width: 100%; }
+  to { width: 0%; }
 }
 
 /* ===== TOAST VARIANTS ===== */

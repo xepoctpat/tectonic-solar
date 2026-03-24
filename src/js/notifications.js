@@ -36,9 +36,10 @@ export async function requestNotificationPermission() {
  * @param {string} message
  * @param {string} [icon]
  */
-export function sendNotification(title, message) {
+export function sendNotification(title, message, icon) {
   if (!alertSettings.enabled) return;
 
+  if ('Notification' in window && Notification.permission === 'granted') {
     const options = {
       body: message,
       tag: 'space-earth-monitor',
@@ -61,7 +62,7 @@ export function sendNotification(title, message) {
   // Always show in-app toast regardless of browser permission
   const type = title.includes('Storm') ? 'warning'
     : title.includes('Earthquake') ? 'error'
-    : 'info';
+      : 'info';
   showInAppNotification(title, message, type);
 }
 

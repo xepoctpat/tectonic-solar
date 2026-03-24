@@ -1,0 +1,54 @@
+{
+  "name": "Space-Earth Monitor",
+  "short_name": "SolarQuake",
+  "description": "Real-time monitoring of space weather, seismic activity, and their potential correlation",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fcfcf9",
+  "theme_color": "#218D8D",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><circle cx='96' cy='96' r='90' fill='%23218D8D'/><text x='96' y='120' font-size='80' text-anchor='middle' fill='white' font-family='system-ui'>🌍</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='240' fill='%23218D8D'/><text x='256' y='320' font-size='220' text-anchor='middle' fill='white' font-family='system-ui'>🌍</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23fcfcf9' width='540' height='720'/><text x='270' y='360' font-size='80' text-anchor='middle' fill='%23218D8D' font-family='system-ui'>🌍 Space-Earth Monitor</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["weather", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Space Weather",
+      "short_name": "Weather",
+      "description": "View current space weather data",
+      "url": "./index.html#space-weather"
+    },
+    {
+      "name": "Seismic Activity",
+      "short_name": "Seismic",
+      "description": "View recent earthquakes",
+      "url": "./index.html#seismic"
+    },
+    {
+      "name": "Correlation Analysis",
+      "short_name": "Correlation",
+      "description": "View space weather and seismic correlation",
+      "url": "./index.html#correlation"
+    }
+  ]
+}

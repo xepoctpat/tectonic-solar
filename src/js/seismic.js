@@ -3,6 +3,7 @@ import { alertSettings, historicalEarthquakes } from './store.js';
 import { sendNotification, showInAppNotification } from './notifications.js';
 import { setText } from './utils.js';
 import { drawMagnitudeDistribution } from './charts.js';
+import { addEarthquake } from './db.js';
 
 /**
  * Check a fresh set of earthquakes against alert thresholds and notify.

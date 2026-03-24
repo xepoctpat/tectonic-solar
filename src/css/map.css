@@ -2,10 +2,13 @@
 .map-main {
   display: flex;
   flex: 1;
+  min-height: 0;
   gap: 0;
   overflow: hidden;
-  border: 1px solid var(--color-card-border);
+  border: 2px solid var(--color-primary);
   border-radius: var(--radius-base);
+  background: linear-gradient(135deg, rgba(33, 141, 141, 0.1) 0%, rgba(33, 141, 141, 0.05) 100%);
+  box-shadow: 0 4px 16px rgba(33, 141, 141, 0.2);
 }
 
 .map-sidebar {
@@ -103,9 +106,11 @@
 /* ===== MAP DISPLAY ===== */
 .map-display {
   flex: 1;
-  background: #001a33;
+  background: linear-gradient(180deg, #001a33 0%, #0d2a3d 100%);
   position: relative;
   min-width: 0;
+  min-height: 0;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 #map-display {

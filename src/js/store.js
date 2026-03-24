@@ -42,14 +42,54 @@ export function setHistoricalEarthquakes(earthquakes) {
 
 export function addHistoricalStorm(storm) {
   historicalStorms.push(storm);
-  // Keep only last 30 days
+  pruneHistoricalStorms();
+}
+
+export function pruneHistoricalStorms() {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   historicalStorms = historicalStorms.filter(s => s.date >= thirtyDaysAgo);
+}
+
+export function pruneHistoricalEarthquakes() {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  historicalEarthquakes = historicalEarthquakes.filter(eq => eq.date >= thirtyDaysAgo);
 }
 
 // ---- Connection / data-source state ----
 /** 'live' | 'demo' | 'loading' – displayed in header status indicator. */
 export let dataMode = 'loading';
+
+/** 'online' | 'degraded' | 'offline' – tracks API health. */
+export let connectionStatus = 'online';
+
+export function setConnectionStatus(status) {
+  connectionStatus = status;
+}
+
+// ---- Getter functions ----
+export function getActiveStorms(hours = 24) {
+  const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+  return historicalStorms.filter(s => s.date >= cutoff);
+}
+
+export function getRecentEarthquakes(hours = 24) {
+  const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+  return historicalEarthquakes.filter(eq => eq.date >= cutoff);
+}
+
+// ---- Subscribe pattern for reactive updates ----
+const subscribers = {};
+
+export function subscribe(key, callback) {
+  if (!subscribers[key]) subscribers[key] = [];
+  subscribers[key].push(callback);
+}
+
+export function publish(key, data) {
+  if (subscribers[key]) {
+    subscribers[key].forEach(callback => callback(data));
+  }
+}
 
 /**
  * Optional listener invoked whenever dataMode changes.

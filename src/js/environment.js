@@ -2,7 +2,7 @@
 // Fetches real weather and air quality data from the Open-Meteo free API.
 // No API key required. CORS-enabled. https://open-meteo.com
 import { LOCATIONS, OPEN_METEO_APIS, WMO_CODES, AQI_LEVELS } from './config.js';
-import { setText } from './utils.js';
+import { setText, fetchWithRetry } from './utils.js';
 import { drawAqiChart } from './charts.js';
 
 // ---- Internal state ----
@@ -54,7 +54,7 @@ export async function fetchEnvironmentData(locationName) {
 /** Fetch current weather from Open-Meteo and update weather card. */
 async function _fetchWeather(lat, lon) {
   try {
-    const res = await fetch(OPEN_METEO_APIS.weather(lat, lon));
+    const res = await fetchWithRetry(OPEN_METEO_APIS.weather(lat, lon));
     const data = await res.json();
     const c = data.current;
     if (!c) return false;
@@ -78,7 +78,7 @@ async function _fetchWeather(lat, lon) {
 /** Fetch current air quality from Open-Meteo and update AQ card. */
 async function _fetchAirQuality(lat, lon) {
   try {
-    const res = await fetch(OPEN_METEO_APIS.airQuality(lat, lon));
+    const res = await fetchWithRetry(OPEN_METEO_APIS.airQuality(lat, lon));
     const data = await res.json();
     const c = data.current;
     if (!c) return false;

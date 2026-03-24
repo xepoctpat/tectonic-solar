@@ -1,0 +1,12 @@
+# Node
+node_modules/
+
+# Python virtual environments
+solar-env/
+.venv/
+venv/
+
+# OS/editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/*.log

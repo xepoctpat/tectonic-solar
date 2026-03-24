@@ -1,0 +1,315 @@
+# Tectonic-Solar Testing Checklist
+
+**Date**: March 24, 2026  
+**Environment**: Local dev server (Python HTTP, port 8000)  
+**Scope**: Full feature walkthrough + offline + responsive + accessibility + performance
+
+---
+
+## PART 1: Feature Walkthrough (All Tabs)
+
+### 🗺️ Map Tab
+- [ ] **Load**: Map appears with OpenStreetMap tiles
+- [ ] **Earthquakes**: Red/orange/yellow markers appear (M4.5+, from USGS live data)
+- [ ] **Zoom**: Can zoom in/out (scroll wheel or +/- buttons)
+- [ ] **Pan**: Can drag and pan around the globe
+- [ ] **Magnitude Filter**: Slider filters earthquakes by magnitude threshold
+- [ ] **Tectonic Boundaries**: Plate boundaries overlay visible (if tectonic layer enabled)
+- [ ] **Popup**: Click earthquake marker → popup shows magnitude, location, depth
+- [ ] **Layer Toggle**: Can switch between 4 tile layers (OSM, Satellite, Topo, Dark)
+- [ ] **Status**: No 404 errors in DevTools Console
+
+### ⚡ Space Weather Tab
+- [ ] **Solar Wind Chart**: Line chart appears with speed values (km/s)
+- [ ] **Kp Index Chart**: Bar chart appears with 24-hour history, color-coded (teal/yellow/orange/red)
+- [ ] **X-Ray Flares**: Flare log shows GOES classification (A/B/C/M/X)
+- [ ] **Real Data**: Values are current (from NOAA endpoints)
+- [ ] **Chart Hover**: Hover over chart points → tooltip shows exact value
+- [ ] **Chart Responsive**: Chart resizes when window resized
+
+### 🌍 Seismic Tab
+- [ ] **Earthquake List**: Earthquakes displayed newest-first
+- [ ] **Columns**: Magnitude, Location, Depth, Time shown
+- [ ] **Time Format**: "minutes ago" / "hours ago" labels update
+- [ ] **Magnitude Distribution**: Histogram chart appears (M4-M5, M5-M6, M6+)
+- [ ] **Statistics**: Shows M5+ count, M6+ count, largest magnitude
+- [ ] **Real Data**: Multiple earthquakes from USGS
+
+### 🌤️ Environment Tab
+- [ ] **Weather**: Current temp, feels-like, humidity, pressure, wind displayed
+- [ ] **AQI**: PM2.5, PM10, CO, NO₂ values shown with color coding
+- [ ] **AQI Gauge**: Doughnut chart shows overall AQI with center text
+- [ ] **Air Quality Scale**: Visual indication of air quality level (Good/Fair/Moderate/Poor/Very Poor)
+- [ ] **Real Data**: From Open-Meteo API (free, no key required)
+
+### 📊 Correlation Tab
+- [ ] **Timeline**: 27-28 day correlation window visible
+- [ ] **Storms**: Orange diamond markers for geomagnetic storms
+- [ ] **Earthquakes**: Yellow triangle markers for M5+ earthquakes
+- [ ] **Correlation Lines**: Lines connecting storm/EQ pairs at lag distance
+- [ ] **Statistics**: Pearson r, p-value, strength (Weak/Moderate/Strong) displayed
+- [ ] **Lag Window**: Configurable 21-35 day range (currently via code)
+
+### ⚙️ Settings Tab
+- [ ] **Dark Mode Toggle**: 🌙/☀️ button in header works
+- [ ] **Dark Mode Applied**: All colors invert correctly (background dark, text light)
+- [ ] **Chart Dark Mode**: Charts rerender with dark colors on toggle
+- [ ] **Map Dark Mode**: Affects map overlay (if applicable)
+- [ ] **Persistence**: Reload page → dark mode persists
+- [ ] **localStorage**: Check DevTools Application → localStorage `darkMode` is 'true'/'false'
+
+---
+
+## PART 2: Data Source Validation
+
+### NOAA Live Data (Space Weather)
+- [ ] **Solar Wind Endpoint**: `/data/ACE_SWepam_data` returns valid JSON
+- [ ] **Kp Index**: Real-time Kp values populate chart
+- [ ] **Flare Data**: X-ray flux shows current solar activity
+- [ ] **Retry Logic**: Force offline, wait 10s → should retry (check console)
+
+### USGS Live Data (Earthquakes)
+- [ ] **Recent Earthquakes**: Significant earthquakes M4.5+ from last 30 days appear
+- [ ] **Location Accuracy**: Markers placed at correct lat/lon
+- [ ] **Magnitude Accuracy**: Color coding matches magnitude scale
+- [ ] **Live Updates**: Each page load fetches latest (timestamps differ)
+
+### Open-Meteo Live Data (Weather/AQI)
+- [ ] **Current Weather**: Matches desktop weather apps for your location
+- [ ] **AQI Data**: PM2.5 values plausible (check local air quality reports)
+- [ ] **No API Key**: App works without authentication
+
+---
+
+## PART 3: UX Responsiveness & Polish
+
+### Mobile Experience (375px - iPhone SE)
+- [ ] **Layout**: Single-column stacking (no side-by-side)
+- [ ] **Charts**: Readable on small screen (font size appropriate)
+- [ ] **Map**: Touches, zoom gestures work smoothly
+- [ ] **Header**: Dark mode button visible without scroll
+- [ ] **Tabs**: Horizontal scroll or tab switching works
+- [ ] **Spacing**: No text cutoff, appropriate padding
+- [ ] **Touch Targets**: Buttons ≥48px tall (easy to tap)
+
+### Tablet Experience (768px - iPad)
+- [ ] **2-Column**: Charts/lists side-by-side if space permits
+- [ ] **Map**: Full width, readable labels
+- [ ] **Touch**: Works smoothly without mouse/trackpad
+- [ ] **Landscape**: Rotate device → layout adapts
+
+### Desktop Experience (1440px)
+- [ ] **Full Layout**: Grid-based layout visible (multiple columns)
+- [ ] **Charts**: Large, readable, good use of screen real estate
+- [ ] **Map**: Full-width interactive map
+- [ ] **Performance**: No lag when scrolling or switching tabs
+
+### Visual Consistency
+- [ ] **Spacing**: Uniform 8px grid (buttons, margins, padding)
+- [ ] **Shadows**: Consistent elevation (cards have `box-shadow`)
+- [ ] **Borders**: Consistent rounded corners (8px)
+- [ ] **Colors**: Accent colors match across tabs (teal, orange, yellow)
+- [ ] **Typography**: Font sizes consistent (headers, body, labels)
+- [ ] **Dark Mode**: All components have dark-mode styles
+
+### Interaction Smoothness
+- [ ] **Hover Effects**: Cards lift on hover (CSS transform)
+- [ ] **Button Ripple**: Clicking buttons shows ripple animation
+- [ ] **Tab Switch**: Smooth transition between tabs
+- [ ] **Chart Render**: Charts animate in 800ms (not instant)
+- [ ] **Loading State**: If data takes time, skeleton loaders appear
+- [ ] **Transitions**: Color changes smooth (300ms) not instant
+
+### Data Display Clarity
+- [ ] **Charts**:
+  - [ ] Legend visible and readable
+  - [ ] Axis labels present (km/s for wind, Kp index, magnitude)
+  - [ ] Grid lines help read values
+  - [ ] Colors distinct and accessible for colorblind users
+- [ ] **Tables**:
+  - [ ] Headers bold/distinct from rows
+  - [ ] Rows have alternating background (light/dark) for readability
+  - [ ] Right-aligned numbers (magnitude, depth)
+- [ ] **Numbers**:
+  - [ ] Decimals shown (1.5, 2.3, not 2)
+  - [ ] Units visible (km, m/s, µT)
+  - [ ] No `NaN` or `undefined` values
+
+---
+
+## PART 4: Error Handling & Resilience
+
+### Network Failure Scenarios
+- [ ] **API Timeout**: Open app, immediate DevTools Network tab → Slow 3G
+  - [ ] Request attempts 3 times
+  - [ ] Delays: 2s, 4s, 8s (exponential backoff)
+  - [ ] After fail, shows demo data instead
+- [ ] **API 500 Error**: Simulate API failure
+  - [ ] Still retries 3x
+  - [ ] Graceful fallback message
+- [ ] **No Internet**: Disconnect network completely
+  - [ ] Service Worker kicks in
+  - [ ] Cached data loads
+  - [ ] No blank page
+
+### Offline Mode (Service Worker)
+- [ ] **Initial Load**: Page loads and fetches data normally
+- [ ] **DevTools Network → Offline**: Enable offline mode
+- [ ] **Reload Page**: Page loads from cache
+- [ ] **Navigate Tabs**: All cached data accessible
+- [ ] **Reconnect**: Re-enable network → app refreshes with new data
+
+### Data Persistence (IndexedDB)
+- [ ] **Initial Load**: App fetches and stores data
+- [ ] **DevTools Application → IndexedDB → TectonicSolar**:
+  - [ ] `storms` object store visible
+  - [ ] `earthquakes` object store visible
+  - [ ] Records have dates, values
+- [ ] **Reload Page**: Same data visible (from IndexedDB, not new fetch)
+- [ ] **90-Day Pruning**: Records older than 90 days should be deleted
+  - [ ] (Test with mock data: advance time in db.js)
+
+---
+
+## PART 5: Accessibility (WCAG AA)
+
+### Keyboard Navigation
+- [ ] **Tab Key**: Can navigate through all interactive elements (buttons, links, form inputs)
+- [ ] **Tab Order**: Logical progression (left → right, top → bottom)
+- [ ] **Focus Indicator**: Focused elements have visible outline (blue ring)
+- [ ] **Enter/Space**: Buttons activate with Enter, checkboxes with Space
+- [ ] **Escape**: Any modals/dialogs close with Escape key
+
+### Screen Reader (NVDA / JAWS / VoiceOver)
+- [ ] **Page Title**: Screen reader announces "Space-Earth Monitor" or similar
+- [ ] **Headings**: `<h1>`, `<h2>` tags create outline (navigate with ← | →)
+- [ ] **Buttons**: Screen reader says "Button: [name]" (e.g., "Button: Dark Mode Toggle")
+- [ ] **Charts**: Alt text or ARIA labels describe chart content
+- [ ] **Forms**: Labels associated with inputs (`<label for="inputId">`)
+- [ ] **Images**: All decorative images have `alt=""`, data images have descriptive alt text
+
+### Color Contrast
+- [ ] **Text**: Text color on background ≥4.5:1 ratio (WCAG AA)
+  - [ ] Use DevTools: Inspect element → Accessibility panel → check contrast
+- [ ] **UI Components**: Unfocused: ≥3:1, Focused: ≥4.5:1
+- [ ] **Dark Mode**: Contrast ratios maintained in dark mode
+- [ ] **Color Alone**: Don't rely on color to convey info (e.g., red-only error)
+  - [ ] Use text labels: "Error:" in red + bold text
+
+### Focus Management
+- [ ] **Dark Mode Toggle**: After click, focus moves to button (visible outline)
+- [ ] **Modal/Dialog**: Focus trapped within modal (can't tab outside)
+- [ ] **Close Modal**: Returning focus to element that opened it
+
+---
+
+## PART 6: Performance (Lighthouse)
+
+### Run Lighthouse Audit
+1. Open app in Chrome: `http://localhost:8000`
+2. DevTools (F12) → Lighthouse tab
+3. Mobile device → Run audit
+4. Record scores:
+
+| Metric | Score | Target | Pass? |
+|--------|-------|--------|-------|
+| Performance | ___ | ≥85 | ☐ |
+| PWA | ___ | ≥90 | ☐ |
+| Best Practices | ___ | ≥90 | ☐ |
+| Accessibility | ___ | ≥90 | ☐ |
+| SEO | ___ | ≥90 | ☐ |
+
+### Key Metrics
+- [ ] **First Contentful Paint (FCP)**: <1.8s (good)
+- [ ] **Largest Contentful Paint (LCP)**: <2.5s (good)
+- [ ] **Cumulative Layout Shift (CLS)**: <0.1 (excellent)
+- [ ] **Time to Interactive (TTI)**: <3.8s (good)
+- [ ] **Speed Index**: <3.4s (good)
+
+### Optimization Notes
+- [ ] CSS in `<head>` (render-blocking)
+- [ ] JS `defer` (non-blocking)
+- [ ] Chart.js lazy-loaded? (check Network tab)
+- [ ] Service Worker cache working?
+
+---
+
+## PART 7: Browser Compatibility
+
+### Chrome/Edge 120+
+- [ ] All features work
+- [ ] Charts render
+- [ ] Dark mode works
+
+### Firefox 115+
+- [ ] All features work
+- [ ] IndexedDB accessible
+- [ ] Dark mode works
+
+### Safari 16+ (macOS/iOS)
+- [ ] All features work
+- [ ] Service Worker supported
+- [ ] IndexedDB works (may be limited storage)
+
+### Mobile Safari (iOS 16+)
+- [ ] Responsive layout works
+- [ ] Touch events smooth
+- [ ] Can install as PWA ("Add to Home Screen")
+
+---
+
+## PART 8: API Rate Limiting Check
+
+| API | Rate Limit | Check |
+|-----|------------|-------|
+| NOAA | Unlimited | ☐ |
+| USGS | Generous | ☐ |
+| Open-Meteo | 1,000/day (free) | ☐ |
+
+- [ ] **No throttling**: Page loads data without delays
+- [ ] **Retry doesn't hammer**: 3 retries with backoff (not instant spam)
+- [ ] **Caching**: Same data served from IndexedDB on reload (not re-fetched)
+
+---
+
+## PART 9: Bug Report Template
+
+If you find issues during testing, use this format:
+
+```
+### Bug: [Short Title]
+
+**Steps to Reproduce:**
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+
+**Expected Behavior:**
+[What should happen]
+
+**Actual Behavior:**
+[What actually happened]
+
+**Device/Browser:**
+[Chrome 120 / Firefox 115 / Safari 16 / etc]
+[Desktop 1440x900 / Mobile 375x667 / etc]
+
+**Screenshots/Console Errors:**
+[Paste console errors if any]
+```
+
+---
+
+## Sign-Off
+
+**Tester**: ___________  
+**Date**: ___________  
+**Total Issues Found**: ___________  
+**Blockers**: ☐ None ☐ Minor ☐ Major  
+
+**All tests passed?** ☐ Yes ☐ No (see Notes below)
+
+**Notes**:
+```
+[Add any observations, UI improvements, UX suggestions]
+```

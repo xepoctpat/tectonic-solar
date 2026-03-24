@@ -1,0 +1,195 @@
+{
+  "appUrl": "http://localhost:8000",
+  "generatedAt": "2026-03-24T04:16:59.460Z",
+  "health": {
+    "ok": false,
+    "status": 0,
+    "body": {
+      "error": "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"
+    }
+  },
+  "consoleErrorCount": 0,
+  "pageErrorCount": 0,
+  "requestFailureCount": 0,
+  "httpErrorCount": 0,
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestFailures": [],
+  "httpErrors": [],
+  "tabResults": [
+    {
+      "tab": "map",
+      "passed": true,
+      "panelExists": true,
+      "probeExists": true,
+      "panelActive": true,
+      "panelVisible": true,
+      "probeVisible": true,
+      "panelRect": {
+        "x": 0,
+        "y": 120,
+        "width": 1440,
+        "height": 739,
+        "top": 120,
+        "right": 1440,
+        "bottom": 859,
+        "left": 0
+      },
+      "probeRect": {
+        "x": 272,
+        "y": 229,
+        "width": 1146,
+        "height": 551,
+        "top": 229,
+        "right": 1418,
+        "bottom": 780,
+        "left": 272
+      }
+    },
+    {
+      "tab": "space",
+      "passed": true,
+      "panelExists": true,
+      "probeExists": true,
+      "panelActive": true,
+      "panelVisible": true,
+      "probeVisible": true,
+      "panelRect": {
+        "x": 0,
+        "y": 120,
+        "width": 1440,
+        "height": 739,
+        "top": 120,
+        "right": 1440,
+        "bottom": 859,
+        "left": 0
+      },
+      "probeRect": {
+        "x": 38,
+        "y": 493,
+        "width": 299,
+        "height": 12318,
+        "top": 493,
+        "right": 337,
+        "bottom": 12811,
+        "left": 38
+      }
+    },
+    {
+      "tab": "seismic",
+      "passed": true,
+      "panelExists": true,
+      "probeExists": true,
+      "panelActive": true,
+      "panelVisible": true,
+      "probeVisible": true,
+      "panelRect": {
+        "x": 0,
+        "y": 120,
+        "width": 1440,
+        "height": 739,
+        "top": 120,
+        "right": 1440,
+        "bottom": 859,
+        "left": 0
+      },
+      "probeRect": {
+        "x": 38,
+        "y": 273,
+        "width": 1364,
+        "height": 900,
+        "top": 273,
+        "right": 1402,
+        "bottom": 1173,
+        "left": 38
+      }
+    },
+    {
+      "tab": "env",
+      "passed": true,
+      "panelExists": true,
+      "probeExists": true,
+      "panelActive": true,
+      "panelVisible": true,
+      "probeVisible": true,
+      "panelRect": {
+        "x": 0,
+        "y": 120,
+        "width": 1440,
+        "height": 739,
+        "top": 120,
+        "right": 1440,
+        "bottom": 859,
+        "left": 0
+      },
+      "probeRect": {
+        "x": 1192.4375,
+        "y": 158,
+        "width": 130,
+        "height": 22,
+        "top": 158,
+        "right": 1322.4375,
+        "bottom": 180,
+        "left": 1192.4375
+      }
+    },
+    {
+      "tab": "correlation",
+      "passed": true,
+      "panelExists": true,
+      "probeExists": true,
+      "panelActive": true,
+      "panelVisible": true,
+      "probeVisible": true,
+      "panelRect": {
+        "x": 0,
+        "y": 120,
+        "width": 1440,
+        "height": 739,
+        "top": 120,
+        "right": 1440,
+        "bottom": 859,
+        "left": 0
+      },
+      "probeRect": {
+        "x": 37,
+        "y": 542.5,
+        "width": 1366,
+        "height": 400,
+        "top": 542.5,
+        "right": 1403,
+        "bottom": 942.5,
+        "left": 37
+      }
+    },
+    {
+      "tab": "settings",
+      "passed": true,
+      "panelExists": true,
+      "probeExists": true,
+      "panelActive": true,
+      "panelVisible": true,
+      "probeVisible": true,
+      "panelRect": {
+        "x": 0,
+        "y": 120,
+        "width": 1440,
+        "height": 739,
+        "top": 120,
+        "right": 1440,
+        "bottom": 859,
+        "left": 0
+      },
+      "probeRect": {
+        "x": 38,
+        "y": 329,
+        "width": 299,
+        "height": 20,
+        "top": 329,
+        "right": 337,
+        "bottom": 349,
+        "left": 38
+      }
+    }
+  ]
+}

@@ -8,7 +8,8 @@ import {
   USGS_APIS,
 } from './config.js';
 import { setHistoricalEarthquakes, magnitudeFilter, setDataMode, setMagnitudeFilter } from './store.js';
-import { setText } from './utils.js';
+import { setText, fetchWithRetry } from './utils.js';
+import { addEarthquake } from './db.js';
 
 // ---- Module-level callbacks (set by main.js to avoid circular imports) ----
 let _earthquakeAlertCallback = null;
@@ -237,7 +238,7 @@ export function updateMapLayers() {
 // ===== EARTHQUAKE DATA FETCHING =====
 export async function fetchRealEarthquakeData() {
   try {
-    const response = await fetch(USGS_APIS.earthquakes);
+    const response = await fetchWithRetry(USGS_APIS.earthquakes);
     const data = await response.json();
 
     const earthquakes = data.features.map(feature => ({
@@ -256,6 +257,10 @@ export async function fetchRealEarthquakeData() {
     // new events being seen as "already alerted" by the duplicate suppressor.
     if (_earthquakeAlertCallback) _earthquakeAlertCallback(earthquakes);
     setHistoricalEarthquakes(earthquakes);
+    // Also save to IndexedDB for persistence
+    earthquakes.forEach(eq => {
+      addEarthquake(eq).catch(err => console.warn('Failed to save EQ to DB:', err));
+    });
     addEarthquakeMarkers(earthquakes);
     if (_earthquakeDisplayCallback) _earthquakeDisplayCallback(earthquakes);
 

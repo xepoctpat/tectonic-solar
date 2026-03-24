@@ -90,3 +90,51 @@ export function setStyle(id, prop, value) {
 export function getCSSVar(varName) {
   return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
 }
+
+/**
+ * Fetch with timeout using AbortController.
+ * @param {string} url - URL to fetch.
+ * @param {number} timeoutMs - Timeout in milliseconds (default 10000).
+ * @returns {Promise<Response>}
+ */
+export async function fetchWithTimeout(url, timeoutMs = 10000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch with exponential backoff retry.
+ * @param {string} url - URL to fetch.
+ * @param {number} maxRetries - Max retry attempts (default 3).
+ * @param {number} baseDelay - Base delay in ms (default 2000).
+ * @returns {Promise<Response>}
+ */
+export async function fetchWithRetry(url, maxRetries = 3, baseDelay = 2000) {
+  let lastError;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fetchWithTimeout(url);
+    } catch (error) {
+      lastError = error;
+      if (attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt); // 2s, 4s, 8s
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw lastError;
+}

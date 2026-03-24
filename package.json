@@ -1,0 +1,21 @@
+{
+  "name": "tectonic-solar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Space-Earth Monitor local deployment simulator with API proxy",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:sim": "node server.js",
+    "test:tabs": "node scripts/tab-smoke-test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.58.2"
+  }
+}

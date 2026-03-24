@@ -12,6 +12,8 @@ body {
   color: var(--color-text);
   height: 100vh;
   overflow: hidden;
+  scroll-behavior: smooth;
+  transition: background-color var(--duration-normal), color var(--duration-normal);
 }
 
 /* ===== APP LAYOUT ===== */
@@ -48,8 +50,9 @@ header h1 {
 
 /* ===== FOOTER ===== */
 footer {
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border-top: 1px solid var(--glass-border);
   padding: var(--space-12) var(--space-24);
   display: flex;
   justify-content: space-between;
@@ -89,6 +92,7 @@ footer {
 .status-live    { background: #4CAF50; box-shadow: 0 0 6px #4CAF50; animation: pulse 2s infinite; }
 .status-demo    { background: #FF9800; }
 .status-loading { background: var(--color-text-secondary); }
+.status-degraded { background: #FF9800; box-shadow: 0 0 6px #FF9800; animation: pulse 3s infinite; }
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -98,4 +102,27 @@ footer {
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
   border-radius: 3px;
+}
+
+/* ===== RESPONSIVE BREAKPOINTS ===== */
+@media (max-width: 768px) {
+  header {
+    padding: var(--space-12) var(--space-16);
+  }
+
+  footer {
+    padding: var(--space-8) var(--space-16);
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  header h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .header-status {
+    font-size: 11px;
+  }
+}
 }
