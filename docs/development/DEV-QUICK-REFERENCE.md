@@ -40,6 +40,35 @@ Use the Python static server only for quick static rendering checks. It is not t
 
 ---
 
+## Documentation Workflow
+
+Keep docs current as part of the implementation process, not as an afterthought.
+
+### Which document to update
+
+| Change type | Update this first |
+|---|---|
+| Startup / local run flow | `README.md`, `.github/copilot-instructions.md` |
+| User-visible UX or feature behavior | `README.md`, optionally `docs/testing/TESTING-CHECKLIST.md` |
+| Research direction / next steps | `docs/planning/ROADMAP.md` |
+| Runtime / developer workflow | `docs/development/DEV-QUICK-REFERENCE.md` |
+| Test procedure / smoke / troubleshooting | `docs/testing/TESTING-CHECKLIST.md`, `docs/testing/TESTING-TROUBLESHOOT.md` |
+| Meaningful session recap | `docs/handoff/HANDOFF.md` |
+| Historical status docs | annotate as superseded instead of rewriting the original context |
+
+### What to record
+
+- what changed
+- why it changed
+- what was validated
+- what still looks weak, risky, misleading, or incomplete
+
+### Rule of thumb
+
+If a change would confuse a future developer unless they saw it written down, update the doc in the same stretch of work.
+
+---
+
 ## Key Modules & Responsibilities
 
 ### Frontend Core (`public/src/js/`)

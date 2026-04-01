@@ -167,6 +167,23 @@ scripts/                Dev/test scripts (not served)
 - **Error handling** — non-critical failures (space weather feeds) should log via `error-logger.js` and degrade gracefully. Critical failures (app can't start) may throw.
 - **State** — shared state lives in `store.js`. Do not scatter mutable globals across modules.
 
+### Documentation discipline
+
+- Keep a running track record as development progresses. Do not treat docs as optional cleanup.
+- For any meaningful feature, fix, UX change, security change, runtime change, or research-method change, update the most relevant existing docs in the same work session when practical.
+- Prefer updating existing docs over creating new markdown files.
+- Record both:
+  - **what worked / what improved**
+  - **what failed, regressed, stayed risky, or remains uncertain**
+- Use the existing docs by intent:
+  - `README.md` — user-facing startup, capabilities, major UX changes
+  - `docs/planning/ROADMAP.md` — current direction, next steps, research plan changes
+  - `docs/planning/PROJECT-STATUS.md` — status shifts and supersession notes
+  - `docs/development/DEV-QUICK-REFERENCE.md` — developer workflow, runtime, extension points
+  - `docs/testing/*` — validation steps, expected outcomes, troubleshooting
+  - `docs/handoff/HANDOFF.md` — meaningful session recaps and validated outcomes
+- Do not rewrite history. If an older document is preserved for historical context, annotate it as superseded rather than silently replacing its past assumptions.
+
 ---
 
 ## Environment Variables
