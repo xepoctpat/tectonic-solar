@@ -24,6 +24,8 @@ const STATIC_ASSETS = [
   './src/js/notifications.js',
   './src/js/config.js',
   './src/js/db.js',
+  './src/js/error-logger.js',
+  './src/js/prediction.js',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
   'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',

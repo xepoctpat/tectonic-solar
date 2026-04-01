@@ -20,19 +20,19 @@ npm start          # starts node server.js on port 3000
 ```
 
 - Requires **Node ≥ 18** (uses native `fetch`).
-- Express serves the static root (`__dirname`) and proxies all external APIs to sidestep CORS.
+- Express serves `public/` (isolated web root) and proxies all external APIs to sidestep CORS.
 - Port is configurable: `PORT=3001 npm start`
 - Health endpoint: `GET /api/health` → `{ ok: true }`
-- Only runtime dependency: `express ^4.21.2`
+- Runtime dependencies: `express ^4.21.2`, `express-rate-limit ^7`
 
 ### Secondary — Python static server (no proxy)
 
 ```powershell
 solar-env\Scripts\Activate.ps1    # activate venv first
-python -m http.server 8000
+python -m http.server 8000 --directory public
 ```
 
-- Serves static files only. NOAA/USGS CORS restrictions will block some endpoints.
+- Serves static files from `public/` only. NOAA/USGS CORS restrictions will block some endpoints.
 - Use this mode for quick static checks only, not full feature validation.
 
 ---
@@ -47,6 +47,8 @@ python -m http.server 8000
 | Activate (bash/sh) | `solar-env\Scripts\activate` |
 
 **Always activate the venv before running any Python command in this project.**
+
+> **Enforcement rule:** Before executing `python`, `pip`, `pytest`, `flask`, `gunicorn`, or any Python-based CLI tool, **always** run `solar-env\Scripts\Activate.ps1` (PowerShell) or `source solar-env/Scripts/activate` (bash) first. Never use the system Python. If the venv is already active (prompt shows `(solar-env)`), skip re-activation.
 
 Key packages installed: Flask 3.1.3, flask-cors 6.0.2, gunicorn 25.1.0, gevent 25.9.1, pandas 3.0.1, numpy 2.4.3, pytest 9.0.2, pytest-cov 7.1.0, python-dotenv 1.2.2, requests 2.32.5.
 
@@ -94,29 +96,42 @@ NOAA endpoints have known instability (upstream 5xx). `server.js` applies retry 
 
 ```
 server.js               Express proxy server (Node.js entry point)
-index.html              Single-page app shell
-sw.js                   Service worker (offline caching)
-manifest.json           PWA manifest
-src/
-  css/                  Modular CSS (variables, base, components, map, notifications)
-  js/
-    config.js           All API URLs, refresh intervals, map config, alert defaults
-    store.js            Shared mutable state + pub/sub
-    main.js             Bootstrap: SW registration, DB init, tab/map/chart init, timers
-    spaceWeather.js     Fetches all NOAA feeds, updates cache, triggers charts/alerts
-    seismic.js          USGS earthquake list rendering + M5+/M6+ stats
-    map.js              Leaflet map, USGS markers, tectonic overlays, plate vectors
-    correlation.js      27-28d lag analysis, Pearson r, Fisher p-value
-    charts.js           Chart.js wrappers (solar wind, Kp history, magnitude, AQI, correlation)
-    environment.js      Open-Meteo weather + air quality cards
-    db.js               IndexedDB wrapper (storms + earthquakes, 90-day window)
-    utils.js            fetchWithTimeout, fetchWithRetry, getKpStatus, detectFlares
-    settings.js         Alert threshold persistence (localStorage)
-    notifications.js    Browser Notification API + in-app toasts
-    tabs.js             Tab switching + ARIA + Leaflet invalidateSize
-    error-logger.js     Non-blocking error classification + telemetry POST
-scripts/
+public/                 Web root — only this directory is served to browsers
+  index.html            Single-page app shell
+  sw.js                 Service worker (offline caching)
+  manifest.json         PWA manifest
+  src/
+    css/                Modular CSS (variables, base, components, map, notifications)
+    js/
+      config.js         All API URLs, refresh intervals, map config, alert defaults
+      store.js          Shared mutable state + pub/sub
+      main.js           Bootstrap: SW registration, DB init, tab/map/chart init, timers
+      spaceWeather.js   Fetches all NOAA feeds, updates cache, triggers charts/alerts
+      seismic.js        USGS earthquake list rendering + M5+/M6+ stats
+      map.js            Leaflet map, USGS markers, tectonic overlays, plate vectors
+      correlation.js    27-28d lag analysis, Pearson r, Fisher p-value
+      prediction.js     Bayesian prediction engine, lag scan, USGS ComCat loader
+      charts.js         Chart.js wrappers (solar wind, Kp, magnitude, AQI, lag scan)
+      environment.js    Open-Meteo weather + air quality cards
+      db.js             IndexedDB wrapper (storms + earthquakes, 90-day window)
+      utils.js          fetchWithTimeout, fetchWithRetry, getKpStatus, detectFlares
+      settings.js       Alert threshold persistence (localStorage)
+      notifications.js  Browser Notification API + in-app toasts
+      tabs.js           Tab switching + ARIA + Leaflet invalidateSize
+      error-logger.js   Non-blocking error classification + telemetry POST
+docs/                   Project documentation (not served)
+  handoff/              Session handoff notes
+  research/             Scientific hypothesis analysis
+  planning/             Roadmap, project status, sprint deliveries
+  operations/           Deployment guides
+  development/          Dev reference, visual fix logs
+  testing/              Testing checklists and troubleshooting
+scripts/                Dev/test scripts (not served)
   tab-smoke-test.mjs    Playwright smoke test (6 tabs, HTTP errors, console errors)
+  restart-server.js     Server restart utility
+  verify-visuals.js     Visual verification
+  lighthouse-automation.js  Lighthouse audit runner
+  test-automation.js    Test automation runner
 ```
 
 ---
@@ -152,7 +167,7 @@ No `.env` file. No API keys anywhere in the codebase. Do not add secrets to sour
 $env:APP_URL="http://localhost:3000"; node scripts/tab-smoke-test.mjs
 
 # Verify visuals
-node verify-visuals.js
+node scripts/verify-visuals.js
 ```
 
 Expected results: 6/6 tabs pass, 0 console errors, 0 HTTP errors.

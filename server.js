@@ -4,7 +4,7 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
-const ROOT_DIR = __dirname;
+const PUBLIC_DIR = path.join(__dirname, 'public');
 const REQUEST_TIMEOUT_MS = 15000;
 
 app.disable('x-powered-by');
@@ -27,22 +27,8 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: '16kb' }));
 
-// Block access to sensitive project files (server code, configs, dev files)
-const SENSITIVE_PATTERN = /^\/(server\.js|restart-server\.js|verify-visuals\.js|lighthouse-automation\.js|test-automation\.js|package(-lock)?\.json|requirements\.txt|\.env|\.git|\.github|node_modules|solar-env|scripts|test-results)/i;
-app.use((req, res, next) => {
-  if (SENSITIVE_PATTERN.test(req.path)) {
-    res.status(404).end();
-    return;
-  }
-  // Also block top-level markdown files (dev docs)
-  if (/^\/[^/]+\.md$/i.test(req.path)) {
-    res.status(404).end();
-    return;
-  }
-  next();
-});
-
-app.use(express.static(ROOT_DIR, {
+// Serve only the public/ directory — no project root files are web-accessible
+app.use(express.static(PUBLIC_DIR, {
   extensions: ['html'],
   dotfiles: 'deny',
 }));
@@ -305,8 +291,14 @@ app.post('/api/proto-sir/log-event', (req, res) => {
   }
 });
 
-app.get('*', (_req, res) => {
-  res.sendFile(path.join(ROOT_DIR, 'index.html'));
+// SPA fallback — only serve index.html for clean navigation paths
+app.get('*', (req, res) => {
+  // Block anything with a file extension or starting with a dot-segment
+  if (path.extname(req.path) || /\/\./.test(req.path)) {
+    res.status(404).end();
+    return;
+  }
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
 app.listen(PORT, () => {
