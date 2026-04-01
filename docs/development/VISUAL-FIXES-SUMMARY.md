@@ -1,5 +1,7 @@
 # Visual Design & Map Visibility Fixes - March 24, 2026
 
+> **Historical note (April 1, 2026):** This summary predates the `public/` web-root restructure and the new friendly launcher. For current local verification, use `npm run launch` and open `http://localhost:3000`. References below to `localhost:8000` or pre-restructure paths describe the original session context.
+
 ## 🔧 What Was Fixed
 
 ### Critical Fixes
@@ -73,7 +75,8 @@
 ## 🧪 How to Verify Changes
 
 ### Method 1: Manual Browser Check
-1. Open http://localhost:8000
+1. Run `npm run launch`
+2. Open http://localhost:3000
 2. Press `Ctrl+Shift+R` (hard refresh to clear cache)
 3. Verify:
    - ✅ Map displays full-size (not hidden)
@@ -83,10 +86,10 @@
    - ✅ Headers have colored gradient backgrounds
 
 ### Method 2: Console Verification Script
-1. Open http://localhost:8000
+1. Open http://localhost:3000
 2. Press `F12` (DevTools)
 3. Navigate to "Console" tab
-4. Paste contents of `verify-visuals.js`
+4. Paste contents of `scripts/verify-visuals.js`
 5. Script will check:
    - Map container dimensions and visibility
    - Tab functionality
@@ -96,7 +99,7 @@
 ### Method 3: Automated Test Suite
 1. Press F12
 2. Navigate to "Console" tab
-3. Paste contents of `test-automation.js`
+3. Paste contents of `scripts/test-automation.js`
 4. View comprehensive test results (10 test categories)
 
 ---
@@ -219,10 +222,10 @@ After hard refresh, verify:
 
 ## 📚 Files Modified
 
-1. **src/css/components.css** — Tab styling, buttons, cards, form controls, metrics
-2. **src/css/map.css** — Map container layout and styling
-3. **verify-visuals.js** — NEW: Visual verification script
-4. **test-automation.js** — Updated HTML/CSS checking
+1. **public/src/css/components.css** — Tab styling, buttons, cards, form controls, metrics
+2. **public/src/css/map.css** — Map container layout and styling
+3. **scripts/verify-visuals.js** — Visual verification script
+4. **scripts/test-automation.js** — Updated HTML/CSS checking
 
 ---
 

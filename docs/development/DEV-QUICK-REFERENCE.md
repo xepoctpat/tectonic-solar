@@ -3,14 +3,46 @@
 ## Project: Tectonic-Solar Space-Earth Monitor
 
 **Stack**: Vanilla JavaScript ES modules, Chart.js (CDN), Leaflet 1.9.4 (CDN), IndexedDB  
-**Status**: Sprint 1-4 Complete (MVP redesign), ready for feature expansion  
-**Dev Server**: `python -m http.server 8000` from project root  
+**Status**: Active research dashboard with hardened Node proxy and no-build frontend  
+**Recommended launch**: `npm run launch`  
+**App URL**: `http://localhost:3000`  
+**Health endpoint**: `http://localhost:3000/api/health`  
+
+---
+
+## Runtime Modes
+
+### Recommended — Node proxy (full functionality)
+
+```powershell
+npm install
+npm run launch
+```
+
+- Reuses an existing local instance when possible.
+- Opens the app automatically.
+- Preserves the app's security model and proxy validation.
+
+### Headless / automation
+
+```powershell
+npm run launch:headless
+```
+
+### Secondary — Python static server (limited)
+
+```powershell
+solar-env\Scripts\Activate.ps1
+python -m http.server 8000 --directory public
+```
+
+Use the Python static server only for quick static rendering checks. It is not the recommended path for live data validation because the Node proxy handles CORS, rate limiting, and request validation.
 
 ---
 
 ## Key Modules & Responsibilities
 
-### Frontend Core (`src/js/`)
+### Frontend Core (`public/src/js/`)
 
 | Module | Purpose | Exports |
 |--------|---------|---------|
@@ -33,10 +65,10 @@
 
 | File | Purpose |
 |------|---------|
-| `sw.js` | Cache-first assets, network-first APIs, offline support |
-| `manifest.json` | PWA metadata, icons, shortcuts, display mode |
+| `public/sw.js` | Cache-first assets, network-first APIs, offline support |
+| `public/manifest.json` | PWA metadata, icons, shortcuts, display mode |
 
-### Styling System (`src/css/`)
+### Styling System (`public/src/css/`)
 
 | File | Scope |
 |------|-------|
@@ -156,17 +188,18 @@ export function drawCustomChart(containerId, data) {
 
 ### Add New API Endpoint (with resilience)
 ```javascript
-// In spaceWeather.js (or new module):
+// 1. Add a validated proxy route in server.js when needed.
+// 2. Add the URL helper in public/src/js/config.js.
+// 3. Fetch through fetchWithRetry() from the feature module.
+
+import { fetchWithRetry } from './utils.js';
+import { SOME_APIS } from './config.js';
+
 async function fetchCustomData() {
-  const url = 'https://api.example.com/data';
-  const data = await fetchWithRetry(url, 3, 2000);
-  
-  if (data) {
-    store.customData = data;
-    // Optional: persist to IndexedDB
-    // await db.addRecord('customStore', data);
-    publish('customData', data);
-  }
+  const response = await fetchWithRetry(SOME_APIS.customEndpoint);
+  const data = await response.json();
+  store.customData = data;
+  publish('customData', data);
 }
 ```
 
@@ -203,6 +236,18 @@ analyzeCorrelation(lagDays - 3, lagDays + 3);
 ---
 
 ## Common Tasks
+
+### Start the app locally
+```powershell
+# Recommended
+npm run launch
+
+# Automation / CI
+npm run launch:headless
+
+# Direct server control
+npm start
+```
 
 ### Debug Service Worker
 ```
@@ -258,8 +303,8 @@ Chrome DevTools → Network → Offline (checkbox)
 
 ## Deployment Checklist
 
-- [ ] Run `npm run build` (if build step added)
-- [ ] `npm run lighthouse` (PWA ≥90, Performance ≥85)
+- [ ] Start app with `npm run launch:headless`
+- [ ] `node scripts/lighthouse-automation.js` (or run Lighthouse in Chrome DevTools)
 - [ ] Test offline mode in all 3 tabs
 - [ ] Verify IndexedDB persists data across reload
 - [ ] Dark mode toggle persists on refresh
@@ -274,8 +319,21 @@ Chrome DevTools → Network → Offline (checkbox)
 ## Useful Commands
 
 ```bash
-# Start dev server
-python -m http.server 8000
+# Recommended local launch
+npm run launch
+
+# Headless launch for scripts/CI
+npm run launch:headless
+
+# Manual server start
+npm start
+
+# Smoke test (server running at localhost:3000)
+$env:APP_URL="http://localhost:3000"; node scripts/tab-smoke-test.mjs
+
+# Optional static-only check
+solar-env\Scripts\Activate.ps1
+python -m http.server 8000 --directory public
 
 # Check for JavaScript errors
 # (Chrome DevTools → Console)
@@ -297,13 +355,13 @@ python -m http.server 8000
 
 ## Documentation
 
-- **README.md** — Project overview, features, install  
-- **ROADMAP.md** — Future features, known issues  
-- **SPRINT-1-DELIVERY.md** — This sprint's changes (you are here)  
-- **docs/guides/** — Detailed guides (if added)  
+- **README.md** — Project overview, startup, research context  
+- **docs/planning/ROADMAP.md** — Current plan and roadmap  
+- **docs/development/DEV-QUICK-REFERENCE.md** — This quick reference  
+- **docs/testing/** — Smoke/manual testing guidance  
 
 ---
 
-**Last Updated**: March 24, 2026  
+**Last Updated**: April 1, 2026  
 **Maintainer**: GitHub Copilot / Tectonic-Solar Team  
 **Contact**: GitHub Issues

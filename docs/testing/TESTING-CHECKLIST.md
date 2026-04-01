@@ -1,8 +1,28 @@
 # Tectonic-Solar Testing Checklist
 
-**Date**: March 24, 2026  
-**Environment**: Local dev server (Python HTTP, port 8000)  
+**Date**: April 1, 2026  
+**Environment**: Local Node proxy (`npm run launch`) on port 3000  
 **Scope**: Full feature walkthrough + offline + responsive + accessibility + performance
+
+---
+
+## Before You Start
+
+### Recommended startup
+```powershell
+npm install
+npm run launch
+```
+
+Expected app URL: `http://localhost:3000`
+
+### Optional static-only check
+```powershell
+solar-env\Scripts\Activate.ps1
+python -m http.server 8000 --directory public
+```
+
+Use the Python static server only for layout/static verification. The Node proxy is the correct environment for live research and API testing.
 
 ---
 
@@ -43,12 +63,12 @@
 - [ ] **Real Data**: From Open-Meteo API (free, no key required)
 
 ### 📊 Correlation Tab
-- [ ] **Timeline**: 27-28 day correlation window visible
-- [ ] **Storms**: Orange diamond markers for geomagnetic storms
-- [ ] **Earthquakes**: Yellow triangle markers for M5+ earthquakes
-- [ ] **Correlation Lines**: Lines connecting storm/EQ pairs at lag distance
-- [ ] **Statistics**: Pearson r, p-value, strength (Weak/Moderate/Strong) displayed
-- [ ] **Lag Window**: Configurable 21-35 day range (currently via code)
+- [ ] **Prediction Card**: Statistical prediction card renders with probability / confidence state
+- [ ] **Data Foundation**: Historical-load status and corpus span appear
+- [ ] **Lag Scan Chart**: 0–60 day lag scan appears or shows explicit empty state
+- [ ] **Lag Verdict**: Null/signal/insufficient-data messaging is visible and legible
+- [ ] **Timeline**: 30-day storm vs M5+ timeline renders without console errors
+- [ ] **Historical Load**: "Load 2-Year History" button loads ComCat data without breaking the page
 
 ### ⚙️ Settings Tab
 - [ ] **Dark Mode Toggle**: 🌙/☀️ button in header works
@@ -63,7 +83,7 @@
 ## PART 2: Data Source Validation
 
 ### NOAA Live Data (Space Weather)
-- [ ] **Solar Wind Endpoint**: `/data/ACE_SWepam_data` returns valid JSON
+- [ ] **Solar Wind Endpoint**: `/api/noaa/rtsw-mag` and `/api/noaa/rtsw-plasma` respond via the local proxy
 - [ ] **Kp Index**: Real-time Kp values populate chart
 - [ ] **Flare Data**: X-ray flux shows current solar activity
 - [ ] **Retry Logic**: Force offline, wait 10s → should retry (check console)
@@ -73,6 +93,7 @@
 - [ ] **Location Accuracy**: Markers placed at correct lat/lon
 - [ ] **Magnitude Accuracy**: Color coding matches magnitude scale
 - [ ] **Live Updates**: Each page load fetches latest (timestamps differ)
+- [ ] **Historical Research Feed**: `/api/usgs/comcat` accepts valid queries and rejects malformed ones
 
 ### Open-Meteo Live Data (Weather/AQI)
 - [ ] **Current Weather**: Matches desktop weather apps for your location
@@ -206,10 +227,11 @@
 ## PART 6: Performance (Lighthouse)
 
 ### Run Lighthouse Audit
-1. Open app in Chrome: `http://localhost:8000`
-2. DevTools (F12) → Lighthouse tab
-3. Mobile device → Run audit
-4. Record scores:
+1. Launch app: `npm run launch`
+2. Open app in Chrome: `http://localhost:3000`
+3. DevTools (F12) → Lighthouse tab
+4. Mobile device → Run audit
+5. Record scores:
 
 | Metric | Score | Target | Pass? |
 |--------|-------|--------|-------|
@@ -266,9 +288,9 @@
 | USGS | Generous | ☐ |
 | Open-Meteo | 1,000/day (free) | ☐ |
 
-- [ ] **No throttling**: Page loads data without delays
+- [ ] **No throttling**: Page loads data without delays under normal manual use
 - [ ] **Retry doesn't hammer**: 3 retries with backoff (not instant spam)
-- [ ] **Caching**: Same data served from IndexedDB on reload (not re-fetched)
+- [ ] **Client-side persistence**: Same data remains available from IndexedDB on reload
 
 ---
 

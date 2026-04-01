@@ -2,6 +2,8 @@
 **Date**: March 24, 2026  
 **Status**: ✅ Production-Ready (Sprint 1-4 MVP Complete)
 
+> **Historical note (April 1, 2026):** This is a sprint-era status snapshot. The current canonical local runtime is `npm run launch` at `http://localhost:3000`, with the Node proxy as the primary entry point. Treat older references to the Python static server / `localhost:8000` as superseded.
+
 ---
 
 ## Executive Summary
@@ -203,7 +205,7 @@ The Tectonic-Solar Space-Earth Monitor has been transformed from a prototype int
 
 ## Quick Links
 
-- **Live App**: (deploy-dependent) `http://localhost:8000/` (dev) or GitHub Pages URL (prod)
+- **Live App**: `http://localhost:3000/` via `npm run launch` (dev) or deployed URL (prod)
 - **Repository**: GitHub (to be created)
 - **CI/CD**: GitHub Actions workflows ready in `DEPLOYMENT.md`
 - **Monitoring**: Sentry + Lighthouse integration patterns documented

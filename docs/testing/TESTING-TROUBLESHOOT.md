@@ -1,8 +1,8 @@
 # Live Testing: Troubleshooting Guide
 
-**Server**: Python HTTP on port 8000  
-**Status**: ✅ Running (verified)  
-**URL**: `http://localhost:8000`
+**Primary runtime**: Node proxy on port 3000  
+**Recommended command**: `npm run launch`  
+**URL**: `http://localhost:3000`
 
 ---
 
@@ -11,11 +11,12 @@
 ### Check 1: Server Running?
 ```powershell
 # In terminal, verify output like:
-# Serving HTTP on 0.0.0.0 port 8000
+# [launch] App ready at http://localhost:3000
+# or: [tectonic-solar] Simulation server running at http://localhost:3000
 
 # If not running, restart:
 cd e:\tectonic-solar
-python -m http.server 8000
+npm run launch
 ```
 
 ### Check 2: Network Tab (DevTools F12)
@@ -25,8 +26,14 @@ python -m http.server 8000
 
 ### Check 3: Console Errors (DevTools F12 → Console)
 - [ ] No red error messages
-- [ ] If CORS errors: API blocked (rare for these public endpoints)
+- [ ] If CORS errors in Node proxy mode: something bypassed `config.js` / proxy conventions
 - [ ] If "Uncaught SyntaxError": JS file has bug
+
+### Check 4: Health Endpoint
+Open `http://localhost:3000/api/health`
+
+- `200` means the local proxy is healthy and upstreams are currently reachable
+- `503` can still mean the local server is fine but one or more upstream feeds are degraded
 
 ---
 
@@ -34,10 +41,14 @@ python -m http.server 8000
 
 | Tab | Check | Fix |
 |-----|-------|-----|
-| **Space Weather** | NOAA endpoints loading in Network tab | Check internet connection, APIs up? Try in new browser |
-| **Seismic** | USGS GeoJSON returns 200 | USGS rarely down, check internet |
-| **Environment** | Open-Meteo API responds | Free tier, should always work |
-| **All Tabs** | Console shows fetch attempts | Wait 5-10s, data fetches every 5min |
+| **Space Weather** | `/api/noaa/*` endpoints load in Network tab | NOAA upstreams are flaky sometimes; the proxy should degrade gracefully |
+| **Seismic** | `/api/usgs/eq-*` returns 200 | Check internet and proxy status |
+| **Environment** | `/api/openmeteo/*` responds | Check internet and `/api/health` |
+| **Correlation** | `/api/usgs/comcat` historical load works | Confirm valid start/end dates and use the Node proxy runtime |
+| **All Tabs** | Console shows fetch attempts | Wait 5-10s; some feeds refresh on timers |
+
+Expected quirk:
+- NOAA plasma may log a fallback `404` in the local server output. That is expected and should degrade to `[]`, not a broken UI.
 
 ### Force Refresh Data
 ```javascript
@@ -111,8 +122,8 @@ if ('serviceWorker' in navigator) {
 
 ### If 0 Service Workers
 1. Hard refresh (Ctrl+Shift+R)
-2. Check sw.js file exists in project root
-3. Check `sw.js` loads in Network tab (status 200)
+2. Check `public/sw.js` exists in the repo
+3. Check `/sw.js` loads in Network tab (status 200)
 
 ### Force Service Worker Update
 1. DevTools Application → Service Workers
@@ -247,7 +258,7 @@ Load → Fetch attempts → Timeout hits (10s) → Retry 1 (2s delay) → Retry 
 
 | Problem | Quick Fix |
 |---------|-----------|
-| Nothing loads | `python -m http.server 8000` |
+| Nothing loads | `npm run launch` |
 | Charts blank | `location.reload(true)` (hard refresh) |
 | Dark mode stuck | `localStorage.clear(); location.reload()` |
 | SW not working | Unregister in DevTools, hard refresh |
@@ -269,14 +280,14 @@ Load → Fetch attempts → Timeout hits (10s) → Retry 1 (2s delay) → Retry 
    Ctrl+C in terminal
    
    # Restart:
-   python -m http.server 8000
+   npm run launch
    
    # Browser: Ctrl+Shift+Del (clear all)
-   # Then: http://localhost:8000
+   # Then: http://localhost:3000
    ```
 
 ---
 
-**Last Updated**: March 24, 2026  
-**Server Status**: ✅ Running  
-**App URL**: http://localhost:8000
+**Last Updated**: April 1, 2026  
+**Server Status**: use `npm run launch`  
+**App URL**: http://localhost:3000

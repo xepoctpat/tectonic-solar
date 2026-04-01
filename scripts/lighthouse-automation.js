@@ -3,8 +3,9 @@
  * Automated performance, PWA, and accessibility audits
  * 
  * Usage:
- * 1. npm install -g @lhci/cli@next lighthouse
- * 2. node lighthouse-automation.js
+ * 1. npm run launch:headless
+ * 2. npm install -g @lhci/cli@next lighthouse
+ * 3. node scripts/lighthouse-automation.js
  * 
  * Or run Lighthouse directly in Chrome:
  * DevTools (F12) → Lighthouse → Generate Report
@@ -14,7 +15,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const SITE_URL = 'http://localhost:8000';
+const SITE_URL = 'http://localhost:3000';
 const OUTPUT_DIR = 'test-results';
 const REPORTS = {
   mobile: 'lighthouse-mobile.json',
