@@ -1,99 +1,167 @@
-# Handoff: Statistical Prediction Engine + Hypothesis Test Infrastructure
+# Handoff: Security Hardening + Project Restructure + Research Methodology
 
 ## Session Summary
 
-This handoff covers the full engineering session that took the project from a stabilised dashboard
-(0 console errors) through documentation, research, and finally to a working hypothesis-testing and
-AI prediction engine embedded in the browser. Current HEAD: `78fd97e` on `main`.
+This session resolved all 6 GitHub CodeQL security alerts, restructured the project to isolate the web root under `public/`, organized all documentation into categorized subdirectories, and discussed the scientific research methodology for testing the 27–28 day lag hypothesis. Current HEAD: `9b8bc47` on `main`. Clean working tree — no uncommitted changes.
 
 ---
 
 ## Prior Session Recap (for continuity)
 
-The previous handoff (`NOAA proxy resilience + frontend error telemetry`) achieved:
-- Proxy-mode and static-mode both at **0 console errors** / 6/6 tabs passing.
-- `ErrorLogger` utility, server-side `fetchWithRetry`, `fallbackOnError` for non-critical NOAA feeds.
-- Telemetry endpoint `POST /api/proto-sir/log-event` wired up.
+The previous session (`Statistical Prediction Engine + Hypothesis Test`) delivered:
+- `.github/copilot-instructions.md` — auto-loaded project context for Copilot
+- `prediction.js` — Bayesian prediction engine with USGS ComCat loader, event-rate ratio lag scan (0–60d), cold-start with 7 SC25 storms
+- Lag scan chart in `charts.js`, correlation tab UI rebuild in `index.html`
+- `RESEARCH.md` — 325-line scientific hypothesis analysis with falsification criteria
+- HEAD was `78fd97e`
 
 ---
 
-## This Session: What Was Built
+## This Session: What Was Done
 
-### 1. Developer meta-infrastructure
+### 1. Resolved all 6 CodeQL security alerts
 
-| File | Action | Purpose |
-|---|---|---|
-| `.github/copilot-instructions.md` | Created | Auto-loaded by VS Code Copilot — full project context, prevents AI from adding databases/bundlers/API keys |
-| `README.md` | Major rewrite | No-database architecture explicit, Dst row fixed, proton flux added, Quick Start rewritten, venv docs added |
-| `RESEARCH.md` | Created (325 lines) | Scientific hypothesis analysis: 4 physical mechanisms, 7 literature references, methodology critique, 7 research extensions, falsification criteria |
+| # | Alert | Severity | Fix |
+|---|---|---|---|
+| 1–3 | Incomplete URL substring sanitization (`sw.js`) | High | Replaced `url.includes('noaa.gov')` with `new URL(url).hostname` parsing + `.endsWith()` checks |
+| 4 | Missing rate limiting (`server.js:279`) | High | Added `express-rate-limit` at 100 req/min/IP with `standardHeaders: true` |
+| 5 | Exposure of private files (`server.js:17`) | Medium | Added `dotfiles: 'deny'` to `express.static()` options |
+| 6 | Exposure of private files (re-flagged after #5) | Medium | **Major restructure** — moved all web assets into `public/` directory; `express.static` now serves only `public/`, making `server.js`, `package.json`, `.env`, etc. completely inaccessible |
 
-### 2. Statistical prediction engine (`src/js/prediction.js` — new file)
+### 2. Project restructure — `public/` web root
 
-Core exports and responsibilities:
-
-```js
-// Cold-start seed — 7 confirmed SC25 geomagnetic storms (2024)
-export const STORM_SEED = [ { kp, date }, ... ]   // May G5, Aug G3, Sep G4, Oct G2, Nov G3
-
-// One-time USGS ComCat loader — fetches 2 years of M5+ (~5000 events), gated by localStorage
-export async function loadHistoricalUSGS()
-
-// Seeds STORM_SEED into IndexedDB on first load
-export async function seedHistoricalStorms()
-
-// Event-rate ratio at every lag 0–60 days (avoids matched-pairs Pearson bias)
-export function scanAllLags(storms, earthquakes, maxLag = 60)
-// → [{ lag, windowCount, controlCount, eventRatio }]
-
-// Finds peak lag, scores 27d window, determines hypothesis verdict
-export function assessLagScan(scanResults)
-// → { peakLag, peakRatio, lag27ratio, isHypothesisSupported }
-// Signal criterion: peak at lag 25–30 AND ratio > 1.15×
-
-// Bayesian conditional P(M5+ | storm 25–30d ago)
-export function computePrediction(storms, earthquakes)
-// → { windowActive, probability, conditionalProbability, baseProbability,
-//      stormTrials, stormHits, triggeringStorms, confidence, dataPoints }
-
-// Master orchestrator — queries 730-day IndexedDB window
-export async function runFullAnalysis()
+All browser-served files moved from project root into `public/`:
+```
+public/
+  index.html
+  sw.js
+  manifest.json
+  src/
+    css/  (5 files: variables, base, components, map, notifications)
+    js/   (16 modules: main, store, config, utils, charts, tabs, map,
+           spaceWeather, seismic, correlation, prediction, environment,
+           db, settings, notifications, error-logger)
 ```
 
-**Key design decisions:**
-- Event-rate ratio (window count ÷ control count) is the statistically correct method for this problem. The existing `correlation.js` matched-pairs Pearson approach has selection bias (documented in RESEARCH.md §7) — `prediction.js` supplements without replacing it.
-- 730-day IndexedDB query horizon (vs the live-rolling 90-day prune) — the USGS historical loader fills the 2-year gap without schema changes.
-- `localStorage` flags (`historical-usgs-loaded-v1`, `storm-seed-loaded-v1`) prevent duplicate loading.
+`server.js` updated: `PUBLIC_DIR = path.join(__dirname, 'public')` — no project root files are web-accessible.
 
-### 3. Lag scan chart (`src/js/charts.js` — modified)
+### 3. Documentation organized into categories
 
-New export `drawLagScanChart(lagData)`:
-- Chart.js line chart, x-axis 0–60 days, y-axis event ratio.
-- Lags 25–30 (hypothesis zone) rendered in amber `#FF9800`.
-- Dashed null line at ratio = 1.0.
-- Tooltip: `Lag: Xd | Ratio: 1.23× ▲ elevated`.
+```
+docs/
+  handoff/         HANDOFF.md (this file)
+  research/        RESEARCH.md
+  planning/        PROJECT-STATUS.md, ROADMAP.md, SPRINT-1-DELIVERY.md
+  operations/      DEPLOYMENT.md
+  development/     DEV-QUICK-REFERENCE.md, VISUAL-FIXES-SUMMARY.md
+  testing/         TESTING-CHECKLIST.md, TESTING-TROUBLESHOOT.md
+```
 
-### 4. Correlation tab UI rebuild (`index.html` — modified)
+### 4. Dev scripts consolidated
 
-Three new sections inserted above existing 30-day timeline:
+```
+scripts/
+  tab-smoke-test.mjs        Playwright 6-tab smoke test
+  restart-server.js          Server restart utility
+  verify-visuals.js          Visual verification
+  lighthouse-automation.js   Lighthouse audit runner
+  test-automation.js         Test automation runner
+```
 
-1. **AI Prediction card** (`#prediction-card`) — probability %, window-active indicator, confidence label, corpus detail line.
-2. **Data Foundation card** — USGS load status, storm seed status, data span, `#btn-load-historical` button, `#btn-run-analysis` button, status message.
-3. **Cross-lag scan section** — `<canvas id="lag-scan-chart">` + `#lag-scan-verdict` (plain-English: "Signal detected / Null result / Insufficient data").
+### 5. Additional security hardening
 
-### 5. Main bootstrap wiring (`src/js/main.js` — modified)
+- `app.disable('x-powered-by')` — removes Express fingerprint header
+- `X-Content-Type-Options: nosniff` + `Referrer-Policy: no-referrer-when-downgrade` on all responses
+- `express.json({ limit: '16kb' })` — body size limit
+- SPA catch-all rejects paths with file extensions or dotfile patterns (returns 404 instead of `index.html`)
+- `npm audit fix` — resolved `path-to-regexp` ReDoS vulnerability; `npm audit` now shows 0 vulnerabilities
+- `sw.js` STATIC_ASSETS gap fixed — added missing `error-logger.js` and `prediction.js`
 
-- Added imports for `drawLagScanChart` and `{ seedHistoricalStorms, loadHistoricalUSGS, runFullAnalysis }`.
-- `updatePredictionUI()`: async function that runs the full analysis and updates all DOM elements.
-- Auto-runs silently on `DOMContentLoaded` (seeds storms + runs analysis).
-- `#btn-load-historical`: fetches USGS ComCat, then re-renders.
-- `#btn-run-analysis`: re-runs analysis on demand.
+### 6. `.github/copilot-instructions.md` updated
+
+- New source layout reflecting `public/`, `docs/`, `scripts/` structure
+- Python venv enforcement rule added
+- Runtime deps updated to include `express-rate-limit ^7`
+- Test command paths updated for `scripts/` directory
 
 ---
 
-## Validation State
+## Validation Results
 
-- `get_errors` on `prediction.js`, `charts.js`, `main.js` → **no errors**.
-- No runtime validation performed this session (server not started). Recommend running smoke test before next feature branch.
+| Test | Result |
+|---|---|
+| Security tests (15 checks) | 15/15 PASS |
+| Smoke test (6 tabs) | 6/6 PASS |
+| Console errors | 0 |
+| HTTP errors | 0 |
+| `npm audit` | 0 vulnerabilities |
+
+---
+
+## Git State
+
+```
+HEAD:    9b8bc47  refactor: restructure project for security and organization
+Branch:  main (up to date with origin/main)
+Remote:  https://github.com/xepoctpat/tectonic-solar.git
+Status:  Clean working tree
+```
+
+Recent commit history:
+```
+9b8bc47 refactor: restructure project for security and organization
+6781016 Add CodeQL analysis workflow configuration
+1ace43f fix: resolve 5 CodeQL security alerts
+e1ac88a Merge pull request #2 (dependabot/pip)
+0d3fe6b Merge pull request #3 (dependabot/npm_and_yarn)
+c96fde3 Bump path-to-regexp in the npm_and_yarn group
+ba75ef2 Update HANDOFF.md with full session recap
+78fd97e Add statistical prediction engine and cross-lag hypothesis test
+28db01c Add RESEARCH.md: space-weather ↔ tectonic activity hypothesis analysis
+```
+
+---
+
+## Known State / Behaviors
+
+- **NOAA plasma 404**: `[proxy] rtsw_plasma_1m.json fell back to default (status 404)` in server logs is **expected**. NOAA DSCOVR endpoint is intermittently unavailable. `fallbackOnError: true` returns `200 []` so the client degrades gracefully.
+- **CodeQL workflow**: `.github/workflows/codeql.yml` runs on push to main. All 6 alerts should show as closed after the restructure push. Check at: `https://github.com/xepoctpat/tectonic-solar/security/code-scanning`
+- **Service worker cache**: `tectonic-solar-v2` / `tectonic-solar-api-v2` — bump to `v3` if making breaking changes to static assets.
+
+---
+
+## Research Discussion Context
+
+The last topic before this handoff was **how to effectively conduct serious research and test the 27–28 day hypothesis**. Key points from `docs/research/RESEARCH.md` and the discussion:
+
+### Current engine capabilities
+- `prediction.js`: Event-rate ratio lag scan (0–60d), Bayesian P(M5+ | storm), USGS ComCat 2-year loader
+- `correlation.js`: Pearson r on matched pairs (has selection bias — documented in RESEARCH.md §7)
+
+### Top research priorities (from RESEARCH.md + discussion)
+1. **Bootstrap null distribution** — Permute storm dates 1000×, build empirical p-value for the 1.15× threshold. Currently the threshold is ad-hoc.
+2. **Historical data depth** — 2 years (ComCat) is better than 90 days but still underpowered. NOAA Kp archive + USGS ComCat can go back 30+ years for robust n>200 storm tests.
+3. **Cross-lag validation** — Already implemented (scanAllLags), but needs Bonferroni correction (p < 0.05/60 ≈ 0.0008) to avoid multiple comparison artifacts.
+4. **Regional stratification** — Ring of Fire vs Mediterranean-Himalayan vs Craton. Global pooling likely dilutes any real signal.
+5. **Dst-based storm threshold** — Dst is a better proxy for storm energy than Kp. Feed is already available.
+6. **Reproduce the null first** — USGS maintains no correlation exists. The app should reproduce the null result on a 90-day window before claiming to find signal in larger windows.
+
+### Python venv readiness
+- `solar-env/` has Python 3.13 with scipy, pandas, numpy, Flask — scaffolded for a compute service
+- **No Python server exists yet** — all serving is Node.js
+- Bootstrap permutation testing (1000× permutations) and regional b-value analysis are natural candidates for a Python compute service via Flask, since browser JS is CPU-limited for large permutation workloads
+
+---
+
+## Recommended Next Steps
+
+1. **Start server** → `npm start` → verify `http://localhost:3000` renders all 6 tabs
+2. **Confirm CodeQL** — check that alert #6 is now closed at GitHub security tab
+3. **Bootstrap null distribution** — implement 1000× permutation test (Python or JS) to calibrate the 1.15× threshold with empirical p-values
+4. **Regional stratification** — add region bounding-box lookup to `correlation.js`, show r per tectonic region
+5. **Extended historical data** — NOAA Kp archive (decades), USGS ComCat (10-30 years) for n>200 storms
+6. **CME/DONKI integration** — NASA DONKI API for upstream CME tracking (ROADMAP Phase 3)
+7. **Python compute service** — Flask endpoint for heavy statistical computation (bootstrap, GR b-value)
 
 ---
 
@@ -101,52 +169,17 @@ Three new sections inserted above existing 30-day timeline:
 
 | # | Issue | Severity | Notes |
 |---|---|---|---|
-| 1 | USGS ComCat pagination | Medium | `loadHistoricalUSGS()` fetches up to 5000 events in one call. USGS ComCat max is 20,000/query; if 2-year M5+ count exceeds 5000, add `offset` loop. Current estimate: ~3,000–4,000 M5+ in 2 years — likely fine. |
-| 2 | `correlation.js` Pearson bias | Low | The old matched-pairs approach remains live and is rendered alongside the new engine. Not broken — just imprecise. Can be replaced with `scanAllLags` result when confidence is sufficient. |
-| 3 | Hypothesis verdict threshold (1.15×) | Low | The 1.15× signal threshold in `assessLagScan()` is a reasonable starting value but not calibrated against a null distribution. Should be derived from bootstrap/permutation testing when enough data exists. |
-| 4 | No runtime smoke test this session | Low | Server was not started; 6-tab smoke test not re-run. Run before any further UI changes. |
-
----
-
-## Recommended Next Steps
-
-### Immediate (before new features)
-1. **Start server and verify UI**: `npm start` → open Correlation tab → confirm prediction card, lag scan chart, and Data Foundation card render. Click "Load 2-Year History" to run the first real hypothesis test.
-2. **Re-run smoke test**: `$env:APP_URL="http://localhost:3000"; node scripts/tab-smoke-test.mjs` — should still be 6/6, 0 errors.
-
-### Short-term science improvements
-3. **Dst-based storm threshold** — the Dst feed is already live at `/api/noaa/dst`. Add `Dst < −50 nT` as an alternative storm classifier in `prediction.js` and compare its lag-scan result vs Kp≥5. This tests whether storm intensity proxy matters.
-4. **Regional stratification** — each earthquake already has `lat`/`lon`. Add a bounding-box region lookup (Ring of Fire, Mediterranean-Himalayan, Craton) in `scanAllLags` and render per-region ratios. This is the most scientifically informative next step.
-5. **Bootstrap null distribution** — permute storm dates 1000×, re-run `scanAllLags` on each, build empirical p-value for the 27d peak. Replaces the hard-coded 1.15× threshold with a statistically grounded one.
-
-### Medium-term feature additions
-6. **CME/DONKI integration** (ROADMAP Phase 3) — `https://kauai.ccmc.gsfc.nasa.gov/DONKI/WS/get/CMEAnalysis` gives upstream solar-origin CME data before Kp peaks. Add proxy route `/api/donki/cme` and use CME arrival time as an alternative storm event source.
-7. **USGS ComCat pagination** — if M5+ count approaches 5000, add `offset` loop in `loadHistoricalUSGS()`.
-8. **G-R b-value tracker** (RESEARCH.md §6.5) — compute Gutenberg-Richter exponent for the 27d post-storm window vs control. Deviation in b-value is a more sensitive signal than raw M5+ count.
-
-### Infrastructure
-9. **Python compute service** (ROADMAP Phase 4) — the `solar-env` venv has pandas/numpy/scipy ready. A Flask endpoint for lag-scan computation would be faster and more statistically capable (scipy.stats, permutation testing). Currently not started; `server.js` would proxy to it.
-
----
-
-## File Inventory (this session)
-
-| File | Status | Commit |
-|---|---|---|
-| `.github/copilot-instructions.md` | New | `9e26047` |
-| `README.md` | Modified | `9e26047` |
-| `RESEARCH.md` | New | `9e26047` |
-| `src/js/prediction.js` | New | `78fd97e` |
-| `src/js/charts.js` | Modified | `78fd97e` |
-| `src/js/main.js` | Modified | `78fd97e` |
-| `index.html` | Modified | `78fd97e` |
+| 1 | USGS ComCat pagination | Medium | `loadHistoricalUSGS()` fetches up to 5000 events in one call. If 2-year M5+ exceeds 5000, add `offset` loop. |
+| 2 | `correlation.js` Pearson bias | Low | Old matched-pairs approach remains live alongside new engine. Not broken, just imprecise. |
+| 3 | Hypothesis verdict threshold (1.15×) | Low | Not calibrated against null distribution. Needs bootstrap permutation testing. |
+| 4 | No Python server yet | Low | `solar-env/` venv ready (Flask, scipy, pandas) but no `app.py` or routes exist. |
 
 ---
 
 ## Environment
 
-- Node.js: `npm start` → port 3000. `node server.js` directly.
-- Python venv: `solar-env\Scripts\Activate.ps1` — Flask not yet instantiated.
-- Git remote: `xepoctpat/tectonic-solar`, `main` branch.
-- Git email (privacy): `xepoctpat@users.noreply.github.com`.
-- No API keys anywhere in the codebase.
+- **Node.js**: `npm start` → port 3000
+- **Python venv**: `solar-env\Scripts\Activate.ps1` — Flask scaffolded but not instantiated
+- **Git remote**: `xepoctpat/tectonic-solar`, `main` branch
+- **Git email**: `xepoctpat@users.noreply.github.com`
+- **No API keys** anywhere in the codebase
