@@ -7,6 +7,34 @@ import { drawRealSolarWindChart, drawRealKpChart } from './charts.js';
 import { addStorm } from './db.js';
 import { errorLogger } from './error-logger.js';
 
+function renderFlareList(flares = []) {
+  const flareList = document.getElementById('flare-list');
+  if (!flareList) return;
+
+  flareList.replaceChildren();
+
+  const recentFlares = flares.slice(-5).reverse();
+  if (!recentFlares.length) {
+    flareList.textContent = 'No recent flares';
+    return;
+  }
+
+  recentFlares.forEach(flare => {
+    const entry = document.createElement('div');
+    entry.className = 'flare-entry';
+
+    const flareClass = document.createElement('span');
+    flareClass.className = 'flare-class';
+    flareClass.textContent = `${flare.class}${flare.level}`;
+
+    const flareTime = document.createElement('span');
+    flareTime.textContent = new Date(flare.time).toLocaleString();
+
+    entry.append(flareClass, flareTime);
+    flareList.appendChild(entry);
+  });
+}
+
 // ===== FETCH NOAA DATA =====
 /**
  * Fetch all relevant NOAA space weather feeds concurrently and update the UI.
@@ -140,16 +168,11 @@ export function updateSpaceWeatherDisplay() {
     setText('flare-count', flares.length);
     const latest = flares[flares.length - 1];
     setText('latest-flare', `${latest.class}${latest.level}`);
-    const flareList = document.getElementById('flare-list');
-    if (flareList) {
-      flareList.innerHTML = flares.slice(-5).reverse()
-        .map(f => `<div class="flare-entry"><span class="flare-class">${f.class}${f.level}</span><span>${new Date(f.time).toLocaleString()}</span></div>`)
-        .join('') || 'No recent flares';
-    }
+    renderFlareList(flares);
   } else {
     setText('flare-count', '0');
     setText('latest-flare', 'None');
-    setText('flare-list', 'No flares detected in last 7 days');
+    renderFlareList([]);
   }
 
   if (spaceWeatherCache.lastUpdate) {

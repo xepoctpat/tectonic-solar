@@ -2,16 +2,104 @@
 import { getCSSVar } from './utils.js';
 
 const chartInstances = {};
+const chartCache = {
+  solarWindHistory: [],
+  kpHistory: [],
+  earthquakes: [],
+  aqiValue: undefined,
+  lagData: [],
+  storms: [],
+  correlationEarthquakes: [],
+};
+
+const EMPTY_STATE_PLUGIN = {
+  id: 'emptyStateMessage',
+  afterDraw(chart, _args, options) {
+    if (!options?.message || options.hasData) {
+      return;
+    }
+
+    const { ctx, chartArea } = chart;
+    if (!ctx || !chartArea) {
+      return;
+    }
+
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = colorVar('--color-text-secondary', '#626c71');
+    ctx.font = '12px sans-serif';
+    ctx.fillText(options.message, chartArea.left + chartArea.width / 2, chartArea.top + chartArea.height / 2);
+    ctx.restore();
+  },
+};
 
 function colorVar(name, fallback) {
   const value = getCSSVar(name);
   return value || fallback;
 }
 
+function gridColor() {
+  return colorVar('--color-border', 'rgba(0,0,0,0.1)');
+}
+
+function tickColor() {
+  return colorVar('--color-text-secondary', '#626c71');
+}
+
+function cacheData(key, value) {
+  chartCache[key] = Array.isArray(value) ? [...value] : value;
+}
+
+function createPlaceholderSeries(length) {
+  return Array.from({ length }, () => null);
+}
+
+function createSequenceLabels(length, suffix = '') {
+  return Array.from({ length }, (_, i) => suffix ? `${i}${suffix}` : `${i}`);
+}
+
+function hasSeriesData(values = []) {
+  return values.some(value => Number.isFinite(value));
+}
+
+function renderCanvasNotice(canvas, message) {
+  if (!canvas) return;
+
+  const context = canvas.getContext('2d');
+  if (!context) return;
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.save();
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillStyle = tickColor();
+  context.font = '12px sans-serif';
+  context.fillText(message, canvas.width / 2, canvas.height / 2);
+  context.restore();
+}
+
 function destroyChart(key) {
   if (chartInstances[key]) {
     chartInstances[key].destroy();
     chartInstances[key] = null;
+  }
+}
+
+export function redrawCachedCharts() {
+  drawRealSolarWindChart(chartCache.solarWindHistory);
+  drawRealKpChart(chartCache.kpHistory);
+  drawMagnitudeDistribution(chartCache.earthquakes);
+  drawAqiChart(chartCache.aqiValue);
+
+  if (chartCache.lagData.length > 0) {
+    drawLagScanChart(chartCache.lagData);
+  } else {
+    renderCanvasNotice(document.getElementById('lag-scan-chart'), 'Run analysis to populate chart');
+  }
+
+  if (document.getElementById('correlation-timeline')) {
+    drawCorrelationTimeline(chartCache.storms, chartCache.correlationEarthquakes);
   }
 }
 
@@ -26,10 +114,13 @@ export function drawRealSolarWindChart(history = []) {
   destroyChart('solarWind');
 
   const recent = history.slice(-60);
+  cacheData('solarWindHistory', recent);
+
   const data = recent.length > 0
     ? recent.map(d => Number(d.speed) || 0)
-    : Array.from({ length: 30 }, () => 350 + Math.random() * 220);
-  const labels = data.map((_, i) => `${i}m`);
+    : createPlaceholderSeries(12);
+  const labels = recent.length > 0 ? data.map((_, i) => `${i}m`) : createSequenceLabels(12, 'm');
+  const hasData = hasSeriesData(data);
 
   chartInstances.solarWind = new Chart(canvas.getContext('2d'), {
     type: 'line',
@@ -48,17 +139,24 @@ export function drawRealSolarWindChart(history = []) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        emptyStateMessage: {
+          hasData,
+          message: 'Waiting for live solar wind data',
+        },
+      },
       scales: {
         x: { display: false },
         y: {
           beginAtZero: false,
-          grid: { color: colorVar('--color-border', 'rgba(0,0,0,0.1)') },
-          ticks: { color: colorVar('--color-text-secondary', '#626c71') },
+          grid: { color: gridColor() },
+          ticks: { color: tickColor() },
         },
       },
       animation: { duration: 700 },
     },
+    plugins: [EMPTY_STATE_PLUGIN],
   });
 }
 
@@ -73,12 +171,17 @@ export function drawRealKpChart(history = []) {
   destroyChart('kp');
 
   const recent = history.slice(-24);
+  cacheData('kpHistory', recent);
+
   const data = recent.length > 0
     ? recent.map(d => Number(d.kp) || 0)
-    : Array.from({ length: 12 }, () => Math.random() * 6);
-  const labels = data.map((_, i) => `${i}h`);
+    : createPlaceholderSeries(12);
+  const labels = recent.length > 0 ? data.map((_, i) => `${i}h`) : createSequenceLabels(12, 'h');
+  const hasData = hasSeriesData(data);
 
-  const colors = data.map(v => (v >= 7 ? '#F44336' : v >= 5 ? '#FF9800' : v >= 4 ? '#FFC107' : '#32B8C6'));
+  const colors = hasData
+    ? data.map(v => (v >= 7 ? '#F44336' : v >= 5 ? '#FF9800' : v >= 4 ? '#FFC107' : '#32B8C6'))
+    : Array.from({ length: data.length }, () => colorVar('--color-border', '#d0d0d0'));
 
   chartInstances.kp = new Chart(canvas.getContext('2d'), {
     type: 'bar',
@@ -89,18 +192,25 @@ export function drawRealKpChart(history = []) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        emptyStateMessage: {
+          hasData,
+          message: 'Waiting for Kp history',
+        },
+      },
       scales: {
         x: { display: false },
         y: {
           beginAtZero: true,
           max: 9,
-          grid: { color: colorVar('--color-border', 'rgba(0,0,0,0.1)') },
-          ticks: { color: colorVar('--color-text-secondary', '#626c71') },
+          grid: { color: gridColor() },
+          ticks: { color: tickColor() },
         },
       },
       animation: { duration: 700 },
     },
+    plugins: [EMPTY_STATE_PLUGIN],
   });
 }
 
@@ -113,6 +223,7 @@ export function drawMagnitudeDistribution(earthquakes = []) {
   if (!canvas) return;
 
   destroyChart('magnitude');
+  cacheData('earthquakes', earthquakes);
 
   const bins = { 'M4–4.9': 0, 'M5–5.9': 0, 'M6–6.9': 0, 'M7+': 0 };
   earthquakes.forEach(eq => {
@@ -136,20 +247,27 @@ export function drawMagnitudeDistribution(earthquakes = []) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        emptyStateMessage: {
+          hasData: earthquakes.length > 0,
+          message: 'No earthquake data loaded yet',
+        },
+      },
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: colorVar('--color-text-secondary', '#626c71') },
+          ticks: { color: tickColor() },
         },
         y: {
           beginAtZero: true,
-          grid: { color: colorVar('--color-border', 'rgba(0,0,0,0.1)') },
-          ticks: { color: colorVar('--color-text-secondary', '#626c71') },
+          grid: { color: gridColor() },
+          ticks: { color: tickColor() },
         },
       },
       animation: { duration: 700 },
     },
+    plugins: [EMPTY_STATE_PLUGIN],
   });
 }
 
@@ -157,15 +275,17 @@ export function drawMagnitudeDistribution(earthquakes = []) {
  * Draw AQI gauge chart.
  * @param {number} aqiValue
  */
-export function drawAqiChart(aqiValue = 0) {
+export function drawAqiChart(aqiValue) {
   const canvas = document.getElementById('aqi-chart');
   if (!canvas) return;
 
   destroyChart('aqi');
+  cacheData('aqiValue', aqiValue);
 
-  const safeValue = Math.max(0, Number(aqiValue) || 0);
-  let label = 'Good';
-  let gaugeColor = '#4CAF50';
+  const hasData = Number.isFinite(aqiValue);
+  const safeValue = hasData ? Math.max(0, Number(aqiValue) || 0) : 0;
+  let label = hasData ? 'Good' : 'Awaiting data';
+  let gaugeColor = hasData ? '#4CAF50' : colorVar('--color-border', '#d0d0d0');
   if (safeValue > 20) { label = 'Fair'; gaugeColor = '#8BC34A'; }
   if (safeValue > 40) { label = 'Moderate'; gaugeColor = '#FFC107'; }
   if (safeValue > 60) { label = 'Poor'; gaugeColor = '#FF9800'; }
@@ -177,7 +297,9 @@ export function drawAqiChart(aqiValue = 0) {
     data: {
       labels: [label, 'Remaining'],
       datasets: [{
-        data: [Math.min(safeValue, 150), Math.max(150 - safeValue, 0)],
+        data: hasData
+          ? [Math.min(safeValue, 150), Math.max(150 - safeValue, 0)]
+          : [0, 150],
         backgroundColor: [gaugeColor, colorVar('--color-border', '#d0d0d0')],
         borderWidth: 0,
       }],
@@ -198,9 +320,9 @@ export function drawAqiChart(aqiValue = 0) {
         ctx.textBaseline = 'middle';
         ctx.fillStyle = gaugeColor;
         ctx.font = 'bold 24px sans-serif';
-        ctx.fillText(String(Math.round(safeValue)), left + width / 2, top + height / 2 - 8);
+        ctx.fillText(hasData ? String(Math.round(safeValue)) : '—', left + width / 2, top + height / 2 - 8);
         ctx.font = '11px sans-serif';
-        ctx.fillStyle = colorVar('--color-text-secondary', '#626c71');
+        ctx.fillStyle = tickColor();
         ctx.fillText(label, left + width / 2, top + height / 2 + 15);
         ctx.restore();
       },
@@ -210,10 +332,10 @@ export function drawAqiChart(aqiValue = 0) {
 
 /** Draw initial placeholder charts. */
 export function drawSpaceCharts() {
-  drawRealSolarWindChart([]);
-  drawRealKpChart([]);
-  drawMagnitudeDistribution([]);
-  drawAqiChart(0);
+  drawRealSolarWindChart(chartCache.solarWindHistory);
+  drawRealKpChart(chartCache.kpHistory);
+  drawMagnitudeDistribution(chartCache.earthquakes);
+  drawAqiChart(chartCache.aqiValue);
 }
 
 /**
@@ -228,8 +350,12 @@ export function drawLagScanChart(lagData = []) {
   if (!canvas) return;
 
   destroyChart('lagScan');
+  cacheData('lagData', lagData);
 
-  if (!lagData.length) return;
+  if (!lagData.length) {
+    renderCanvasNotice(canvas, 'Run analysis to populate chart');
+    return;
+  }
 
   const labels = lagData.map(d => d.lag);
   const ratios = lagData.map(d => parseFloat(d.eventRatio.toFixed(3)));
@@ -298,22 +424,22 @@ export function drawLagScanChart(lagData = []) {
           title: {
             display: true,
             text: 'Lag (days after storm)',
-            color: colorVar('--color-text-secondary', '#626c71'),
+            color: tickColor(),
           },
           ticks: {
-            color: colorVar('--color-text-secondary', '#626c71'),
+            color: tickColor(),
             maxTicksLimit: 16,
           },
-          grid: { color: colorVar('--color-border', 'rgba(0,0,0,0.1)') },
+          grid: { color: gridColor() },
         },
         y: {
           title: {
             display: true,
             text: 'Event ratio',
-            color: colorVar('--color-text-secondary', '#626c71'),
+            color: tickColor(),
           },
-          ticks: { color: colorVar('--color-text-secondary', '#626c71') },
-          grid: { color: colorVar('--color-border', 'rgba(0,0,0,0.1)') },
+          ticks: { color: tickColor() },
+          grid: { color: gridColor() },
         },
       },
       animation: { duration: 900 },
@@ -332,6 +458,8 @@ export function drawCorrelationTimeline(storms = [], earthquakes = []) {
   if (!canvas) return null;
 
   destroyChart('correlation');
+  cacheData('storms', storms);
+  cacheData('correlationEarthquakes', earthquakes);
 
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -386,7 +514,7 @@ export function drawCorrelationTimeline(storms = [], earthquakes = []) {
       plugins: {
         legend: {
           display: true,
-          labels: { color: colorVar('--color-text-secondary', '#626c71') },
+          labels: { color: tickColor() },
         },
         tooltip: {
           callbacks: {
@@ -399,13 +527,13 @@ export function drawCorrelationTimeline(storms = [], earthquakes = []) {
           type: 'linear',
           min: 0,
           max: 30,
-          title: { display: true, text: 'Days (last 30)', color: colorVar('--color-text-secondary', '#626c71') },
-          ticks: { color: colorVar('--color-text-secondary', '#626c71') },
-          grid: { color: colorVar('--color-border', 'rgba(0,0,0,0.1)') },
+          title: { display: true, text: 'Days (last 30)', color: tickColor() },
+          ticks: { color: tickColor() },
+          grid: { color: gridColor() },
         },
         y: {
-          ticks: { color: colorVar('--color-text-secondary', '#626c71') },
-          grid: { color: colorVar('--color-border', 'rgba(0,0,0,0.1)') },
+          ticks: { color: tickColor() },
+          grid: { color: gridColor() },
         },
       },
       animation: { duration: 700 },

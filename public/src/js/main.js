@@ -18,7 +18,7 @@ import { fetchNOAASpaceWeather, refreshSpaceData } from './spaceWeather.js';
 import { checkEarthquakeAlerts, refreshEarthquakeData, updateSeismicDisplay } from './seismic.js';
 import { initLocationSelector, fetchEnvironmentData } from './environment.js';
 import { refreshCorrelationData, updateCorrelationWindow } from './correlation.js';
-import { drawSpaceCharts, drawLagScanChart } from './charts.js';
+import { drawSpaceCharts, drawLagScanChart, redrawCachedCharts } from './charts.js';
 import { loadSettings, syncSettingsForm, saveAlertSettings, toggleAlerts, resetSettings } from './settings.js';
 import { requestNotificationPermission, initNotificationStatus } from './notifications.js';
 import { REFRESH_INTERVALS } from './config.js';
@@ -105,8 +105,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const isDark = html.classList.toggle('dark');
       darkModeToggle.textContent = isDark ? '☀️' : '🌙';
       localStorage.setItem('darkMode', isDark ? 'true' : 'false');
-      // Re-render charts for dark mode colors
-      import('./charts.js').then(({ drawSpaceCharts }) => drawSpaceCharts());
+      // Re-render charts from cached data for updated theme colors
+      redrawCachedCharts();
     });
   }
 

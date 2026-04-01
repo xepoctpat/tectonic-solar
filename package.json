@@ -5,6 +5,8 @@
   "description": "Space-Earth Monitor local deployment simulator with API proxy",
   "main": "server.js",
   "scripts": {
+    "launch": "node scripts/launch.js",
+    "launch:headless": "node scripts/launch.js --no-open",
     "start": "node server.js",
     "start:sim": "node server.js",
     "test:tabs": "node scripts/tab-smoke-test.mjs"

@@ -6,6 +6,22 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const REQUEST_TIMEOUT_MS = 15000;
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com",
+  "style-src 'self' 'unsafe-inline' https://unpkg.com",
+  "img-src 'self' data: https:",
+  "connect-src 'self' https://services.swpc.noaa.gov https://earthquake.usgs.gov https://api.open-meteo.com https://air-quality-api.open-meteo.com",
+  "font-src 'self' data: https:",
+  "manifest-src 'self'",
+  "worker-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
+const ISO_DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const ALLOWED_COMCAT_ORDER = new Set(['time-asc', 'time', 'magnitude']);
 
 app.disable('x-powered-by');
 
@@ -22,6 +38,9 @@ app.use(limiter);
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Content-Security-Policy', CONTENT_SECURITY_POLICY);
+  res.setHeader('Permissions-Policy', 'camera=(), geolocation=(), microphone=()');
   next();
 });
 
@@ -49,6 +68,26 @@ const UPSTREAM = {
     m45Week: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson',
   },
 };
+
+function firstQueryValue(value) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function parseBoundedNumber(value, { min, max, fallback }) {
+  const parsed = Number(firstQueryValue(value));
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function parseDateOnly(value) {
+  const normalized = firstQueryValue(value);
+  return typeof normalized === 'string' && ISO_DATE_ONLY_PATTERN.test(normalized)
+    ? normalized
+    : null;
+}
 
 async function fetchWithTimeout(url) {
   const controller = new AbortController();
@@ -190,6 +229,40 @@ app.get('/api/noaa/dst', (_req, res) => proxyRequest(res, UPSTREAM.noaa.dst, {
 app.get('/api/usgs/eq-4.5-day', (_req, res) => proxyRequest(res, UPSTREAM.usgs.m45Day));
 app.get('/api/usgs/eq-2.5-week', (_req, res) => proxyRequest(res, UPSTREAM.usgs.m25Week));
 app.get('/api/usgs/eq-4.5-week', (_req, res) => proxyRequest(res, UPSTREAM.usgs.m45Week));
+app.get('/api/usgs/comcat', (req, res) => {
+  const starttime = parseDateOnly(req.query.starttime);
+  const endtime = parseDateOnly(req.query.endtime);
+  const minMagnitude = parseBoundedNumber(req.query.minmagnitude, { min: 0, max: 10, fallback: 5.0 });
+  const limit = parseBoundedNumber(req.query.limit, { min: 1, max: 5000, fallback: 5000 });
+  const orderby = firstQueryValue(req.query.orderby) || 'time-asc';
+
+  if (!starttime || !endtime) {
+    res.status(400).json({ ok: false, error: 'Missing or invalid starttime/endtime query params' });
+    return;
+  }
+
+  const startDate = new Date(`${starttime}T00:00:00Z`);
+  const endDate = new Date(`${endtime}T00:00:00Z`);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()) || startDate > endDate) {
+    res.status(400).json({ ok: false, error: 'starttime must be before or equal to endtime' });
+    return;
+  }
+
+  if (!ALLOWED_COMCAT_ORDER.has(orderby)) {
+    res.status(400).json({ ok: false, error: 'Unsupported orderby value' });
+    return;
+  }
+
+  const url =
+    'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson' +
+    `&minmagnitude=${encodeURIComponent(minMagnitude)}` +
+    `&starttime=${encodeURIComponent(starttime)}` +
+    `&endtime=${encodeURIComponent(endtime)}` +
+    `&limit=${encodeURIComponent(limit)}` +
+    `&orderby=${encodeURIComponent(orderby)}`;
+
+  proxyRequest(res, url, { maxRetries: 1 });
+});
 
 app.get('/api/openmeteo/weather', (req, res) => {
   const lat = Number(req.query.lat);

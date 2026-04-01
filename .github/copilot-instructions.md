@@ -13,7 +13,18 @@
 
 ## Runtime Environments
 
-### Primary — Node.js proxy server
+### Primary — friendly local launch (recommended for humans)
+
+```powershell
+npm run launch     # starts the Node proxy server if needed and opens the app in the browser
+```
+
+- Reuses an already-running local app instance when available.
+- Default URL: `http://localhost:3000`
+- Supports headless/CI usage: `npm run launch:headless`
+- Use this as the default instruction for "how do I start the app?"
+
+### Primary — Node.js proxy server (recommended for scripts/automation)
 
 ```powershell
 npm start          # starts node server.js on port 3000
@@ -22,8 +33,8 @@ npm start          # starts node server.js on port 3000
 - Requires **Node ≥ 18** (uses native `fetch`).
 - Express serves `public/` (isolated web root) and proxies all external APIs to sidestep CORS.
 - Port is configurable: `PORT=3001 npm start`
-- Health endpoint: `GET /api/health` → `{ ok: true }`
-- Runtime dependencies: `express ^4.21.2`, `express-rate-limit ^7`
+- Health endpoint: `GET /api/health` (diagnostic; may return `503` if upstreams are degraded even when the local server is healthy)
+- Runtime dependencies: `express ^4.21.2`, `express-rate-limit ^8`
 
 ### Secondary — Python static server (no proxy)
 
@@ -50,9 +61,11 @@ python -m http.server 8000 --directory public
 
 > **Enforcement rule:** Before executing `python`, `pip`, `pytest`, `flask`, `gunicorn`, or any Python-based CLI tool, **always** run `solar-env\Scripts\Activate.ps1` (PowerShell) or `source solar-env/Scripts/activate` (bash) first. Never use the system Python. If the venv is already active (prompt shows `(solar-env)`), skip re-activation.
 
+> **Future research rule:** Python in this repo is for optional research compute (bootstrap/permutation tests, regional aggregation, Dst/b-value analysis, archive joins). It is **not** the normal app runtime. If a future Python service is added, keep Node/Express as the public entry point, bind Python locally, and proxy it through `server.js` rather than exposing it directly to the browser.
+
 Key packages installed: Flask 3.1.3, flask-cors 6.0.2, gunicorn 25.1.0, gevent 25.9.1, pandas 3.0.1, numpy 2.4.3, pytest 9.0.2, pytest-cov 7.1.0, python-dotenv 1.2.2, requests 2.32.5.
 
-> Note: No Python server (`app.py`, `wsgi.py`, Flask routes) exists yet. The venv is scaffolded for a planned future Python compute service (e.g. Dst/correlation analytics, CME API integration). All current serving is done by Node.js.
+> Note: No Python server (`app.py`, `wsgi.py`, Flask routes) exists yet. The venv is scaffolded for a planned future Python compute service (e.g. bootstrap statistics, Dst/correlation analytics, CME API integration). All current user-facing serving is done by Node.js.
 
 ---
 
@@ -85,10 +98,17 @@ All APIs are public, require no authentication, and have no API key.
 | USGS M4.5+ past day | `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson` | `/api/usgs/eq-4.5-day` |
 | USGS M2.5+ past week | `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson` | `/api/usgs/eq-2.5-week` |
 | USGS M4.5+ past week | `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson` | `/api/usgs/eq-4.5-week` |
+| USGS ComCat historical search | `https://earthquake.usgs.gov/fdsnws/event/1/query?...` | `/api/usgs/comcat?starttime=&endtime=&minmagnitude=&limit=&orderby=` |
 | Open-Meteo weather | `https://api.open-meteo.com/v1/forecast?...` | `/api/openmeteo/weather?lat=&lon=` |
 | Open-Meteo air quality | `https://air-quality-api.open-meteo.com/v1/air-quality?...` | `/api/openmeteo/air-quality?lat=&lon=` |
 
 NOAA endpoints have known instability (upstream 5xx). `server.js` applies retry logic and falls back to `200 []` for non-critical feeds (e.g. plasma) so the client never sees a `502`.
+
+When adding new research feeds, keep them:
+- public and keyless
+- validated in `server.js`
+- referenced from `public/src/js/config.js`
+- free of server-side storage/caching unless explicitly discussed
 
 ---
 
@@ -127,6 +147,7 @@ docs/                   Project documentation (not served)
   development/          Dev reference, visual fix logs
   testing/              Testing checklists and troubleshooting
 scripts/                Dev/test scripts (not served)
+  launch.js             Friendly local launcher: start/reuse server + open browser
   tab-smoke-test.mjs    Playwright smoke test (6 tabs, HTTP errors, console errors)
   restart-server.js     Server restart utility
   verify-visuals.js     Visual verification
@@ -139,7 +160,7 @@ scripts/                Dev/test scripts (not served)
 ## Development Conventions
 
 - **No build toolchain** — no webpack, Vite, Babel, or TypeScript. Keep it that way unless explicitly asked.
-- **ES6 modules** — always use `import`/`export`. No CommonJS (`require`) in `src/js/`.
+- **ES6 modules** — always use `import`/`export`. No CommonJS (`require`) in `public/src/js/`.
 - **`server.js` is CommonJS** — uses `require()`. Do not mix in ES module syntax there.
 - **API URL resolution** — all frontend API calls route through `config.js`. Hardcoding URLs in components is wrong; add or use constants from `config.js`.
 - **Fetch pattern** — use `utils.js` `fetchWithRetry` / `fetchWithTimeout` for all external calls, not bare `fetch`.
@@ -163,6 +184,9 @@ No `.env` file. No API keys anywhere in the codebase. Do not add secrets to sour
 ## Testing
 
 ```powershell
+# Friendly launch
+npm run launch
+
 # Smoke test (requires server running on APP_URL)
 $env:APP_URL="http://localhost:3000"; node scripts/tab-smoke-test.mjs
 

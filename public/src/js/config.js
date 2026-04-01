@@ -41,6 +41,21 @@ export const USGS_APIS = {
   earthquakesWeek: resolveApiUrl('/usgs/eq-2.5-week', 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson'),
   // M4.5+ past 7 days (wider window for correlation analysis)
   earthquakesWeekM45: resolveApiUrl('/usgs/eq-4.5-week', 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson'),
+  // Historical ComCat search for deeper hypothesis testing windows
+  comcatSearch: ({ startTime, endTime, minMagnitude = 5.0, limit = 5000, orderBy = 'time-asc' }) =>
+    resolveApiUrl(
+      `/usgs/comcat?starttime=${encodeURIComponent(startTime)}` +
+      `&endtime=${encodeURIComponent(endTime)}` +
+      `&minmagnitude=${encodeURIComponent(minMagnitude)}` +
+      `&limit=${encodeURIComponent(limit)}` +
+      `&orderby=${encodeURIComponent(orderBy)}`,
+      `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson` +
+      `&minmagnitude=${encodeURIComponent(minMagnitude)}` +
+      `&starttime=${encodeURIComponent(startTime)}` +
+      `&endtime=${encodeURIComponent(endTime)}` +
+      `&limit=${encodeURIComponent(limit)}` +
+      `&orderby=${encodeURIComponent(orderBy)}`,
+    ),
 };
 
 // ===== OPEN-METEO FREE WEATHER API (no API key required) =====

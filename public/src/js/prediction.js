@@ -4,6 +4,7 @@
 // See RESEARCH.md for methodology notes and literature references.
 
 import { fetchWithRetry } from './utils.js';
+import { USGS_APIS } from './config.js';
 import { addEarthquake, addStorm, getEarthquakes, getStorms } from './db.js';
 
 // ===== HISTORICAL STORM SEED =====
@@ -48,10 +49,13 @@ export async function loadHistoricalUSGS() {
   const endDate   = new Date().toISOString().split('T')[0];
   const startDate = new Date(Date.now() - 730 * 86_400_000).toISOString().split('T')[0];
 
-  const url =
-    `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson` +
-    `&minmagnitude=5.0&starttime=${startDate}&endtime=${endDate}` +
-    `&limit=5000&orderby=time-asc`;
+  const url = USGS_APIS.comcatSearch({
+    startTime: startDate,
+    endTime: endDate,
+    minMagnitude: 5.0,
+    limit: 5000,
+    orderBy: 'time-asc',
+  });
 
   const response = await fetchWithRetry(url);
   const data = await response.json();

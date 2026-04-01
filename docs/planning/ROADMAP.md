@@ -34,8 +34,43 @@
 | In-App Toasts | Slide-in notification system for all events |
 | Alert Settings | Configurable thresholds, persisted in localStorage |
 | Status Indicator | Live/Demo/Loading dot in header |
-| ES Module Architecture | Zero build step, 13 focused JS modules |
+| ES Module Architecture | Zero build step, modular browser code in `public/src/js/` |
 | Dark Mode CSS | Automatic via `prefers-color-scheme` |
+| Historical ComCat Research Loader | 2-year M5+ ingestion path via validated `/api/usgs/comcat` proxy |
+| Statistical Prediction Engine | Lag scan + empirical conditional probability for M5+ post-storm windows |
+| Friendly Local Launch | `npm run launch` auto-starts or reuses local server and opens the app |
+
+---
+
+## Immediate Focus — Launch UX + Research Execution (next)
+
+> This is the near-term operating plan for what the app is actually trying to achieve: safe, repeatable hypothesis testing with live + historical public data.
+
+### 1. Researcher-friendly local launch
+- [x] One-command startup via `npm run launch`
+- [ ] Keep smoke/visual validation easy enough to run before and after research changes
+- [ ] Prefer Node proxy mode for all real research sessions
+
+### 2. Reproduce the null before claiming signal
+- [ ] Use the current 90-day / short-window view to verify that the app can still produce a null-like outcome
+- [ ] Keep UI language explicit about null, uncertainty, and insufficient evidence
+- [ ] Avoid fabricated placeholder data in research charts
+
+### 3. Securely deepen historical evidence
+- [ ] Expand multi-year USGS ComCat usage through the validated proxy
+- [ ] Add Dst-driven comparative storm thresholds
+- [ ] Add provenance so researchers can see which feed produced each plotted value
+
+### 4. Add heavier statistics only when warranted
+- [ ] Bootstrap / permutation null distribution (1000×+)
+- [ ] Regional stratification (Ring of Fire, Mediterranean-Himalayan, Cratons)
+- [ ] Bonferroni-aware lag scanning and significance calibration
+
+### 5. Use Python only as an optional compute sidecar
+- [ ] Reserve Python for heavy research workloads (bootstrap, b-values, archive joins)
+- [ ] Keep Node/Express as the primary user-facing server
+- [ ] If Python endpoints are added, bind locally and proxy them through `server.js`
+- [ ] Do not add server-side storage or authenticated services as part of research expansion
 
 ---
 
@@ -88,13 +123,15 @@
 
 > Target: scientific value beyond dashboarding
 
-- [ ] **Statistical correlation calculator** — chi-square test, p-value for storm/EQ lag
+- [ ] **Bootstrap null distribution** — permutation-based empirical p-values for lag peaks
 - [ ] **Configurable lag window** — UI to test 7-day, 14-day, 27-day, 35-day lags
 - [ ] **Multi-year historical data** — NOAA Kp archive + USGS ComCat batch API
-- [ ] **Machine learning experiment** — simple logistic regression for EQ probability given space weather state
+- [ ] **Regional stratification** — analyze Ring of Fire / Mediterranean-Himalayan / stable craton regions separately
+- [ ] **Dst-based storm thresholds** — compare Kp and Dst as the triggering classifier
 - [ ] **Paper citation panel** — clickable research references with abstracts
 - [ ] **Data provenance tracking** — show exactly which API call produced each displayed value
 - [ ] **Compare periods** — side-by-side comparison of active vs quiet space weather periods
+- [ ] **Optional Python compute sidecar** — bootstrap and archive analytics behind the Node proxy, never as the public entry point
 
 ---
 
@@ -129,8 +166,10 @@
 
 - **No build step** — pure ES modules, served as static files
 - **No framework** — vanilla JS + Leaflet + Canvas API
-- **No backend** — all data fetched client-side from public CORS-enabled APIs
-- **Modular** — 13 focused JS modules in `src/js/`, 5 CSS modules in `src/css/`
+- **Node proxy is the primary runtime** — browser clients should prefer proxied feeds for reliability/security
+- **No backend database** — all data is live or client-side only
+- **Python is optional and future-facing** — use it only for heavy research compute, never as a replacement for the Node entry point without discussion
+- **Modular** — focused browser modules in `public/src/js/` and CSS modules in `public/src/css/`
 - **Circular dependency prevention** — callback injection pattern (`setEarthquakeAlertCallback`)
 
 ---

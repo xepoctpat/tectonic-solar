@@ -33,9 +33,17 @@ export function updateCorrelationWindow() {
   if (!statusEl) return;
 
   if (storms.length > 0) {
-    statusEl.innerHTML = `⚠️ <strong>Active Correlation Window</strong><br>
-      ${storms.length} geomagnetic storm(s) detected 27–28 days ago.
-      Research suggests increased earthquake probability.`;
+    const title = document.createElement('strong');
+    title.textContent = 'Active Correlation Window';
+
+    statusEl.replaceChildren(
+      '⚠️ ',
+      title,
+      document.createElement('br'),
+      document.createTextNode(
+        `${storms.length} geomagnetic storm(s) detected 27–28 days ago. Research suggests increased earthquake probability.`,
+      ),
+    );
     statusEl.style.color = '#FF9800';
   } else {
     statusEl.textContent = '✓ No correlation window active';

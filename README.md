@@ -7,9 +7,10 @@ storms and earthquake probability.
 **No build step. No API key. No database.** Pure ES modules + public APIs.  
 All data is fetched live from NOAA, USGS, and Open-Meteo at runtime.  
 Client-side IndexedDB provides a 90-day rolling event window for correlation analysis.  
-A Node.js Express server proxies external APIs to eliminate CORS issues in deployment.
+A Node.js Express server proxies external APIs to eliminate CORS issues in deployment and enforce query validation/security headers.
 
-> See [ROADMAP.md](ROADMAP.md) for the full development plan.  
+> Recommended local launch: `npm run launch`  
+> See [docs/planning/ROADMAP.md](docs/planning/ROADMAP.md) for the full development plan.  
 > See [.github/copilot-instructions.md](.github/copilot-instructions.md) for contributor/AI coding context.
 
 ---
@@ -25,6 +26,7 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 | X-ray Flux / Solar Flares | NOAA GOES-Primary | 7-day JSON |
 | Dst Index | NOAA / Kyoto WDC | Live via `/api/noaa/dst` |
 | Proton Flux | NOAA GOES-Primary | 6-hour JSON |
+| Historical earthquake search | USGS ComCat | Validated proxy via `/api/usgs/comcat` |
 | Weather | Open-Meteo | Free API, no key |
 | Air Quality (PM2.5, AQI) | Open-Meteo Air Quality | Free API, no key |
 | Map Tiles | OpenStreetMap / Esri / CARTO | CDN |
@@ -39,7 +41,7 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 | **Space Weather** | Live NOAA solar wind (Chart.js animated line chart), Kp index (colour-coded bar chart), 3-day history with storm threshold, GOES X-ray flare log |
 | **Seismic** | Dynamic USGS earthquake list (newest first, time-ago), statistics (M5+/M6+ counts, largest), magnitude distribution chart (Chart.js horizontal bars with magnitude color-coding) |
 | **Environment** | Real-time weather (temp, feels-like, humidity, pressure, wind, condition) and air quality (PM2.5, PM10, CO, NO₂, European AQI) via Open-Meteo free API, AQI gauge doughnut chart |
-| **Correlation** | 27–28 day lag analysis with Pearson correlation coefficient (r), p-value, statistical strength (Weak/Moderate/Strong), correlation timeline scatter plot showing storm/earthquake pairs |
+| **Correlation** | 0–60 day lag scan, conditional `P(M5+ | storm 25–30d ago)`, historical USGS ComCat loading, correlation timeline, and null-hypothesis framing for the 27–28 day research question |
 | **Settings** | Configurable alert thresholds, dark mode toggle (☀️/🌙), notifications, localStorage persistence |
 
 ### Sprint 1-4 Enhancements (MVP Redesign)
@@ -87,18 +89,46 @@ Installable on mobile, tablet, and desktop. Works offline with cached data.
 
 ## Quick Start
 
-No dependencies to install for the frontend. Requires a local HTTP server (ES modules cannot run on `file://`).
+Requires **Node ≥ 18** for the recommended launch flow. ES modules cannot run on `file://`, so use a local server.
 
-### Node.js proxy server (recommended — full functionality)
+### One-command launch (recommended)
 
 ```powershell
 npm install
-npm start
-# open http://localhost:3000
+npm run launch
 ```
 
-Requires **Node ≥ 18**. Proxies all NOAA/USGS/Open-Meteo APIs to avoid CORS restrictions.  
-Port is configurable: `PORT=3001 npm start`
+What `npm run launch` does:
+
+- reuses an already-running local app server if one exists
+- otherwise starts `server.js`
+- opens your default browser to `http://localhost:3000`
+
+Optional headless launch:
+
+```powershell
+npm run launch:headless
+```
+
+### Manual Node.js proxy server (recommended for scripts/CI)
+
+```powershell
+npm start
+# then open http://localhost:3000
+```
+
+The Node proxy is the **primary** runtime because it:
+
+- serves `public/` as the isolated web root
+- proxies NOAA / USGS / Open-Meteo to avoid browser CORS issues
+- applies rate limiting, CSP, `X-Frame-Options`, `nosniff`, and query validation
+
+Port is configurable. PowerShell example:
+
+```powershell
+$env:PORT = "3001"
+npm run launch
+```
 
 ### Python static server (limited — some APIs CORS-blocked)
 
@@ -106,17 +136,29 @@ Port is configurable: `PORT=3001 npm start`
 # Activate the workspace venv first
 solar-env\Scripts\Activate.ps1
 
-python -m http.server 8000
+python -m http.server 8000 --directory public
 # open http://localhost:8000
 ```
 
-# VS Code: click Go Live in status bar
-```
+Use this mode only for quick static rendering checks. It is **not** the recommended way to run the full app because some live data streams will be blocked or degraded without the Node proxy.
 
-### Python venv (workspace)
+### Python venv (future research mode)
 
-The venv at `solar-env/` is scaffolded for a planned Python compute service (Dst analytics, CME integration).  
-**No Python server currently exists** — the venv is not required for normal app operation.
+The venv at `solar-env/` is reserved for future research/compute work such as:
+
+- bootstrap or permutation testing for the null distribution
+- regional stratification and long-window archive analysis
+- Gutenberg–Richter / b-value calculations
+- optional sidecar analytics services
+
+**No Python server currently exists** and the venv is **not required** for normal dashboard usage.
+
+When Python is used in this repo, the rule is strict:
+
+- always activate `solar-env\Scripts\Activate.ps1` first
+- never use system Python
+- keep Node/Express as the main user-facing server
+- if a Python sidecar is added later, proxy it through `server.js` rather than exposing it directly to the browser
 
 ```powershell
 # To set up the venv from scratch:
@@ -131,38 +173,31 @@ pip install -r requirements.txt
 
 ```
 tectonic-solar/
-├── index.html              # Markup — semantic HTML, ARIA, PWA meta tags
-├── manifest.json           # PWA manifest — app metadata, icons, shortcuts
-├── sw.js                   # Service worker — caching, offline support
-├── server.js               # Node deployment simulation server + API proxy
-├── requirements.txt        # Python dependencies for workspace venv
-├── package.json            # Node runtime config for simulation server
-├── ROADMAP.md              # Development roadmap
-├── README.md
-├── SPRINT-1-DELIVERY.md    # Sprint 1-4 delivery summary
-├── DEV-QUICK-REFERENCE.md  # Developer guide for extension/maintenance
-└── src/
-    ├── css/
-    │   ├── variables.css   # Design tokens (spacing, shadows, glass-morphism, dark mode)
-    │   ├── base.css        # Reset, layout, responsive breakpoints (480/768/1024px), dark mode class-based
-    │   ├── components.css  # Tabs, cards, buttons (ripple), skeletons (shimmer), EQ list borders
-    │   ├── map.css         # Leaflet layout, controls, magnitude slider
-    │   └── notifications.css # Toast styles, progress bar animation
-    └── js/
-        ├── config.js       # API URLs, constants, WMO codes, AQI levels
-        ├── store.js        # Mutable state with getters, pub/sub pattern, pruning functions
-        ├── utils.js        # Fetch resilience (timeout + retry), DOM helpers, CSS utilities
-        ├── db.js           # IndexedDB wrapper — 90-day rolling storage for storms/earthquakes
-        ├── tabs.js         # Tab switching + Leaflet invalidateSize
-        ├── map.js          # Leaflet init, overlays, EQ markers, magnitude filter
-        ├── spaceWeather.js # NOAA APIs (solar wind, Kp, flares) + IndexedDB persistence
-        ├── seismic.js      # Earthquake alerts + dynamic list rendering
-        ├── environment.js  # Open-Meteo weather + air quality
-        ├── correlation.js  # Pearson r, p-value, strength labels, configurable lag analysis
-        ├── charts.js       # Chart.js: Solar Wind, Kp, Magnitude, AQI, Correlation Timeline
-        ├── notifications.js # Browser push + in-app toasts with progress bar
-        ├── settings.js     # Settings UI, alert thresholds, dark mode
-        └── main.js         # App init, SW registration, IndexedDB init, event listeners
+├── server.js                 # Node proxy server + security headers + research feed validation
+├── package.json              # Runtime scripts (`launch`, `start`, `test:tabs`)
+├── requirements.txt          # Python research environment dependencies
+├── public/                   # Browser-served web root
+│   ├── index.html
+│   ├── manifest.json
+│   ├── sw.js
+│   └── src/
+│       ├── css/
+│       └── js/
+├── scripts/
+│   ├── launch.js             # Friendly launcher: start/reuse server + open browser
+│   ├── tab-smoke-test.mjs    # 6-tab Playwright smoke test
+│   ├── verify-visuals.js
+│   ├── lighthouse-automation.js
+│   ├── restart-server.js
+│   └── test-automation.js
+├── docs/
+│   ├── planning/
+│   ├── research/
+│   ├── operations/
+│   ├── testing/
+│   ├── development/
+│   └── handoff/
+└── solar-env/                # Local Python venv for future research compute tasks
 ```
 
 ---
@@ -177,8 +212,40 @@ Key references:
 - Han et al. (2004) — Statistical correlation study
 - Varga & Grafarend (2018) — Earth rotation and seismicity
 
+Current research workflow in the app:
+
+- live storm and earthquake monitoring
+- 0–60 day lag scan with explicit null-result framing
+- empirical conditional probability of M5+ activity in the 25–30 day post-storm window
+- optional historical USGS ComCat load through a validated proxy route
+
+### Current plan
+
+The near-term plan is intentionally conservative and research-first:
+
+1. **Make the app easy to run** so testing and exploration happen routinely (`npm run launch`)
+2. **Reproduce the null first** on short windows before making any signal claims
+3. **Expand historical depth securely** via public, keyless, validated proxy feeds
+4. **Use Python only for heavy statistical work** once the browser/Node path is saturated
+
 **⚠️ Disclaimer**: USGS and most seismologists state no proven causal relationship exists.
 This tool is for pattern research and exploration, **not** earthquake prediction.
+
+For the fuller execution plan, see [docs/planning/ROADMAP.md](docs/planning/ROADMAP.md).
+
+---
+
+## Security Posture
+
+This project intentionally keeps the research surface area wide **without** loosening the security model:
+
+- `public/` is the only served web root
+- no API keys or authenticated feeds
+- no server-side database or caching layer
+- Node proxy applies rate limiting and security headers
+- historical research queries are validated before proxying upstream
+- new external feeds should be added through `server.js` + `public/src/js/config.js`
+- live-data UI should prefer safe DOM APIs over `innerHTML`
 
 ---
 
@@ -207,6 +274,7 @@ This tool is for pattern research and exploration, **not** earthquake prediction
 | Lighthouse PWA Score | ≥90 | Manifest, SW, HTTPS (if deployed) |
 
 **Testing Checklist**:
+- [ ] Launch via `npm run launch`
 - [ ] Responsive layout at 375px, 768px, 1440px
 - [ ] Dark mode toggle persists across reload
 - [ ] Offline mode: disable network in DevTools, verify cached data loads
@@ -231,10 +299,11 @@ This tool is for pattern research and exploration, **not** earthquake prediction
 ## Documentation
 
 - [.github/copilot-instructions.md](.github/copilot-instructions.md) — Contributor/AI coding context (server setup, venv, data sources, conventions)
-- [SPRINT-1-DELIVERY.md](SPRINT-1-DELIVERY.md) — Complete list of Sprint 1-4 changes
-- [HANDOFF.md](HANDOFF.md) — NOAA proxy resilience + frontend error telemetry stabilization notes
-- [DEV-QUICK-REFERENCE.md](DEV-QUICK-REFERENCE.md) — Developer guide for extensions and maintenance
-- [ROADMAP.md](ROADMAP.md) — Future features and long-term vision
+- [docs/planning/SPRINT-1-DELIVERY.md](docs/planning/SPRINT-1-DELIVERY.md) — Complete list of Sprint 1-4 changes
+- [docs/handoff/HANDOFF.md](docs/handoff/HANDOFF.md) — Security/restructure + research handoff notes
+- [docs/development/DEV-QUICK-REFERENCE.md](docs/development/DEV-QUICK-REFERENCE.md) — Developer guide for extensions and maintenance
+- [docs/planning/ROADMAP.md](docs/planning/ROADMAP.md) — Future features and the current research execution plan
+- [docs/research/RESEARCH.md](docs/research/RESEARCH.md) — Hypothesis analysis and falsification criteria
 
 ---
 
