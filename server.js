@@ -11,7 +11,7 @@ const CONTENT_SECURITY_POLICY = [
   "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com",
   "style-src 'self' 'unsafe-inline' https://unpkg.com",
   "img-src 'self' data: https:",
-  "connect-src 'self' https://services.swpc.noaa.gov https://earthquake.usgs.gov https://api.open-meteo.com https://air-quality-api.open-meteo.com",
+  "connect-src 'self' https://services.swpc.noaa.gov https://earthquake.usgs.gov https://api.open-meteo.com https://air-quality-api.open-meteo.com https://www.ngdc.noaa.gov",
   "font-src 'self' data: https:",
   "manifest-src 'self'",
   "worker-src 'self'",
@@ -22,6 +22,7 @@ const CONTENT_SECURITY_POLICY = [
 ].join('; ');
 const ISO_DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const ALLOWED_COMCAT_ORDER = new Set(['time-asc', 'time', 'magnitude']);
+const DAYIND_ARCHIVE_MIN_DATE = new Date('2011-01-01T00:00:00Z');
 
 app.disable('x-powered-by');
 
@@ -33,7 +34,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
   message: { ok: false, error: 'Too many requests, please try again later' },
 });
-app.use(limiter);
+app.use('/api', limiter);
 
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -61,6 +62,7 @@ const UPSTREAM = {
     xray7d: 'https://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json',
     proton6h: 'https://services.swpc.noaa.gov/json/goes/primary/integral-protons-plot-6-hour.json',
     dst: 'https://services.swpc.noaa.gov/products/kyoto-dst.json',
+    dayindArchiveBase: 'https://www.ngdc.noaa.gov/stp/space-weather/swpc-products/daily_reports/space_weather_indices',
   },
   usgs: {
     m45Day: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson',
@@ -87,6 +89,11 @@ function parseDateOnly(value) {
   return typeof normalized === 'string' && ISO_DATE_ONLY_PATTERN.test(normalized)
     ? normalized
     : null;
+}
+
+function buildDayindArchiveUrl(dateOnly) {
+  const [year, month, day] = dateOnly.split('-');
+  return `${UPSTREAM.noaa.dayindArchiveBase}/${year}/${month}/${year}${month}${day}dayind.txt`;
 }
 
 async function fetchWithTimeout(url) {
@@ -225,6 +232,25 @@ app.get('/api/noaa/dst', (_req, res) => proxyRequest(res, UPSTREAM.noaa.dst, {
   fallbackData: '[]',
   fallbackContentType: 'application/json',
 }));
+app.get('/api/noaa/dayind', (req, res) => {
+  const date = parseDateOnly(req.query.date);
+
+  if (!date) {
+    res.status(400).json({ ok: false, error: 'Missing or invalid date query param' });
+    return;
+  }
+
+  const parsedDate = new Date(`${date}T00:00:00Z`);
+  const today = new Date();
+  today.setUTCHours(23, 59, 59, 999);
+
+  if (Number.isNaN(parsedDate.getTime()) || parsedDate < DAYIND_ARCHIVE_MIN_DATE || parsedDate > today) {
+    res.status(400).json({ ok: false, error: 'date must be between 2011-01-01 and today' });
+    return;
+  }
+
+  proxyRequest(res, buildDayindArchiveUrl(date), { maxRetries: 1 });
+});
 
 app.get('/api/usgs/eq-4.5-day', (_req, res) => proxyRequest(res, UPSTREAM.usgs.m45Day));
 app.get('/api/usgs/eq-2.5-week', (_req, res) => proxyRequest(res, UPSTREAM.usgs.m25Week));

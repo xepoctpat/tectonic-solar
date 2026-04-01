@@ -95,6 +95,7 @@ All APIs are public, require no authentication, and have no API key.
 | GOES X-ray flux 7-day | `https://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json` | `/api/noaa/xrays` |
 | GOES proton flux 6-hr | `https://services.swpc.noaa.gov/json/goes/primary/integral-protons-plot-6-hour.json` | `/api/noaa/protons` |
 | Kyoto Dst index | `https://services.swpc.noaa.gov/products/kyoto-dst.json` | `/api/noaa/dst` |
+| NOAA/NCEI daily space weather indices archive | `https://www.ngdc.noaa.gov/stp/space-weather/swpc-products/daily_reports/space_weather_indices/YYYY/MM/YYYYMMDDdayind.txt` | `/api/noaa/dayind?date=YYYY-MM-DD` |
 | USGS M4.5+ past day | `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson` | `/api/usgs/eq-4.5-day` |
 | USGS M2.5+ past week | `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson` | `/api/usgs/eq-2.5-week` |
 | USGS M4.5+ past week | `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson` | `/api/usgs/eq-4.5-week` |

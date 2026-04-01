@@ -4,8 +4,26 @@
 // See RESEARCH.md for methodology notes and literature references.
 
 import { fetchWithRetry } from './utils.js';
-import { USGS_APIS } from './config.js';
+import { NOAA_APIS, USGS_APIS } from './config.js';
 import { addEarthquake, addStorm, getEarthquakes, getStorms } from './db.js';
+import {
+  scanAllLags,
+  assessLagScan,
+  computePrediction,
+  interpretHypothesisEvidence,
+  normalizeStormCatalog,
+  normalizeEarthquakeCatalog,
+} from './hypothesis-core.mjs';
+import { enumerateUtcDateRange, parseDayindStorms, toIsoDateOnly } from './stormArchive.mjs';
+
+export {
+  scanAllLags,
+  assessLagScan,
+  computePrediction,
+  interpretHypothesisEvidence,
+  normalizeStormCatalog,
+  normalizeEarthquakeCatalog,
+} from './hypothesis-core.mjs';
 
 // ===== HISTORICAL STORM SEED =====
 // Known Kp≥5 geomagnetic storms from SC25 peak period (2024).
@@ -29,6 +47,51 @@ export const STORM_SEED = [
 
 const HISTORICAL_LOADED_KEY = 'historical-usgs-loaded-v1';
 const STORM_SEED_LOADED_KEY  = 'storm-seed-loaded-v1';
+const STORM_ARCHIVE_LOADED_KEY = 'historical-storm-archive-loaded-v1';
+const STORM_ARCHIVE_LOOKBACK_DAYS = 730;
+const STORM_ARCHIVE_THRESHOLD = 5.0;
+
+function getStormArchiveStatus() {
+  const raw = localStorage.getItem(STORM_ARCHIVE_LOADED_KEY);
+  if (!raw) {
+    return { complete: false, partial: false };
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    return {
+      complete: parsed.complete === true,
+      partial: parsed.partial === true,
+    };
+  } catch {
+    return { complete: true, partial: false };
+  }
+}
+
+async function fetchHistoricalStormsForDate(dateOnly, minKp = STORM_ARCHIVE_THRESHOLD) {
+  const response = await fetchWithRetry(NOAA_APIS.historicalDayIndex(dateOnly), 1, 750);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const text = await response.text();
+  return parseDayindStorms(text, dateOnly, minKp);
+}
+
+async function runConcurrent(items, concurrency, worker) {
+  let cursor = 0;
+
+  async function runner() {
+    while (cursor < items.length) {
+      const currentIndex = cursor;
+      cursor += 1;
+      await worker(items[currentIndex], currentIndex);
+    }
+  }
+
+  const runners = Array.from({ length: Math.min(concurrency, items.length) }, () => runner());
+  await Promise.all(runners);
+}
 
 // ===== HISTORICAL DATA LOADER =====
 
@@ -37,7 +100,7 @@ const STORM_SEED_LOADED_KEY  = 'storm-seed-loaded-v1';
  * Stores all events in IndexedDB. Idempotent — skips if already loaded
  * (controlled via localStorage flag).
  *
- * USGS ComCat API is CORS-accessible directly; no proxy required.
+ * Uses the validated local `/api/usgs/comcat` proxy path from config.js.
  *
  * @returns {Promise<{loaded: boolean, count?: number, reason?: string}>}
  */
@@ -93,162 +156,101 @@ export async function seedHistoricalStorms() {
   localStorage.setItem(STORM_SEED_LOADED_KEY, '1');
 }
 
-// ===== CROSS-LAG SCAN =====
-
 /**
- * Scan the event-rate ratio at every integer lag from 0 to maxLag days.
+ * One-time fetch of the official NOAA/NCEI daily `dayind` archive for the past
+ * two years. Extracts planetary 3-hour Kp intervals >= threshold and stores
+ * them as storm observations in IndexedDB.
  *
- * For each lag L:
- *   window  = earthquakes within ±3 days of (storm_date + L)
- *   control = earthquakes within ±3 days of (storm_date + L + 14)
- *   ratio   = window / control
- *
- * A ratio significantly > 1 at a specific lag is the hypothesis signal.
- * This event-rate approach avoids the selection bias inherent in
- * Pearson r on matched pairs (documented in RESEARCH.md §7).
- *
- * @param {Array<{kp:number, date:Date}>} storms
- * @param {Array<{mag:number, date:Date}>} earthquakes
- * @param {number} maxLag
- * @returns {Array<{lag:number, eventRatio:number, windowCount:number, controlCount:number}>}
+ * @param {{ days?: number, minKp?: number, concurrency?: number, onProgress?: Function }} [options]
+ * @returns {Promise<{loaded: boolean, count?: number, failedDays?: number, processedDays?: number, reason?: string}>}
  */
-export function scanAllLags(storms, earthquakes, maxLag = 60) {
-  const results = [];
+export async function loadHistoricalStormArchive(options = {}) {
+  const {
+    days = STORM_ARCHIVE_LOOKBACK_DAYS,
+    minKp = STORM_ARCHIVE_THRESHOLD,
+    concurrency = 8,
+    onProgress,
+  } = options;
 
-  for (let lag = 0; lag <= maxLag; lag++) {
-    let windowCount  = 0;
-    let controlCount = 0;
-
-    storms.forEach(storm => {
-      const lagCenter  = storm.date.getTime() + lag * 86_400_000;
-      const ctrlCenter = storm.date.getTime() + (lag + 14) * 86_400_000;
-      earthquakes.forEach(eq => {
-        const t = eq.date.getTime();
-        if (Math.abs(t - lagCenter)  <= 3 * 86_400_000) windowCount++;
-        if (Math.abs(t - ctrlCenter) <= 3 * 86_400_000) controlCount++;
-      });
-    });
-
-    results.push({
-      lag,
-      windowCount,
-      controlCount,
-      // Ratio >1 = more earthquakes in window than control; =1 = null result
-      eventRatio: controlCount > 0
-        ? windowCount / controlCount
-        : (windowCount > 0 ? 2.0 : 1.0),
-    });
+  const archiveStatus = getStormArchiveStatus();
+  if (archiveStatus.complete) {
+    return { loaded: false, reason: 'already-loaded' };
   }
 
-  return results;
-}
+  const archiveEndDate = new Date();
+  archiveEndDate.setUTCDate(archiveEndDate.getUTCDate() - 1);
+  archiveEndDate.setUTCHours(0, 0, 0, 0);
 
-/**
- * Find the peak lag(s) and assess whether the 27–28 day region is special.
- * @param {Array} scanResults - from scanAllLags()
- * @returns {{ peakLag: number, peakRatio: number, lag27ratio: number, isHypothesisSupported: boolean }}
- */
-export function assessLagScan(scanResults) {
-  if (!scanResults.length) return null;
+  const archiveStartDate = new Date(archiveEndDate.getTime() - (days - 1) * 86_400_000);
+  const dateKeys = enumerateUtcDateRange(archiveStartDate, archiveEndDate);
+  const existingStorms = normalizeStormCatalog(await getStorms(5000));
+  const existingStormKeys = new Set(existingStorms.map(storm => storm.date.getTime()));
+  const collectedStorms = [];
+  let processedDays = 0;
+  let failedDays = 0;
 
-  const peak = scanResults.reduce((a, b) => (b.eventRatio > a.eventRatio ? b : a));
-  const lag27 = scanResults.find(r => r.lag === 27) || scanResults.find(r => r.lag === 28);
-  const lag27ratio = lag27 ? lag27.eventRatio : 1.0;
-
-  // Simple signal criterion: 27–28d ratio is the global or near-global peak,
-  // AND is meaningfully above 1.0 (>1.15 = >15% elevation)
-  const isHypothesisSupported = (peak.lag >= 25 && peak.lag <= 30) && peak.eventRatio > 1.15;
-
-  return {
-    peakLag:    peak.lag,
-    peakRatio:  peak.eventRatio,
-    lag27ratio,
-    isHypothesisSupported,
-  };
-}
-
-// ===== BAYESIAN PROBABILITY ESTIMATOR =====
-
-/**
- * Compute P(≥1 M5+ earthquake in current 27–28d post-storm window) from
- * empirical conditional frequency in the historical IndexedDB corpus.
- *
- * If triggering storms exist (Kp≥5 storms 25–30 days ago):
- *   P = (past storms where ≥1 M5+ occurred in T+25..T+30) / total past storms
- * Else:
- *   P = base rate (background M5+ frequency in any 5-day window)
- *
- * This is a frequentist conditional probability, not a model prediction.
- * It becomes more meaningful with more historical data (see RESEARCH.md §7).
- *
- * @param {Array<{kp:number, date:Date}>} storms
- * @param {Array<{mag:number, date:Date}>} earthquakes
- * @returns {Object} prediction result
- */
-export function computePrediction(storms, earthquakes) {
-  const now = Date.now();
-
-  // --- Base rate: P(≥1 M5+ in any 5-day window) ---
-  const dataSpanDays = earthquakes.length > 0
-    ? (now - Math.min(...earthquakes.map(e => e.date.getTime()))) / 86_400_000
-    : 1;
-  const dailyRate      = earthquakes.length / Math.max(dataSpanDays, 1);
-  const baseProbability = 1 - Math.pow(1 - dailyRate, 5);
-
-  // --- Conditional rate: P(hit | storm, lag T+25..T+30) ---
-  let stormTrials = 0;
-  let stormHits   = 0;
-
-  storms.forEach(storm => {
-    const winStart = storm.date.getTime() + 25 * 86_400_000;
-    const winEnd   = storm.date.getTime() + 30 * 86_400_000;
-    // Only use past storms where the lag window has already closed
-    if (winEnd < now) {
-      stormTrials++;
-      if (earthquakes.some(eq => eq.date.getTime() >= winStart && eq.date.getTime() <= winEnd)) {
-        stormHits++;
+  await runConcurrent(dateKeys, concurrency, async dateOnly => {
+    try {
+      const storms = await fetchHistoricalStormsForDate(dateOnly, minKp);
+      collectedStorms.push(...storms);
+    } catch (_error) {
+      failedDays += 1;
+    } finally {
+      processedDays += 1;
+      if (typeof onProgress === 'function' && (
+        processedDays === 1
+        || processedDays === dateKeys.length
+        || processedDays % 14 === 0
+      )) {
+        onProgress({
+          processedDays,
+          totalDays: dateKeys.length,
+          percent: Math.round((processedDays / dateKeys.length) * 100),
+          foundStorms: collectedStorms.length,
+          failedDays,
+          currentDate: dateOnly,
+        });
       }
     }
   });
 
-  const conditionalProbability = stormTrials >= 3
-    ? stormHits / stormTrials
-    : baseProbability;
+  if (collectedStorms.length === 0 && failedDays > 0) {
+    throw new Error('NOAA storm archive fetch failed for every requested day');
+  }
 
-  // --- Is there an active triggering storm right now? ---
-  const triggeringStorms = storms.filter(s => {
-    const ageDays = (now - s.date.getTime()) / 86_400_000;
-    return ageDays >= 25 && ageDays <= 30;
-  });
+  const normalizedCollected = normalizeStormCatalog(collectedStorms);
+  const newStorms = normalizedCollected.filter(storm => !existingStormKeys.has(storm.date.getTime()));
 
-  const windowActive    = triggeringStorms.length > 0;
-  const displayProb     = windowActive ? conditionalProbability : baseProbability;
+  for (const storm of newStorms) {
+    try {
+      await addStorm(storm);
+    } catch (_) {
+      // Ignore duplicate/constraint failures; the analysis path normalizes anyway.
+    }
+  }
 
-  const confidence =
-    stormTrials >= 30 ? 'high'    :
-    stormTrials >= 10 ? 'medium'  :
-    stormTrials >= 3  ? 'low'     : 'insufficient';
+  localStorage.setItem(STORM_ARCHIVE_LOADED_KEY, JSON.stringify({
+    complete: failedDays === 0,
+    partial: failedDays > 0,
+    loadedAt: Date.now(),
+    count: newStorms.length,
+    processedDays,
+    failedDays,
+    startDate: toIsoDateOnly(archiveStartDate),
+    endDate: toIsoDateOnly(archiveEndDate),
+  }));
 
   return {
-    windowActive,
-    probability:           Math.min(Math.max(displayProb, 0), 1),
-    conditionalProbability: Math.min(Math.max(conditionalProbability, 0), 1),
-    baseProbability:        Math.min(Math.max(baseProbability, 0), 1),
-    stormTrials,
-    stormHits,
-    triggeringStorms:  triggeringStorms.length,
-    triggeringDetails: triggeringStorms.map(s => ({
-      kp:      s.kp,
-      agedays: Math.round((now - s.date.getTime()) / 86_400_000),
-    })),
-    confidence,
-    dataPoints: {
-      storms:       storms.length,
-      earthquakes:  earthquakes.length,
-      dataSpanDays: Math.round(dataSpanDays),
-    },
+    loaded: true,
+    partial: failedDays > 0,
+    count: newStorms.length,
+    processedDays,
+    failedDays,
   };
 }
+
+// Shared pure lag-analysis logic lives in `hypothesis-core.mjs` so the browser
+// path and deterministic simulation path use the same implementation.
 
 // ===== FULL ANALYSIS RUNNER =====
 
@@ -261,24 +263,36 @@ export function computePrediction(storms, earthquakes) {
  * @returns {Promise<{scanResults, assessment, prediction, meta}>}
  */
 export async function runFullAnalysis() {
-  const [storms, earthquakes] = await Promise.all([
+  const [rawStorms, rawEarthquakes] = await Promise.all([
     getStorms(730),
     getEarthquakes(730),
   ]);
 
+  const storms = normalizeStormCatalog(rawStorms);
+  const earthquakes = normalizeEarthquakeCatalog(rawEarthquakes);
+
   const scanResults = scanAllLags(storms, earthquakes, 60);
   const assessment  = assessLagScan(scanResults);
   const prediction  = computePrediction(storms, earthquakes);
+  const stormArchiveStatus = getStormArchiveStatus();
+  const meta = {
+    stormCount: storms.length,
+    eqCount: earthquakes.length,
+    rawStormCount: rawStorms.length,
+    rawEqCount: rawEarthquakes.length,
+    historicalLoaded: Boolean(localStorage.getItem(HISTORICAL_LOADED_KEY)),
+    historicalEarthquakesLoaded: Boolean(localStorage.getItem(HISTORICAL_LOADED_KEY)),
+    stormArchiveLoaded: stormArchiveStatus.complete,
+    stormArchivePartial: stormArchiveStatus.partial,
+    stormSeedLoaded: Boolean(localStorage.getItem(STORM_SEED_LOADED_KEY)),
+  };
+  const interpretation = interpretHypothesisEvidence(scanResults, prediction, meta);
 
   return {
     scanResults,
     assessment,
     prediction,
-    meta: {
-      stormCount: storms.length,
-      eqCount:    earthquakes.length,
-      historicalLoaded: Boolean(localStorage.getItem(HISTORICAL_LOADED_KEY)),
-      stormSeedLoaded:  Boolean(localStorage.getItem(STORM_SEED_LOADED_KEY)),
-    },
+    interpretation,
+    meta,
   };
 }

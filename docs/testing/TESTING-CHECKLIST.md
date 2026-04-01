@@ -16,6 +16,16 @@ npm run launch
 
 Expected app URL: `http://localhost:3000`
 
+### Hypothesis sanity check (simulation)
+```powershell
+npm run test:hypothesis-sim
+```
+
+Expected outcome:
+- null scenario stays non-supportive
+- implanted 27-day signal peaks near 25–30d
+- off-target signal does not get mislabeled as 27–28d support
+
 ### Optional static-only check
 ```powershell
 solar-env\Scripts\Activate.ps1
@@ -63,10 +73,13 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Real Data**: From Open-Meteo API (free, no key required)
 
 ### 📊 Correlation Tab
+- [ ] **Foundation Button**: "Load Full Research Foundation" is visible and starts the combined archive workflow
 - [ ] **Prediction Card**: Statistical prediction card renders with probability / confidence state
 - [ ] **Data Foundation**: Historical-load status and corpus span appear
+- [ ] **Storm Archive Load**: "Load 2-Year Storm Archive" ingests NOAA/NCEI dayind history and updates the storm status line
 - [ ] **Lag Scan Chart**: 0–60 day lag scan appears or shows explicit empty state
 - [ ] **Lag Verdict**: Null/signal/insufficient-data messaging is visible and legible
+- [ ] **Interpretation State**: UI distinguishes insufficient / null-consistent / off-target / weak bump / candidate signal instead of treating raw percentage alone as evidence
 - [ ] **Timeline**: 30-day storm vs M5+ timeline renders without console errors
 - [ ] **Historical Load**: "Load 2-Year History" button loads ComCat data without breaking the page
 
@@ -86,6 +99,7 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Solar Wind Endpoint**: `/api/noaa/rtsw-mag` and `/api/noaa/rtsw-plasma` respond via the local proxy
 - [ ] **Kp Index**: Real-time Kp values populate chart
 - [ ] **Flare Data**: X-ray flux shows current solar activity
+- [ ] **Historical Storm Archive Endpoint**: `/api/noaa/dayind?date=2024-05-10` returns a NOAA/NCEI dayind text file through the local proxy
 - [ ] **Retry Logic**: Force offline, wait 10s → should retry (check console)
 
 ### USGS Live Data (Earthquakes)

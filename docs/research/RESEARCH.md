@@ -323,3 +323,52 @@ The app is instrumenting the right data streams to investigate this hypothesis. 
 The most likely scientific outcome, based on existing literature, is a **very weak, possibly real, regionally heterogeneous correlation** — not strong enough to predict individual earthquakes but potentially informative about seismic hazard modulation over multi-week windows. That is still scientifically interesting.
 
 The app is well-positioned to be a live, open-source demonstration of citizen-science methodology on this hypothesis — which is its most defensible scientific role.
+
+---
+
+## 12. Stepwise Validation Ladder (Live + Sim)
+
+To keep the project honest, the hypothesis should be tested in increasing levels of realism rather than by jumping straight from live noise to a grand conclusion.
+
+### Step 1 — Deterministic simulation sanity check
+
+Run:
+
+```powershell
+npm run test:hypothesis-sim
+```
+
+This uses the same pure lag-analysis core as the browser app and checks three cases:
+
+1. **Null independence** — storm timing and earthquake timing are unrelated; 27–28d should not be specially favored.
+2. **Positive control** — an artificial 27-day lag signal is injected; the lag scan should peak near 25–30d.
+3. **Off-target control** — a signal is injected at a different lag; the engine should not hallucinate that as 27–28d support.
+
+If this step fails, the analysis engine is not trustworthy enough for real-data interpretation.
+
+### Step 2 — Short-window live-data null reproduction
+
+Use the live app without historical backfill and verify that short windows often look **underpowered**, **null-like**, or occasionally **off-target** rather than automatically “supportive.” This matters because a tool that always “finds a signal” in sparse live data is not measuring the hypothesis; it is overfitting noise.
+
+### Step 3 — Historical backfill
+
+Load validated historical USGS ComCat data and the official NOAA/NCEI `dayind` storm archive, then rerun the lag scan. This is the minimum path to getting enough trials for a meaningful conditional-rate estimate. Relying on the tiny embedded SC25 seed alone is useful as a fallback, but it is not enough for a strong real-data read.
+
+### Step 4 — Regional and storm-definition controls
+
+Only after the basic engine behaves under steps 1–3 should the project branch into:
+
+- regional stratification
+- Kp vs Dst storm definitions
+- bootstrap / permutation null distributions
+- optional Python sidecar analytics
+
+### Step 5 — Claim discipline
+
+Even if a 27–28d peak appears, the app should distinguish between:
+
+- **engine passed its sanity checks**
+- **real-world data shows a repeatable correlation**
+- **a causal mechanism exists**
+
+Those are not the same claim.

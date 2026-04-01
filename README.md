@@ -27,6 +27,7 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 | Dst Index | NOAA / Kyoto WDC | Live via `/api/noaa/dst` |
 | Proton Flux | NOAA GOES-Primary | 6-hour JSON |
 | Historical earthquake search | USGS ComCat | Validated proxy via `/api/usgs/comcat` |
+| Historical geomagnetic indices | NOAA/NCEI SWPC `dayind` archive | Validated proxy via `/api/noaa/dayind?date=YYYY-MM-DD` |
 | Weather | Open-Meteo | Free API, no key |
 | Air Quality (PM2.5, AQI) | Open-Meteo Air Quality | Free API, no key |
 | Map Tiles | OpenStreetMap / Esri / CARTO | CDN |
@@ -37,7 +38,7 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 
 | Tab | What it does |
 |---|---|
-| **Map** | Interactive Leaflet map — live USGS earthquakes (coloured by magnitude band, depth-encoded border), tectonic boundaries, plate motion vectors, magnitude filter slider, 4 tile layers |
+| **Map** | Interactive Leaflet map — the primary 2D research view for live USGS earthquakes, tectonic boundaries, plate motion vectors, magnitude filter slider, and multiple basemaps; any future 3D globe should remain optional and isolated from the default map path |
 | **Space Weather** | Live NOAA solar wind (Chart.js animated line chart), Kp index (colour-coded bar chart), 3-day history with storm threshold, GOES X-ray flare log |
 | **Seismic** | Dynamic USGS earthquake list (newest first, time-ago), statistics (M5+/M6+ counts, largest), magnitude distribution chart (Chart.js horizontal bars with magnitude color-coding) |
 | **Environment** | Real-time weather (temp, feels-like, humidity, pressure, wind, condition) and air quality (PM2.5, PM10, CO, NO₂, European AQI) via Open-Meteo free API, AQI gauge doughnut chart |
@@ -224,9 +225,32 @@ Current research workflow in the app:
 The near-term plan is intentionally conservative and research-first:
 
 1. **Make the app easy to run** so testing and exploration happen routinely (`npm run launch`)
-2. **Reproduce the null first** on short windows before making any signal claims
+2. **Reproduce the null first** on short live windows and in deterministic simulation before making any signal claims
 3. **Expand historical depth securely** via public, keyless, validated proxy feeds
 4. **Use Python only for heavy statistical work** once the browser/Node path is saturated
+
+### Stepwise hypothesis validation
+
+Use the same lag-analysis core in two modes:
+
+- **Live / historical mode** inside the app for real NOAA + USGS data and validated ComCat backfill
+- **Official storm-history mode** inside the app for NOAA/NCEI `dayind` daily geomagnetic indices (3-hour planetary Kp archive)
+- **Deterministic simulation mode** to verify that the engine stays near-null under independence, detects an implanted 27-day signal, and does not mislabel an off-target lag
+
+The live app now distinguishes between **insufficient data**, **null-consistent**, **off-target peak**, **weak 25–30d bump**, and **candidate 25–30d signal** so a high percentage alone is not mistaken for evidence.
+
+When moving from setup to real-data analysis, the preferred path is now:
+
+1. run `npm run test:hypothesis-sim`
+2. launch the app
+3. click **Load Full Research Foundation** in the Correlation tab
+4. rerun the lag scan on the combined NOAA + USGS historical corpus
+
+```powershell
+npm run test:hypothesis-sim
+```
+
+This simulation script is a **sanity check for the analysis engine**, not evidence that the real-world hypothesis is true.
 
 **⚠️ Disclaimer**: USGS and most seismologists state no proven causal relationship exists.
 This tool is for pattern research and exploration, **not** earthquake prediction.
@@ -242,8 +266,9 @@ This project intentionally keeps the research surface area wide **without** loos
 - `public/` is the only served web root
 - no API keys or authenticated feeds
 - no server-side database or caching layer
-- Node proxy applies rate limiting and security headers
+- Node proxy applies rate limiting to the **API surface** and security headers to the whole app
 - historical research queries are validated before proxying upstream
+- historical NOAA storm archive requests are date-validated before proxying upstream
 - new external feeds should be added through `server.js` + `public/src/js/config.js`
 - live-data UI should prefer safe DOM APIs over `innerHTML`
 
@@ -275,6 +300,8 @@ This project intentionally keeps the research surface area wide **without** loos
 
 **Testing Checklist**:
 - [ ] Launch via `npm run launch`
+- [ ] Run `npm run test:hypothesis-sim` and confirm null / positive-control / off-target scenarios behave as expected
+- [ ] Load the 2-year NOAA storm archive and confirm the storm catalog moves beyond seed/live-only mode
 - [ ] Responsive layout at 375px, 768px, 1440px
 - [ ] Dark mode toggle persists across reload
 - [ ] Offline mode: disable network in DevTools, verify cached data loads

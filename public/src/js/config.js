@@ -11,6 +11,11 @@ function resolveApiUrl(proxyPath, directUrl) {
   return LOCAL_PROXY_BASE ? `${LOCAL_PROXY_BASE}${proxyPath}` : directUrl;
 }
 
+function buildNoaaHistoricalDayIndexUrl(date) {
+  const [year, month, day] = date.split('-');
+  return `https://www.ngdc.noaa.gov/stp/space-weather/swpc-products/daily_reports/space_weather_indices/${year}/${month}/${year}${month}${day}dayind.txt`;
+}
+
 export const NOAA_APIS = {
   // Real-time magnetometer data (Bt, Bz field components)
   solarWindMag: resolveApiUrl('/noaa/rtsw-mag', 'https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json'),
@@ -29,6 +34,11 @@ export const NOAA_APIS = {
   protonFlux: resolveApiUrl('/noaa/protons', 'https://services.swpc.noaa.gov/json/goes/primary/integral-protons-plot-6-hour.json'),
   // Dst index (geomagnetic disturbance storm time)
   dst: resolveApiUrl('/noaa/dst', 'https://services.swpc.noaa.gov/products/kyoto-dst.json'),
+  // Historical daily space-weather indices archive (official NOAA/NCEI dayind text files)
+  historicalDayIndex: (date) => resolveApiUrl(
+    `/noaa/dayind?date=${encodeURIComponent(date)}`,
+    buildNoaaHistoricalDayIndexUrl(date),
+  ),
 };
 
 // Legacy alias kept for backward compatibility

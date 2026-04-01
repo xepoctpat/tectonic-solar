@@ -82,6 +82,9 @@ If a change would confuse a future developer unless they saw it written down, up
 | `correlation.js` | 27.5-day lag analysis + statistics | analyzeCorrelation, calculatePearsonCorrelation, estimatePValue, getCorrelationStrength |
 | `spaceWeather.js` | NOAA API: solar wind, Kp index | refreshSpaceWeatherData, getGeomagneticStorms |
 | `map.js` | Leaflet + USGS earthquakes | refreshSeismicData, getMajorEarthquakes |
+| `mapViewport.js` | Renderer-agnostic active map viewport contract | registerMapViewport, resizeMapViewport |
+| `hypothesis-core.mjs` | Pure lag-analysis + evidence interpretation core | scanAllLags, computePrediction, interpretHypothesisEvidence |
+| `stormArchive.mjs` | Pure NOAA dayind parsing/date-range helpers | parseDayindStorms, enumerateUtcDateRange |
 | `environment.js` | Open-Meteo: weather + AQI | refreshEnvironmentData |
 | `db.js` | IndexedDB: 90-day rolling storage | initDB, addStorm, addEarthquake, getStorms, getEarthquakes, pruneOldRecords, clearAll |
 | `settings.js` | Settings UI (dark mode, tabs) | — |
@@ -189,6 +192,13 @@ On query: getStorms(days) uses index range query [today - N days, today]
 
 ## Extension Points
 
+### Map architecture direction
+
+- `map.js` is the **primary 2D renderer** and should remain the default researcher-facing map.
+- `mapViewport.js` exists so tab/window layout code does **not** depend directly on Leaflet.
+- If a 3D globe is added later, keep it in a **separate module and container**, and register it through the viewport contract rather than mixing Cesium/Three/Leaflet assumptions together.
+- Lazy-load any future 3D code on explicit user action so the default app boot stays light.
+
 ### Add New Chart Type
 ```javascript
 // In charts.js:
@@ -231,6 +241,8 @@ async function fetchCustomData() {
   publish('customData', data);
 }
 ```
+
+For text archives like NOAA/NCEI `dayind`, parse them in a small pure helper module (for example `stormArchive.mjs`) so the same logic can be validated outside the browser path.
 
 ### Add New Settings Toggle
 ```javascript

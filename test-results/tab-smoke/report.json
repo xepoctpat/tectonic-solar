@@ -1,20 +1,20 @@
 {
   "appUrl": "http://localhost:3000",
-  "generatedAt": "2026-04-01T15:35:47.006Z",
+  "generatedAt": "2026-04-01T22:11:08.601Z",
   "health": {
     "ok": true,
     "status": 200,
     "body": {
       "ok": true,
       "mode": "deployment-simulation",
-      "uptimeSeconds": 39,
-      "durationMs": 145,
+      "uptimeSeconds": 62,
+      "durationMs": 141,
       "checks": {
-        "noaa": {
+        "usgs": {
           "ok": true,
           "status": 200
         },
-        "usgs": {
+        "noaa": {
           "ok": true,
           "status": 200
         },
@@ -85,10 +85,10 @@
         "x": 38,
         "y": 493,
         "width": 299,
-        "height": 9861,
+        "height": 16959,
         "top": 493,
         "right": 337,
-        "bottom": 10354,
+        "bottom": 17452,
         "left": 38
       }
     },
@@ -114,10 +114,10 @@
         "x": 38,
         "y": 273,
         "width": 1364,
-        "height": 900,
+        "height": 824,
         "top": 273,
         "right": 1402,
-        "bottom": 1173,
+        "bottom": 1097,
         "left": 38
       }
     },
@@ -170,12 +170,12 @@
       },
       "probeRect": {
         "x": 37,
-        "y": 8849.875,
+        "y": 15208.21875,
         "width": 1366,
         "height": 400,
-        "top": 8849.875,
+        "top": 15208.21875,
         "right": 1403,
-        "bottom": 9249.875,
+        "bottom": 15608.21875,
         "left": 37
       }
     },

@@ -1,14 +1,5 @@
 // ===== TAB MANAGEMENT =====
-let mapRef = null;
-
-/**
- * Register the Leaflet map instance so the tab module can invalidate its
- * size when the map tab becomes visible.
- * @param {L.Map} map
- */
-export function registerMap(map) {
-  mapRef = map;
-}
+import { resizeMapViewport } from './mapViewport.js';
 
 /**
  * Switch to the specified tab.
@@ -41,9 +32,10 @@ export function switchTab(tabName) {
     btnEl.removeAttribute('tabindex');
   }
 
-  // Leaflet maps need an explicit size invalidation after becoming visible
-  if (tabName === 'map' && mapRef) {
-    setTimeout(() => mapRef.invalidateSize(), 100);
+  // Map-style renderers need an explicit size invalidation after becoming visible.
+  // Keep this generic so the rest of the app is not hard-wired to Leaflet.
+  if (tabName === 'map') {
+    setTimeout(() => resizeMapViewport(), 100);
   }
 }
 

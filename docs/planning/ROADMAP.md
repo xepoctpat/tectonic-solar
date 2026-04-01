@@ -53,11 +53,14 @@
 
 ### 2. Reproduce the null before claiming signal
 - [ ] Use the current 90-day / short-window view to verify that the app can still produce a null-like outcome
+- [x] Add a deterministic simulation harness so the lag engine can be checked against null, positive-control, and off-target scenarios
 - [ ] Keep UI language explicit about null, uncertainty, and insufficient evidence
 - [ ] Avoid fabricated placeholder data in research charts
 
 ### 3. Securely deepen historical evidence
 - [ ] Expand multi-year USGS ComCat usage through the validated proxy
+- [x] Add an official NOAA/NCEI 2-year storm archive path via daily `dayind` products
+- [x] Add a one-click research foundation loader so storms + earthquakes can be backfilled together
 - [ ] Add Dst-driven comparative storm thresholds
 - [ ] Add provenance so researchers can see which feed produced each plotted value
 
@@ -94,6 +97,13 @@
 ## Phase 4 — User Experience & Performance
 
 > Target: smoother, more useful for researchers
+
+### Map direction (decided)
+
+- [x] Keep the current **2D Leaflet map** as the primary research surface
+- [x] Treat any future **3D globe** as an optional, isolated experience rather than the default map
+- [x] Keep 3D out of the default boot path unless it is lazy-loaded on demand
+- [x] Share normalized earthquake / tectonic data across renderers rather than mixing renderer internals
 
 - [ ] **URL hash routing** — deep-link to specific tab (`#map`, `#correlation`)
 - [ ] **Map clustering** — group dense earthquake markers at low zoom levels (Leaflet.markercluster)
@@ -166,6 +176,8 @@
 
 - **No build step** — pure ES modules, served as static files
 - **No framework** — vanilla JS + Leaflet + Canvas API
+- **2D map is primary** — keep Leaflet as the default operational map for clarity, performance, and low complexity
+- **3D is optional and isolated** — if added later, load it separately and keep it out of the primary map lifecycle
 - **Node proxy is the primary runtime** — browser clients should prefer proxied feeds for reliability/security
 - **No backend database** — all data is live or client-side only
 - **Python is optional and future-facing** — use it only for heavy research compute, never as a replacement for the Node entry point without discussion

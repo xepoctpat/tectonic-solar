@@ -524,22 +524,37 @@
           <div style="font-size:var(--font-size-xs);color:var(--color-text-secondary)" id="pred-detail">
             Run analysis to compute prediction.
           </div>
+          <div class="analysis-note compact tone-muted" id="pred-probability-note">
+            The percentage card is descriptive only until the lag scan and corpus quality say otherwise.
+          </div>
         </div>
 
         <div class="info-card">
           <h3>🗄️ Data Foundation</h3>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-bottom:12px">
-            Load 2 years of global M5+ earthquakes from USGS ComCat into your browser's
-            IndexedDB. Required for statistically powered lag scan and prediction.
+            Load 2 years of global M5+ earthquakes from USGS ComCat and 2 years of official
+            NOAA daily geomagnetic indices into your browser's IndexedDB. The earthquake archive
+            adds depth; the storm archive fixes the current bottleneck.
           </p>
           <div style="display:flex;flex-direction:column;gap:8px;font-size:var(--font-size-sm)">
             <div>Historical USGS M5+: <strong id="data-eq-status">Not loaded</strong></div>
-            <div>Storm seed (SC25): <strong id="data-storm-status">Not loaded</strong></div>
+            <div>Historical NOAA storms: <strong id="data-storm-archive-status">Not loaded</strong></div>
+            <div>Storm seed (SC25 fallback): <strong id="data-storm-status">Not loaded</strong></div>
             <div>Corpus span: <strong id="data-span">—</strong></div>
+            <div>Foundation readiness: <strong id="data-foundation-state">Seed/live only</strong></div>
+          </div>
+          <div class="analysis-note compact tone-muted" id="data-foundation-note">
+            Load both archives before treating real-data lag scans as anything stronger than exploratory.
           </div>
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-            <button id="btn-load-historical" class="btn btn-primary" style="font-size:var(--font-size-sm)">
-              ⬇ Load 2-Year History
+            <button id="btn-load-foundation" class="btn btn-primary" style="font-size:var(--font-size-sm)">
+              ⬇ Load Full Research Foundation
+            </button>
+            <button id="btn-load-historical" class="btn btn-secondary" style="font-size:var(--font-size-sm)">
+              ⬇ Load 2-Year EQ History
+            </button>
+            <button id="btn-load-storm-archive" class="btn btn-secondary" style="font-size:var(--font-size-sm)">
+              ⬇ Load 2-Year Storm Archive
             </button>
             <button id="btn-run-analysis" class="btn btn-secondary" style="font-size:var(--font-size-sm)">
               ▶ Run Analysis
@@ -559,8 +574,33 @@
           A null result (ratio ≈ 1 everywhere) falsifies the hypothesis.
         </p>
         <canvas id="lag-scan-chart" height="180" aria-label="Cross-lag scan: event ratio 0-60 days after geomagnetic storm"></canvas>
-        <div id="lag-scan-verdict" style="margin-top:10px;font-size:var(--font-size-sm);padding:8px 12px;border-radius:6px;background:var(--color-surface)">
+        <div id="lag-scan-verdict" class="analysis-callout tone-muted">
           Run analysis to see hypothesis test result.
+        </div>
+        <div class="analysis-grid" aria-label="Hypothesis interpretation details">
+          <div class="analysis-item">
+            <div class="analysis-label">Interpretation</div>
+            <div class="analysis-badge tone-muted" id="lag-evidence-state">Awaiting analysis…</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Target window</div>
+            <div class="analysis-value" id="lag-evidence-target">—</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Best lag overall</div>
+            <div class="analysis-value" id="lag-evidence-peak">—</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Corpus</div>
+            <div class="analysis-value" id="lag-evidence-corpus">—</div>
+          </div>
+          <div class="analysis-item analysis-item-wide">
+            <div class="analysis-label">Why this state</div>
+            <div class="analysis-value" id="lag-evidence-why">Run analysis to populate interpretation details.</div>
+          </div>
+        </div>
+        <div class="analysis-note tone-muted" id="lag-evidence-note">
+          The probability card is descriptive only until enough live/historical evidence accumulates.
         </div>
       </div>
 

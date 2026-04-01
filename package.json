@@ -9,6 +9,7 @@
     "launch:headless": "node scripts/launch.js --no-open",
     "start": "node server.js",
     "start:sim": "node server.js",
+    "test:hypothesis-sim": "node scripts/hypothesis-sim.mjs",
     "test:tabs": "node scripts/tab-smoke-test.mjs"
   },
   "engines": {

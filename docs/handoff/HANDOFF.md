@@ -1,5 +1,88 @@
 # Handoff: Security Hardening + Project Restructure + Research Methodology
 
+## Checkpoint Addendum — Map Architecture + Hypothesis Validation + Historical Foundation (2026-04-02)
+
+This addendum supersedes the older “clean working tree” snapshot below. Since that earlier checkpoint, the project has gained a more explicit research workflow, a cleaner map architecture boundary, and a stronger historical-data foundation for testing the 27–28 day lag idea without overstating the evidence.
+
+### What changed in this checkpoint
+
+1. **Map direction was decided instead of left fuzzy**
+  - Kept the existing **2D Leaflet map as the primary research surface**.
+  - Added `public/src/js/mapViewport.js` so tab/layout code no longer depends directly on Leaflet.
+  - Future 3D work is now intentionally **optional and isolated**, not part of the default boot path.
+
+2. **Lag-analysis logic was extracted into a shared pure core**
+  - Added `public/src/js/hypothesis-core.mjs`.
+  - Shared functions now cover:
+    - lag scanning
+    - lag assessment
+    - conditional probability computation
+    - conservative evidence interpretation
+    - storm and earthquake catalog normalization
+  - `prediction.js` now uses this shared core instead of carrying its own duplicated analysis logic.
+
+3. **A deterministic simulation harness now exists**
+  - Added `scripts/hypothesis-sim.mjs` and `npm run test:hypothesis-sim`.
+  - The sim checks three cases with the same analysis core used by the browser:
+    - null independence
+    - positive-control 27-day signal
+    - off-target 12-day signal
+  - This creates a basic falsification/sanity layer before trusting real-data interpretation.
+
+4. **Live UI interpretation was made more conservative**
+  - The Correlation tab now separates:
+    - insufficient data
+    - null-consistent
+    - off-target peak
+    - weak 25–30d bump
+    - candidate 25–30d signal
+  - The probability card is now explicitly treated as **descriptive**, not automatically evidentiary.
+  - Added richer interpretation UI fields in `public/index.html` + `public/src/css/components.css`.
+
+5. **Historical storm depth was upgraded using an official NOAA source**
+  - Added validated proxy route: `/api/noaa/dayind?date=YYYY-MM-DD`
+  - Added pure parser/helper module: `public/src/js/stormArchive.mjs`
+  - `prediction.js` can now load ~2 years of NOAA/NCEI `dayind` daily geomagnetic indices and normalize Kp≥5 storm intervals into the local browser corpus.
+
+6. **Historical research workflow was simplified**
+  - Added separate buttons for:
+    - USGS earthquake archive
+    - NOAA storm archive
+    - **Load Full Research Foundation**
+  - The combined workflow loads NOAA storms first, then USGS earthquake history, then reruns analysis.
+  - The UI now exposes foundation readiness so the app can say “seed/live only” or “partial archive” instead of pretending all corpora are equally meaningful.
+
+7. **A server regression was found and fixed during validation**
+  - The global rate limiter was unintentionally throttling static JS modules, causing smoke-test failures with `429` responses on asset requests.
+  - Fix: scope rate limiting to `/api` only.
+  - This is a useful reminder that validation caught a real problem, not cosmetic noise.
+
+8. **Documentation was updated across the actual project surface**
+  - `README.md`
+  - `docs/planning/ROADMAP.md`
+  - `docs/development/DEV-QUICK-REFERENCE.md`
+  - `docs/research/RESEARCH.md`
+  - `docs/testing/TESTING-CHECKLIST.md`
+  - `.github/copilot-instructions.md`
+
+### Validation completed for this checkpoint
+
+- `npm run test:hypothesis-sim` → passes
+- Browser smoke test → **6/6 tabs pass**, **0 console errors**, **0 page errors**, **0 request failures**
+- Historical NOAA proxy validated with `2024-05-10` dayind file → route responded successfully and parsed storm intervals
+- Focused browser DOM check confirmed the new research-foundation controls render correctly
+
+### What remains open / not yet fully closed
+
+- The new combined **full research foundation** workflow was validated structurally and via smoke testing, but a full in-session end-to-end 2-year archive load was not yet observed all the way to completion.
+- Regional stratification is still pending.
+- Dst-vs-Kp comparative storm definitions are still pending.
+- `scripts/test-automation.js` still appears stale relative to the current research workflow.
+
+### Practical next step after this checkpoint
+
+Run the full research-foundation load once in the live app, confirm the resulting storm + earthquake corpus counts, and then inspect whether the lag interpretation remains null-like, off-target, weak, or candidate-level on the enlarged historical base.
+
 ## Session Summary
 
 This session resolved all 6 GitHub CodeQL security alerts, restructured the project to isolate the web root under `public/`, organized all documentation into categorized subdirectories, and discussed the scientific research methodology for testing the 27–28 day lag hypothesis. Current HEAD: `9b8bc47` on `main`. Clean working tree — no uncommitted changes.
