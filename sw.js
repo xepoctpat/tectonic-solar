@@ -134,10 +134,16 @@ async function networkFirstAPI(request) {
 }
 
 function isAPICall(url) {
-  return url.includes('/api/') ||
-    url.includes('noaa.gov') ||
-    url.includes('usgs.gov') ||
-    url.includes('open-meteo.com');
+  try {
+    const parsed = new URL(url);
+    if (parsed.pathname.startsWith('/api/')) return true;
+    const h = parsed.hostname;
+    return h === 'noaa.gov' || h.endsWith('.noaa.gov') ||
+           h === 'usgs.gov' || h.endsWith('.usgs.gov') ||
+           h === 'open-meteo.com' || h.endsWith('.open-meteo.com');
+  } catch {
+    return false;
+  }
 }
 
 function isAllowedAPI(url) {

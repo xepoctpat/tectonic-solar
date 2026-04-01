@@ -1,11 +1,28 @@
 {
-  "appUrl": "http://localhost:8000",
-  "generatedAt": "2026-03-24T04:16:59.460Z",
+  "appUrl": "http://localhost:3000",
+  "generatedAt": "2026-04-01T15:15:17.577Z",
   "health": {
-    "ok": false,
-    "status": 0,
+    "ok": true,
+    "status": 200,
     "body": {
-      "error": "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"
+      "ok": true,
+      "mode": "deployment-simulation",
+      "uptimeSeconds": 46,
+      "durationMs": 136,
+      "checks": {
+        "usgs": {
+          "ok": true,
+          "status": 200
+        },
+        "noaa": {
+          "ok": true,
+          "status": 200
+        },
+        "openmeteo": {
+          "ok": true,
+          "status": 200
+        }
+      }
     }
   },
   "consoleErrorCount": 0,
@@ -68,10 +85,10 @@
         "x": 38,
         "y": 493,
         "width": 299,
-        "height": 12318,
+        "height": 12864,
         "top": 493,
         "right": 337,
-        "bottom": 12811,
+        "bottom": 13357,
         "left": 38
       }
     },
@@ -153,12 +170,12 @@
       },
       "probeRect": {
         "x": 37,
-        "y": 542.5,
+        "y": 8234.875,
         "width": 1366,
         "height": 400,
-        "top": 542.5,
+        "top": 8234.875,
         "right": 1403,
-        "bottom": 942.5,
+        "bottom": 8634.875,
         "left": 37
       }
     },

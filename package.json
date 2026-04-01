@@ -13,7 +13,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.3.2"
   },
   "devDependencies": {
     "playwright-core": "^1.58.2"

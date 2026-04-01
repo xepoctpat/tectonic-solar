@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -8,14 +9,42 @@ const REQUEST_TIMEOUT_MS = 15000;
 
 app.disable('x-powered-by');
 
+// Rate limiting — 100 requests per minute per IP
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: 'Too many requests, please try again later' },
+});
+app.use(limiter);
+
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
   next();
 });
 
+app.use(express.json({ limit: '16kb' }));
+
+// Block access to sensitive project files (server code, configs, dev files)
+const SENSITIVE_PATTERN = /^\/(server\.js|restart-server\.js|verify-visuals\.js|lighthouse-automation\.js|test-automation\.js|package(-lock)?\.json|requirements\.txt|\.env|\.git|\.github|node_modules|solar-env|scripts|test-results)/i;
+app.use((req, res, next) => {
+  if (SENSITIVE_PATTERN.test(req.path)) {
+    res.status(404).end();
+    return;
+  }
+  // Also block top-level markdown files (dev docs)
+  if (/^\/[^/]+\.md$/i.test(req.path)) {
+    res.status(404).end();
+    return;
+  }
+  next();
+});
+
 app.use(express.static(ROOT_DIR, {
   extensions: ['html'],
+  dotfiles: 'deny',
 }));
 
 const UPSTREAM = {
