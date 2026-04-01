@@ -65,7 +65,8 @@
         <h2>Global Map</h2>
         <div class="map-controls">
           <button data-map-type="standard"  id="map-standard">Standard</button>
-          <button data-map-type="satellite" id="map-satellite" class="active">Satellite</button>
+          <button data-map-type="crust"     id="map-crust" class="active">Crust</button>
+          <button data-map-type="satellite" id="map-satellite">Satellite</button>
           <button data-map-type="terrain"   id="map-terrain">Terrain</button>
           <button data-map-type="dark"      id="map-dark">Dark</button>
           <button id="btn-refresh-eq" class="btn btn-primary" style="margin-left:auto">↻ Refresh</button>
@@ -78,10 +79,18 @@
           <div class="control-section">
             <h3>Layers</h3>
             <label><input type="checkbox" id="l-earthquakes" checked> Earthquakes</label>
-            <label><input type="checkbox" id="l-vectors"     checked> Motion Vectors</label>
-            <label><input type="checkbox" id="l-convergent"  checked> Convergent</label>
-            <label><input type="checkbox" id="l-divergent"   checked> Divergent</label>
-            <label><input type="checkbox" id="l-transform"   checked> Transform</label>
+            <label><input type="checkbox" id="l-vectors"> Motion arrows (plate movement)</label>
+            <label><input type="checkbox" id="l-convergent"  checked> Convergent — plates collide</label>
+            <label><input type="checkbox" id="l-divergent"   checked> Divergent — plates pull apart</label>
+            <label><input type="checkbox" id="l-transform"   checked> Transform — plates slide past</label>
+          </div>
+
+          <div class="control-section">
+            <h3>Best for plate reading</h3>
+            <button class="region-btn" id="btn-plate-guide">🧭 Plate Guide View</button>
+            <div class="map-help-text">
+              Switches to a crust/relief basemap, turns on all plate boundaries, hides motion arrows, and zooms to the Ring of Fire.
+            </div>
           </div>
 
           <div class="control-section">
@@ -128,8 +137,12 @@
           </div>
 
           <div class="control-section">
-            <h3>Depth Legend</h3>
+            <h3>How to read this map</h3>
             <div style="font-size:11px;line-height:1.8;color:var(--color-text-secondary)">
+              <div><span class="guide-chip guide-collide"></span> Red = plates collide</div>
+              <div><span class="guide-chip guide-separate"></span> Green = plates pull apart</div>
+              <div><span class="guide-chip guide-slide"></span> Orange = plates slide past</div>
+              <div style="margin:8px 0 4px 0;font-weight:bold;color:var(--color-text)">Depth legend</div>
               <div>🟥 Shallow (&lt;35 km)</div>
               <div>🟧 Intermediate (35–100 km)</div>
               <div>🟦 Deep (&gt;100 km)</div>
@@ -144,14 +157,14 @@
 
       <div class="map-footer">
         <div class="legend">
-          <span class="legend-item"><span class="color" style="background:#FF3333"></span> Convergent</span>
-          <span class="legend-item"><span class="color" style="background:#4CAF50"></span> Divergent</span>
-          <span class="legend-item"><span class="color" style="background:#FF9800"></span> Transform</span>
+          <span class="legend-item"><span class="color" style="background:#FF3333"></span> Convergent = collide</span>
+          <span class="legend-item"><span class="color" style="background:#4CAF50"></span> Divergent = pull apart</span>
+          <span class="legend-item"><span class="color" style="background:#FF9800"></span> Transform = slide past</span>
           <span class="legend-item"><span class="color dot" style="background:#FFC107"></span> M4.5–5.4</span>
           <span class="legend-item"><span class="color dot" style="background:#FF9800"></span> M5.5–5.9</span>
           <span class="legend-item"><span class="color dot" style="background:#F44336"></span> M6+</span>
         </div>
-        <span class="attribution">Data: USGS Earthquake Hazards Program</span>
+        <span class="attribution">Data: USGS Earthquake Hazards Program · Relief tiles © Esri</span>
       </div>
 
     </section>

@@ -81,6 +81,26 @@
   color: var(--color-white);
 }
 
+.map-help-text {
+  margin-top: var(--space-8);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.guide-chip {
+  display: inline-block;
+  width: 16px;
+  height: 4px;
+  margin-right: 6px;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.guide-collide { background: #FF3333; }
+.guide-separate { background: #4CAF50; }
+.guide-slide { background: #FF9800; }
+
 .info-box {
   background: var(--color-secondary);
   padding: var(--space-12);
@@ -260,6 +280,26 @@ input[type="range"]::-moz-range-thumb {
 .plate-label,
 .arrow-head {
   pointer-events: none;
+}
+
+.boundary-label {
+  pointer-events: none;
+}
+
+.boundary-label span {
+  display: inline-block;
+  min-width: 112px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--boundary-color, var(--color-primary));
+  background: rgba(4, 16, 29, 0.82);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-align: center;
+  white-space: nowrap;
 }
 
 /* ===== RESPONSIVE ===== */

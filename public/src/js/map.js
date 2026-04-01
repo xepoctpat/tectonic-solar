@@ -24,6 +24,79 @@ let allEarthquakes = [];   // raw fetched list (unfiltered)
 let earthquakeMarkers = [];
 let tectonicOverlays = [];
 let currentTileLayer = null;
+const DEFAULT_MAP_TYPE = 'crust';
+
+function createTileLayer(type) {
+  const layer = TILE_LAYERS[type];
+  if (!layer) return null;
+
+  const options = {
+    attribution: layer.attribution,
+    maxZoom: layer.maxZoom ?? 18,
+  };
+
+  if (layer.subdomains) {
+    options.subdomains = layer.subdomains;
+  }
+
+  return L.tileLayer(layer.url, options);
+}
+
+function getMidpoint(coords) {
+  if (!coords.length) return [0, 0];
+  const middle = Math.floor(coords.length / 2);
+  if (coords.length % 2 === 1) return coords[middle];
+
+  const previous = coords[middle - 1];
+  const next = coords[middle];
+  return [
+    (previous[0] + next[0]) / 2,
+    (previous[1] + next[1]) / 2,
+  ];
+}
+
+function addBoundaryLabel(coords, text, color) {
+  const [lat, lon] = getMidpoint(coords);
+  const label = L.marker([lat, lon], {
+    icon: L.divIcon({
+      className: 'boundary-label',
+      html: `<span style="--boundary-color:${color}">${text}</span>`,
+      iconSize: [140, 28],
+      iconAnchor: [70, 14],
+    }),
+    interactive: false,
+  }).addTo(map);
+  tectonicOverlays.push(label);
+}
+
+function addBoundarySet(coords, style) {
+  const casing = L.polyline(coords, {
+    color: 'rgba(255,255,255,0.82)',
+    weight: style.weight + 4,
+    opacity: 0.72,
+    interactive: false,
+    lineCap: 'round',
+    lineJoin: 'round',
+  }).addTo(map);
+
+  const line = L.polyline(coords, {
+    color: style.color,
+    weight: style.weight,
+    opacity: 0.98,
+    dashArray: style.dashArray,
+    lineCap: 'round',
+    lineJoin: 'round',
+  }).addTo(map);
+
+  line.bindTooltip(style.tooltip, {
+    sticky: true,
+    direction: 'top',
+    opacity: 0.95,
+  });
+
+  tectonicOverlays.push(casing, line);
+  addBoundaryLabel(coords, style.label, style.color);
+}
 
 // ===== MAP INITIALIZATION =====
 export function initializeMap() {
@@ -35,10 +108,7 @@ export function initializeMap() {
     maxZoom: 18,
   });
 
-  currentTileLayer = L.tileLayer(TILE_LAYERS.satellite.url, {
-    attribution: TILE_LAYERS.satellite.attribution,
-    maxZoom: 18,
-  }).addTo(map);
+  currentTileLayer = createTileLayer(DEFAULT_MAP_TYPE)?.addTo(map);
 
   L.control.zoom({ position: 'bottomright' }).addTo(map);
   L.control.scale({ position: 'bottomleft' }).addTo(map);
@@ -60,12 +130,7 @@ export function switchMapType(type) {
   if (!TILE_LAYERS[type]) return;
   if (currentTileLayer) map.removeLayer(currentTileLayer);
 
-  const layer = TILE_LAYERS[type];
-  currentTileLayer = L.tileLayer(layer.url, {
-    attribution: layer.attribution,
-    maxZoom: 18,
-    subdomains: ['a', 'b', 'c'],
-  }).addTo(map);
+  currentTileLayer = createTileLayer(type)?.addTo(map);
 
   document.querySelectorAll('.map-controls button[data-map-type]').forEach(btn => btn.classList.remove('active'));
   const btn = document.querySelector(`[data-map-type="${type}"]`);
@@ -85,23 +150,37 @@ export function addTectonicOverlays() {
 
   if (document.getElementById('l-convergent')?.checked) {
     TECTONIC_BOUNDARIES.convergent.forEach(coords => {
-      const polyline = L.polyline(coords, { color: '#FF3333', weight: 3, opacity: 0.8 }).addTo(map);
-      tectonicOverlays.push(polyline);
+      addBoundarySet(coords, {
+        color: '#FF3333',
+        weight: 5,
+        label: 'Plates collide',
+        tooltip: 'Convergent boundary — plates collide / subduct',
+      });
       _addSubductionTriangles(coords);
     });
   }
 
   if (document.getElementById('l-divergent')?.checked) {
     TECTONIC_BOUNDARIES.divergent.forEach(coords => {
-      const polyline = L.polyline(coords, { color: '#4CAF50', weight: 2, opacity: 0.8, dashArray: '5, 5' }).addTo(map);
-      tectonicOverlays.push(polyline);
+      addBoundarySet(coords, {
+        color: '#4CAF50',
+        weight: 4,
+        dashArray: '10 8',
+        label: 'Plates pull apart',
+        tooltip: 'Divergent boundary — plates pull apart / spread',
+      });
     });
   }
 
   if (document.getElementById('l-transform')?.checked) {
     TECTONIC_BOUNDARIES.transform.forEach(coords => {
-      const polyline = L.polyline(coords, { color: '#FF9800', weight: 2, opacity: 0.8, dashArray: '8, 4' }).addTo(map);
-      tectonicOverlays.push(polyline);
+      addBoundarySet(coords, {
+        color: '#FF9800',
+        weight: 4,
+        dashArray: '14 8',
+        label: 'Plates slide past',
+        tooltip: 'Transform boundary — plates slide past each other',
+      });
     });
   }
 }
@@ -233,6 +312,25 @@ export function updateMapLayers() {
   } else {
     earthquakeMarkers.forEach(marker => map.removeLayer(marker));
   }
+}
+
+export function activatePlateGuideView() {
+  const desiredState = {
+    'l-earthquakes': true,
+    'l-vectors': false,
+    'l-convergent': true,
+    'l-divergent': true,
+    'l-transform': true,
+  };
+
+  Object.entries(desiredState).forEach(([id, checked]) => {
+    const checkbox = document.getElementById(id);
+    if (checkbox) checkbox.checked = checked;
+  });
+
+  switchMapType('crust');
+  zoomToRegion('ring');
+  updateMapLayers();
 }
 
 // ===== EARTHQUAKE DATA FETCHING =====

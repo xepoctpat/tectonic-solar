@@ -5,9 +5,8 @@ import {
   initializeMap,
   getMap,
   fetchRealEarthquakeData,
-  addTectonicOverlays,
-  addPlateMotionVectors,
   updateMapLayers,
+  activatePlateGuideView,
   switchMapType,
   zoomToRegion,
   setEarthquakeAlertCallback,
@@ -20,7 +19,7 @@ import { initLocationSelector, fetchEnvironmentData } from './environment.js';
 import { refreshCorrelationData, updateCorrelationWindow } from './correlation.js';
 import { drawSpaceCharts, drawLagScanChart, redrawCachedCharts } from './charts.js';
 import { loadSettings, syncSettingsForm, saveAlertSettings, toggleAlerts, resetSettings } from './settings.js';
-import { requestNotificationPermission, initNotificationStatus } from './notifications.js';
+import { requestNotificationPermission, initNotificationStatus, showInAppNotification } from './notifications.js';
 import { REFRESH_INTERVALS } from './config.js';
 import { setDataModeChangeListener } from './store.js';
 import { initDB } from './db.js';
@@ -72,19 +71,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   setEarthquakeAlertCallback(checkEarthquakeAlerts);
   setEarthquakeDisplayCallback(updateSeismicDisplay);
 
-  fetchRealEarthquakeData();
-  addTectonicOverlays();
-  addPlateMotionVectors();
-
-  // Enable all layer checkboxes by default
-  ['l-convergent', 'l-divergent', 'l-transform', 'l-earthquakes', 'l-vectors'].forEach(id => {
+  // Default map layers: keep boundaries on, but leave motion arrows off for a clearer first view.
+  const defaultLayerState = {
+    'l-convergent': true,
+    'l-divergent': true,
+    'l-transform': true,
+    'l-earthquakes': true,
+    'l-vectors': false,
+  };
+  Object.entries(defaultLayerState).forEach(([id, checked]) => {
     const el = document.getElementById(id);
-    if (el) el.checked = true;
+    if (el) el.checked = checked;
   });
+  updateMapLayers();
+  fetchRealEarthquakeData();
 
   // Layer checkbox listeners
   document.querySelectorAll('.map-sidebar input[type="checkbox"]').forEach(cb => {
     cb.addEventListener('change', updateMapLayers);
+  });
+
+  document.getElementById('mag-filter')?.addEventListener('input', event => {
+    applyMagnitudeFilter(Number(event.target.value));
   });
 
   // Map type button listeners
@@ -95,6 +103,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Region zoom button listeners
   document.querySelectorAll('[data-region]').forEach(btn => {
     btn.addEventListener('click', () => zoomToRegion(btn.getAttribute('data-region')));
+  });
+
+  document.getElementById('btn-plate-guide')?.addEventListener('click', () => {
+    activatePlateGuideView();
+    showInAppNotification(
+      'Plate guide view',
+      'Switched to the crust/relief basemap, emphasized plate boundaries, and zoomed to the Ring of Fire.',
+      'info',
+    );
   });
 
   // Dark mode toggle
