@@ -47,7 +47,7 @@ python scripts/research_sidecar.py
 
 - Binds to `127.0.0.1:5051` only.
 - Never talks to the browser directly; Node proxies it through `/api/research/status` and `/api/research/bootstrap`.
-- Used by the Correlation tab's **Run Bootstrap Null Test** button.
+- Used by the Research Lab tab's **Run Bootstrap Null Test** button.
 - Current scope: shuffled-storm null calibration for the 25–30 day target window.
 - Preferred Python research toolbelt now includes:
   - `numpy` / `pandas` for corpus prep and archive joins
@@ -132,6 +132,7 @@ For handoffs specifically, prefer a **new dated file in `docs/handoff/`** over a
 | Module | Purpose | Exports |
 |--------|---------|---------|
 | `main.js` | App bootstrap: SW register, IndexedDB init, event listeners | — |
+| `layout.js` | Split-layout + resizable-panel wiring for non-map tabs | initLayoutControls |
 | `store.js` | Global mutable state (storms, EQs, settings) | store, subscribe, publish, getActiveStorms, getRecentEarthquakes |
 | `utils.js` | Helpers: fetch retry, DOM utils, CSS vars | fetchWithRetry, fetchWithTimeout, mapDateToX, getCSSVar, setText |
 | `charts.js` | Chart.js visualization (5 charts) | drawRealSolarWindChart, drawRealKpChart, drawMagnitudeDistribution, drawAqiChart, drawCorrelationTimeline |
@@ -171,6 +172,8 @@ For handoffs specifically, prefer a **new dated file in `docs/handoff/`** over a
 | Research execution priorities | `docs/planning/ROADMAP.md` | Tracks what still needs to be built or tightened for stronger evidence |
 
 If a change touches the 27–28 day workflow, inspect these files by concern before editing docs so method, runtime, testing, and planning stay distinct.
+
+The UI is now intentionally split by role: `Correlation` is the quick summary surface, while `Research Lab` holds archive loading, lag-scan diagnostics, bootstrap null calibration, and workflow-state reporting. Keep that separation clear in future docs and smoke tests.
 
 ### Service Worker & PWA
 

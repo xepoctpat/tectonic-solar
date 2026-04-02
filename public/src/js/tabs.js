@@ -32,6 +32,10 @@ export function switchTab(tabName) {
     btnEl.removeAttribute('tabindex');
   }
 
+  window.dispatchEvent(new CustomEvent('space-earth:tabchange', {
+    detail: { tabName },
+  }));
+
   // Map-style renderers need an explicit size invalidation after becoming visible.
   // Keep this generic so the rest of the app is not hard-wired to Leaflet.
   if (tabName === 'map') {

@@ -16,6 +16,7 @@ Keep this file for:
 
 ### Standalone handoffs (newest first)
 
+- [`2026-04-02-resizable-layout-and-user-test-readiness.md`](./2026-04-02-resizable-layout-and-user-test-readiness.md) — records the new 7-tab layout with resizable non-map workspaces, the `Correlation` / `Research Lab` split, the 7/7 smoke pass, and the honest recommendation that the app is ready for focused user testing with caveats
 - [`2026-04-02-pre-push-bundle-checkpoint.md`](./2026-04-02-pre-push-bundle-checkpoint.md) — pre-push continuity checkpoint covering the bundled 2026-04-02 map/runtime/docs/stack changes, the fresh validation run, and the currently degraded NOAA health status
 - [`2026-04-02-stack-lanes-and-docker-direction.md`](./2026-04-02-stack-lanes-and-docker-direction.md) — records the adopted lane-based stack decision, adds `statsmodels` and `scikit-learn` to the Python research environment, and captures Docker as a future optional reproducibility path rather than a runtime rewrite
 - [`2026-04-02-factor-sidequest-framing.md`](./2026-04-02-factor-sidequest-framing.md) — documents the reframing that sidereal/synodic ideas are optional factor sidequests, not replacements for the base storm-lag hypothesis, and records the new roadmap lane for factor-model evaluation

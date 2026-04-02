@@ -47,6 +47,7 @@
     <button class="tab-btn"        data-tab="seismic"     role="tab" aria-selected="false" aria-controls="seismic-tab">Seismic</button>
     <button class="tab-btn"        data-tab="env"         role="tab" aria-selected="false" aria-controls="env-tab">Environment</button>
     <button class="tab-btn"        data-tab="correlation" role="tab" aria-selected="false" aria-controls="correlation-tab">Correlation</button>
+    <button class="tab-btn"        data-tab="research"    role="tab" aria-selected="false" aria-controls="research-tab">Research Lab</button>
     <button class="tab-btn"        data-tab="settings"    role="tab" aria-selected="false" aria-controls="settings-tab">Settings</button>
   </nav>
 
@@ -211,10 +212,12 @@
         Checking NOAA feeds…
       </div>
 
-      <div class="content-grid">
+      <div class="tab-workspace split-layout" data-split-layout data-split-id="space" data-default-split="60">
+
+        <div class="split-pane split-pane-primary">
 
         <!-- Solar Wind -->
-        <div class="data-card">
+        <div class="data-card resizable-panel" data-resizable-panel data-panel-id="space-solar-wind">
           <h3>Solar Wind <small style="font-weight:normal;color:var(--color-text-secondary)">(NOAA DSCOVR/ACE)</small></h3>
           <div id="solar-wind-source" style="font-size:11px;color:var(--color-text-secondary);margin:0 0 12px 0">
             Checking NOAA solar-wind feeds…
@@ -245,7 +248,7 @@
         </div>
 
         <!-- Geomagnetic Activity -->
-        <div class="data-card">
+        <div class="data-card resizable-panel" data-resizable-panel data-panel-id="space-geomagnetic">
           <h3>Geomagnetic Activity <small style="font-weight:normal;color:var(--color-text-secondary)">(NOAA)</small></h3>
           <div id="kp-source" style="font-size:11px;color:var(--color-text-secondary);margin:0 0 12px 0">
             Checking NOAA Kp feeds…
@@ -261,8 +264,14 @@
           <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">3-day Kp history • Orange line = storm threshold (Kp 5)</div>
         </div>
 
+        </div>
+
+        <div class="splitter" data-splitter role="separator" aria-orientation="vertical" aria-label="Resize Space Weather columns" tabindex="0"></div>
+
+        <div class="split-pane split-pane-secondary">
+
         <!-- Solar Flares -->
-        <div class="data-card">
+        <div class="data-card resizable-panel" data-resizable-panel data-panel-id="space-flares">
           <h3>Solar Flares <small style="font-weight:normal;color:var(--color-text-secondary)">(GOES X-ray)</small></h3>
           <div id="flare-source" style="font-size:11px;color:var(--color-text-secondary);margin:0 0 12px 0">
             Checking NOAA X-ray feed…
@@ -285,7 +294,7 @@
         </div>
 
         <!-- Notifications -->
-        <div class="data-card">
+        <div class="data-card resizable-panel" data-resizable-panel data-panel-id="space-notifications">
           <h3>Browser Notifications</h3>
           <div class="metric">
             <span class="label">Permission Status</span>
@@ -306,6 +315,8 @@
           <button id="btn-enable-notifications" class="btn btn-primary btn-full" style="margin-top:12px">
             Enable Notifications
           </button>
+        </div>
+
         </div>
 
       </div>
@@ -329,18 +340,26 @@
         </div>
       </div>
 
-      <div class="content-grid">
+      <div class="tab-workspace split-layout" data-split-layout data-split-id="seismic" data-default-split="63">
+
+        <div class="split-pane split-pane-primary">
 
         <!-- Live earthquake list (populated by seismic.js) -->
-        <div class="data-card wide">
+        <div class="data-card resizable-panel panel-fill" data-resizable-panel data-panel-id="seismic-list">
           <h3>Recent Earthquakes — M4.5+ (Past 24h) <small style="font-weight:normal;color:var(--color-text-secondary)">USGS Live Feed</small></h3>
           <div class="earthquake-list" id="eq-list-container">
             <p style="color:var(--color-text-secondary);font-size:var(--font-size-sm)">Loading earthquake data…</p>
           </div>
         </div>
 
+        </div>
+
+        <div class="splitter" data-splitter role="separator" aria-orientation="vertical" aria-label="Resize Seismic columns" tabindex="0"></div>
+
+        <div class="split-pane split-pane-secondary">
+
         <!-- Statistics (values updated by seismic.js) -->
-        <div class="data-card">
+        <div class="data-card resizable-panel" data-resizable-panel data-panel-id="seismic-stats">
           <h3>Statistics</h3>
           <div class="stat"><span class="label">M5.0+ (past 24h)</span><span class="value" id="stat-m5-count">—</span></div>
           <div class="stat"><span class="label">M6.0+ (past 24h)</span><span class="value" id="stat-m6-count">—</span></div>
@@ -353,7 +372,7 @@
         </div>
 
         <!-- Regional probability (static informational) -->
-        <div class="data-card">
+        <div class="data-card resizable-panel" data-resizable-panel data-panel-id="seismic-regions">
           <h3>Long-Term Regional Probability <small style="font-weight:normal;color:var(--color-text-secondary)">(30-yr M6.7+)</small></h3>
           <div class="region-prob">
             <div class="region-item">
@@ -380,6 +399,8 @@
           <p style="font-size:10px;color:var(--color-text-secondary);margin-top:12px">
             Sources: USGS Working Group on California Earthquake Probabilities, Japan NIED.
           </p>
+        </div>
+
         </div>
 
       </div>
@@ -409,10 +430,12 @@
         Source: <span id="env-source">Loading…</span>
       </div>
 
-      <div class="content-grid">
+      <div class="tab-workspace split-layout" data-split-layout data-split-id="environment" data-default-split="58">
+
+        <div class="split-pane split-pane-primary">
 
         <!-- Current Weather (real Open-Meteo data) -->
-        <div class="data-card">
+        <div class="data-card resizable-panel" data-resizable-panel data-panel-id="environment-weather">
           <h3>Current Weather <small style="font-weight:normal;color:var(--color-text-secondary)">(Open-Meteo)</small></h3>
           <div class="metric large">
             <span class="value" id="temp">—</span>
@@ -451,7 +474,7 @@
         </div>
 
         <!-- Air Quality (real Open-Meteo AQ data) -->
-        <div class="data-card">
+        <div class="data-card resizable-panel" data-resizable-panel data-panel-id="environment-air-quality">
           <h3>Air Quality <small style="font-weight:normal;color:var(--color-text-secondary)">(Open-Meteo AQ API)</small></h3>
           <div class="metric large">
             <span class="value" id="aqi">—</span>
@@ -480,8 +503,14 @@
           </div>
         </div>
 
+        </div>
+
+        <div class="splitter" data-splitter role="separator" aria-orientation="vertical" aria-label="Resize Environment columns" tabindex="0"></div>
+
+        <div class="split-pane split-pane-secondary">
+
         <!-- Sensor info card (informational) -->
-        <div class="data-card">
+        <div class="data-card resizable-panel panel-fill" data-resizable-panel data-panel-id="environment-about">
           <h3>About This Data</h3>
           <p style="font-size:var(--font-size-sm);color:var(--color-text);line-height:1.6">
             Weather and air quality data is fetched live from the
@@ -500,6 +529,8 @@
           </p>
         </div>
 
+        </div>
+
       </div>
     </section>
 
@@ -511,14 +542,16 @@
       <div class="tab-header">
         <div class="tab-heading">
           <h2>Space Weather – Earthquake Correlation</h2>
-          <p class="tab-subtitle">Exploratory lag analysis with explicit null-hypothesis guardrails and corpus checks.</p>
+          <p class="tab-subtitle">Current window, quick evidence summary, and the live 30-day storm-versus-seismic timeline.</p>
         </div>
         <button id="btn-refresh-correlation" class="btn btn-primary">↻ Refresh</button>
       </div>
 
-      <div class="correlation-info">
+      <div class="tab-workspace split-layout" data-split-layout data-split-id="correlation" data-default-split="42" data-min-left-px="340" data-min-right-px="360">
 
-        <div class="info-card">
+        <div class="split-pane split-pane-primary">
+
+        <div class="info-card resizable-panel" data-resizable-panel data-panel-id="correlation-background">
           <h3>Research Background</h3>
           <p>Some peer-reviewed studies report a <strong>statistically significant correlation</strong>
              between geomagnetic storms and seismic activity with a <strong>27–28 day lag</strong>
@@ -535,7 +568,7 @@
           </p>
         </div>
 
-        <div class="info-card">
+        <div class="info-card resizable-panel" data-resizable-panel data-panel-id="correlation-window-panel">
           <h3>Active Correlation Window</h3>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">
             Any geomagnetic storm (Kp≥5) occurring 27–28 days ago falls within the proposed
@@ -551,12 +584,7 @@
           </div>
         </div>
 
-      </div>
-
-      <!-- ===== AI PREDICTION ROW ===== -->
-      <div class="correlation-info" style="margin-top:0">
-
-        <div class="info-card" id="prediction-card">
+        <div class="info-card resizable-panel" id="prediction-card" data-resizable-panel data-panel-id="correlation-prediction-card">
           <h3>📊 Statistical Prediction</h3>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-bottom:12px">
             Empirical conditional probability of M5+ seismicity in the current 27–30 day
@@ -579,195 +607,228 @@
           </div>
         </div>
 
-        <div class="info-card">
-          <h3>🗄️ Data Foundation</h3>
-          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-bottom:12px">
-            Load 2 years of global M5+ earthquakes from USGS ComCat and 2 years of official
-            NOAA daily geomagnetic indices into your browser's IndexedDB. The earthquake archive
-            adds depth; the storm archive fixes the current bottleneck.
-          </p>
-          <div style="display:flex;flex-direction:column;gap:8px;font-size:var(--font-size-sm)">
-            <div>Historical USGS M5+: <strong id="data-eq-status">Not loaded</strong></div>
-            <div>Historical NOAA storms: <strong id="data-storm-archive-status">Not loaded</strong></div>
-            <div>Storm seed (SC25 fallback): <strong id="data-storm-status">Not loaded</strong></div>
-            <div>Corpus span: <strong id="data-span">—</strong></div>
-            <div>Foundation readiness: <strong id="data-foundation-state">Seed/live only</strong></div>
+        </div>
+
+        <div class="splitter" data-splitter role="separator" aria-orientation="vertical" aria-label="Resize Correlation columns" tabindex="0"></div>
+
+        <div class="split-pane split-pane-secondary">
+
+        <div class="timeline-container resizable-panel panel-fill" data-resizable-panel data-panel-id="correlation-timeline-panel">
+          <h3>30-Day Timeline (Storms vs. M5+ Earthquakes)</h3>
+          <canvas id="correlation-timeline" aria-label="30-day geomagnetic storm and earthquake correlation timeline"></canvas>
+          <div style="font-size:10px;color:var(--color-text-secondary);margin-top:8px">
+            🟠 Geomagnetic storms (top) · 🟡 Major earthquakes (bottom) · Green lines = 27–28 day lag pairs
           </div>
-          <div class="analysis-note compact tone-muted" id="data-foundation-note">
-            Load both archives before treating real-data lag scans as anything stronger than exploratory.
+        </div>
+
+        <div class="correlation-stats">
+          <div class="stat-card">
+            <h4>Geomagnetic Storms (30 days)</h4>
+            <div class="value" id="storm-count">0</div>
           </div>
-          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-            <button id="btn-load-foundation" class="btn btn-primary" style="font-size:var(--font-size-sm)">
-              ⬇ Load Full Research Foundation
-            </button>
-            <button id="btn-load-historical" class="btn btn-secondary" style="font-size:var(--font-size-sm)">
-              ⬇ Load 2-Year EQ History
-            </button>
-            <button id="btn-load-storm-archive" class="btn btn-secondary" style="font-size:var(--font-size-sm)">
-              ⬇ Load 2-Year Storm Archive
-            </button>
-            <button id="btn-run-analysis" class="btn btn-secondary" style="font-size:var(--font-size-sm)">
-              ▶ Run Analysis
-            </button>
+          <div class="stat-card">
+            <h4>M5+ Earthquakes (30 days)</h4>
+            <div class="value" id="major-eq-count">0</div>
           </div>
-          <div id="data-load-status" style="margin-top:8px;font-size:var(--font-size-xs);color:var(--color-text-secondary)"></div>
+          <div class="stat-card">
+            <h4>Lag-Correlated Pairs</h4>
+            <div class="value" id="correlation-strength">—</div>
+          </div>
+        </div>
+
         </div>
 
       </div>
 
-      <div class="timeline-container" style="margin-top:0">
-        <h3>Research Workflow Status</h3>
-        <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-bottom:8px">
-          This panel exposes what the interface can support right now: browser-side lag analysis,
-          archive readiness, and the boundary between current UX features and future Python-side research compute.
-        </p>
-        <div class="analysis-grid" aria-label="Research workflow status">
-          <div class="analysis-item">
-            <div class="analysis-label">Analysis engine</div>
-            <div class="analysis-value" id="research-engine-status">Browser statistical engine</div>
+    </section>
+
+    <!-- ============================================================
+         RESEARCH LAB TAB
+    ============================================================= -->
+    <section id="research-tab" class="tab-content" role="tabpanel">
+
+      <div class="tab-header">
+        <div class="tab-heading">
+          <h2>Research Lab</h2>
+          <p class="tab-subtitle">Archive loading, null calibration, lag-scan diagnostics, and the browser-to-Python research boundary.</p>
+        </div>
+        <button id="btn-run-analysis" class="btn btn-primary">▶ Run Analysis</button>
+      </div>
+
+      <div class="tab-workspace split-layout" data-split-layout data-split-id="research" data-default-split="54" data-min-left-px="360" data-min-right-px="360">
+
+        <div class="split-pane split-pane-primary">
+
+          <div class="info-card resizable-panel" data-resizable-panel data-panel-id="research-foundation">
+            <h3>🗄️ Data Foundation</h3>
+            <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-bottom:12px">
+              Load 2 years of global M5+ earthquakes from USGS ComCat and 2 years of official
+              NOAA daily geomagnetic indices into your browser's IndexedDB. The earthquake archive
+              adds depth; the storm archive fixes the current bottleneck.
+            </p>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:var(--font-size-sm)">
+              <div>Historical USGS M5+: <strong id="data-eq-status">Not loaded</strong></div>
+              <div>Historical NOAA storms: <strong id="data-storm-archive-status">Not loaded</strong></div>
+              <div>Storm seed (SC25 fallback): <strong id="data-storm-status">Not loaded</strong></div>
+              <div>Corpus span: <strong id="data-span">—</strong></div>
+              <div>Foundation readiness: <strong id="data-foundation-state">Seed/live only</strong></div>
+            </div>
+            <div class="analysis-note compact tone-muted" id="data-foundation-note">
+              Load both archives before treating real-data lag scans as anything stronger than exploratory.
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+              <button id="btn-load-foundation" class="btn btn-primary" style="font-size:var(--font-size-sm)">
+                ⬇ Load Full Research Foundation
+              </button>
+              <button id="btn-load-historical" class="btn btn-secondary" style="font-size:var(--font-size-sm)">
+                ⬇ Load 2-Year EQ History
+              </button>
+              <button id="btn-load-storm-archive" class="btn btn-secondary" style="font-size:var(--font-size-sm)">
+                ⬇ Load 2-Year Storm Archive
+              </button>
+            </div>
+            <div id="data-load-status" style="margin-top:8px;font-size:var(--font-size-xs);color:var(--color-text-secondary)"></div>
           </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Python sidecar</div>
-            <div class="analysis-value" id="research-python-status">Not connected</div>
-          </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Storm definition</div>
-            <div class="analysis-value" id="research-storm-definition">Kp≥5 seed/live only</div>
-          </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Region mode</div>
-            <div class="analysis-value" id="research-region-status">Global only</div>
-          </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Null calibration</div>
-            <div class="analysis-value" id="research-null-status">Permutation test pending</div>
-          </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Modeling posture</div>
-            <div class="analysis-value" id="research-modeling-status">Interpretable empirical scan</div>
-          </div>
-          <div class="analysis-item analysis-item-wide">
-            <div class="analysis-label">Recommended next interface step</div>
-            <div class="analysis-value" id="research-next-step">
-              Load both archives and rerun the lag scan before treating the probability card as anything stronger than exploratory.
+
+          <div class="timeline-container resizable-panel panel-fill" data-resizable-panel data-panel-id="research-workflow">
+            <h3>Research Workflow Status</h3>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-bottom:8px">
+              This panel exposes what the interface can support right now: browser-side lag analysis,
+              archive readiness, and the boundary between current UX features and future Python-side research compute.
+            </p>
+            <div class="analysis-grid" aria-label="Research workflow status">
+              <div class="analysis-item">
+                <div class="analysis-label">Analysis engine</div>
+                <div class="analysis-value" id="research-engine-status">Browser statistical engine</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Python sidecar</div>
+                <div class="analysis-value" id="research-python-status">Not connected</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Storm definition</div>
+                <div class="analysis-value" id="research-storm-definition">Kp≥5 seed/live only</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Region mode</div>
+                <div class="analysis-value" id="research-region-status">Global only</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Null calibration</div>
+                <div class="analysis-value" id="research-null-status">Permutation test pending</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Modeling posture</div>
+                <div class="analysis-value" id="research-modeling-status">Interpretable empirical scan</div>
+              </div>
+              <div class="analysis-item analysis-item-wide">
+                <div class="analysis-label">Recommended next interface step</div>
+                <div class="analysis-value" id="research-next-step">
+                  Load both archives and rerun the lag scan before treating the probability card as anything stronger than exploratory.
+                </div>
+              </div>
+            </div>
+            <div class="analysis-note tone-muted" id="research-workflow-note">
+              The interface can now show workflow state explicitly. Python-driven statistics still require a real sidecar or export path; they do not exist in the browser app yet.
             </div>
           </div>
-        </div>
-        <div class="analysis-note tone-muted" id="research-workflow-note">
-          The interface can now show workflow state explicitly. Python-driven statistics still require a real sidecar or export path; they do not exist in the browser app yet.
-        </div>
-      </div>
 
-      <div class="timeline-container" style="margin-top:0">
-        <h3>Bootstrap Null Calibration</h3>
-        <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-bottom:8px">
-          Runs a deterministic shuffled-storm null distribution in the local Python sidecar,
-          proxied through Node. This calibrates whether the best 25–30 day bump exceeds what
-          circularly shifted storm catalogs would usually produce by chance.
-        </p>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-          <button id="btn-run-bootstrap" class="btn btn-primary" style="font-size:var(--font-size-sm)">
-            ∿ Run Bootstrap Null Test
-          </button>
-          <div class="analysis-badge tone-muted" id="bootstrap-status">Python sidecar status not checked</div>
         </div>
-        <div class="analysis-grid" aria-label="Bootstrap null calibration results">
-          <div class="analysis-item">
-            <div class="analysis-label">Permutations</div>
-            <div class="analysis-value" id="bootstrap-permutations">—</div>
-          </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Observed target peak</div>
-            <div class="analysis-value" id="bootstrap-observed">—</div>
-          </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Null 95th percentile</div>
-            <div class="analysis-value" id="bootstrap-null95">—</div>
-          </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Empirical p-value</div>
-            <div class="analysis-value" id="bootstrap-pvalue">—</div>
-          </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Verdict</div>
-            <div class="analysis-badge tone-muted" id="bootstrap-verdict">Awaiting run…</div>
-          </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Corpus used</div>
-            <div class="analysis-value" id="bootstrap-corpus">—</div>
-          </div>
-          <div class="analysis-item analysis-item-wide">
-            <div class="analysis-label">Interpretation</div>
-            <div class="analysis-value" id="bootstrap-detail">
-              Start the local Python sidecar, then run the null test to see whether the target-window bump rises above a shuffled-storm null.
+
+        <div class="splitter" data-splitter role="separator" aria-orientation="vertical" aria-label="Resize Research Lab columns" tabindex="0"></div>
+
+        <div class="split-pane split-pane-secondary">
+
+          <div class="timeline-container resizable-panel" data-resizable-panel data-panel-id="research-bootstrap-panel">
+            <h3>Bootstrap Null Calibration</h3>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-bottom:8px">
+              Runs a deterministic shuffled-storm null distribution in the local Python sidecar,
+              proxied through Node. This calibrates whether the best 25–30 day bump exceeds what
+              circularly shifted storm catalogs would usually produce by chance.
+            </p>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+              <button id="btn-run-bootstrap" class="btn btn-primary" style="font-size:var(--font-size-sm)">
+                ∿ Run Bootstrap Null Test
+              </button>
+              <div class="analysis-badge tone-muted" id="bootstrap-status">Python sidecar status not checked</div>
+            </div>
+            <div class="analysis-grid" aria-label="Bootstrap null calibration results">
+              <div class="analysis-item">
+                <div class="analysis-label">Permutations</div>
+                <div class="analysis-value" id="bootstrap-permutations">—</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Observed target peak</div>
+                <div class="analysis-value" id="bootstrap-observed">—</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Null 95th percentile</div>
+                <div class="analysis-value" id="bootstrap-null95">—</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Empirical p-value</div>
+                <div class="analysis-value" id="bootstrap-pvalue">—</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Verdict</div>
+                <div class="analysis-badge tone-muted" id="bootstrap-verdict">Awaiting run…</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Corpus used</div>
+                <div class="analysis-value" id="bootstrap-corpus">—</div>
+              </div>
+              <div class="analysis-item analysis-item-wide">
+                <div class="analysis-label">Interpretation</div>
+                <div class="analysis-value" id="bootstrap-detail">
+                  Start the local Python sidecar, then run the null test to see whether the target-window bump rises above a shuffled-storm null.
+                </div>
+              </div>
+            </div>
+            <div class="analysis-note tone-muted" id="bootstrap-note">
+              This is deterministic statistical compute, not model-generated opinion. It uses the same lag-scan corpus currently in your browser and tests it against shuffled storm timings.
             </div>
           </div>
-        </div>
-        <div class="analysis-note tone-muted" id="bootstrap-note">
-          This is deterministic statistical compute, not model-generated opinion. It uses the same lag-scan corpus currently in your browser and tests it against shuffled storm timings.
-        </div>
-      </div>
 
-      <!-- ===== CROSS-LAG SCAN ===== -->
-      <div class="timeline-container" style="margin-top:0">
-        <h3>0–60 Day Hypothesis Test: Event Ratio vs. Lag</h3>
-        <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-bottom:8px">
-          For each lag L, the ratio of M5+ earthquakes in the [storm+L±3d] window vs a matched
-          control window. Ratio &gt;1 = elevated seismicity. <strong style="color:#FF9800">Amber dots</strong> = 27–28d hypothesis zone.
-          A null result (ratio ≈ 1 everywhere) falsifies the hypothesis.
-        </p>
-        <canvas id="lag-scan-chart" height="180" aria-label="Cross-lag scan: event ratio 0-60 days after geomagnetic storm"></canvas>
-        <div id="lag-scan-verdict" class="analysis-callout tone-muted">
-          Run analysis to see hypothesis test result.
-        </div>
-        <div class="analysis-grid" aria-label="Hypothesis interpretation details">
-          <div class="analysis-item">
-            <div class="analysis-label">Interpretation</div>
-            <div class="analysis-badge tone-muted" id="lag-evidence-state">Awaiting analysis…</div>
+          <div class="timeline-container resizable-panel panel-fill" data-resizable-panel data-panel-id="research-lag-scan-panel">
+            <h3>0–60 Day Hypothesis Test: Event Ratio vs. Lag</h3>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-bottom:8px">
+              For each lag L, the ratio of M5+ earthquakes in the [storm+L±3d] window vs a matched
+              control window. Ratio &gt;1 = elevated seismicity. <strong style="color:#FF9800">Amber dots</strong> = 27–28d hypothesis zone.
+              A null result (ratio ≈ 1 everywhere) falsifies the hypothesis.
+            </p>
+            <canvas id="lag-scan-chart" height="180" aria-label="Cross-lag scan: event ratio 0-60 days after geomagnetic storm"></canvas>
+            <div id="lag-scan-verdict" class="analysis-callout tone-muted">
+              Run analysis to see hypothesis test result.
+            </div>
+            <div class="analysis-grid" aria-label="Hypothesis interpretation details">
+              <div class="analysis-item">
+                <div class="analysis-label">Interpretation</div>
+                <div class="analysis-badge tone-muted" id="lag-evidence-state">Awaiting analysis…</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Target window</div>
+                <div class="analysis-value" id="lag-evidence-target">—</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Best lag overall</div>
+                <div class="analysis-value" id="lag-evidence-peak">—</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Corpus</div>
+                <div class="analysis-value" id="lag-evidence-corpus">—</div>
+              </div>
+              <div class="analysis-item analysis-item-wide">
+                <div class="analysis-label">Why this state</div>
+                <div class="analysis-value" id="lag-evidence-why">Run analysis to populate interpretation details.</div>
+              </div>
+            </div>
+            <div class="analysis-note tone-muted" id="lag-evidence-note">
+              The probability card is descriptive only until enough live/historical evidence accumulates.
+            </div>
           </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Target window</div>
-            <div class="analysis-value" id="lag-evidence-target">—</div>
-          </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Best lag overall</div>
-            <div class="analysis-value" id="lag-evidence-peak">—</div>
-          </div>
-          <div class="analysis-item">
-            <div class="analysis-label">Corpus</div>
-            <div class="analysis-value" id="lag-evidence-corpus">—</div>
-          </div>
-          <div class="analysis-item analysis-item-wide">
-            <div class="analysis-label">Why this state</div>
-            <div class="analysis-value" id="lag-evidence-why">Run analysis to populate interpretation details.</div>
-          </div>
-        </div>
-        <div class="analysis-note tone-muted" id="lag-evidence-note">
-          The probability card is descriptive only until enough live/historical evidence accumulates.
-        </div>
-      </div>
 
-      <div class="timeline-container">
-        <h3>30-Day Timeline (Storms vs. M5+ Earthquakes)</h3>
-        <canvas id="correlation-timeline" aria-label="30-day geomagnetic storm and earthquake correlation timeline"></canvas>
-        <div style="font-size:10px;color:var(--color-text-secondary);margin-top:8px">
-          🟠 Geomagnetic storms (top) · 🟡 Major earthquakes (bottom) · Green lines = 27–28 day lag pairs
         </div>
-      </div>
 
-      <div class="correlation-stats">
-        <div class="stat-card">
-          <h4>Geomagnetic Storms (30 days)</h4>
-          <div class="value" id="storm-count">0</div>
-        </div>
-        <div class="stat-card">
-          <h4>M5+ Earthquakes (30 days)</h4>
-          <div class="value" id="major-eq-count">0</div>
-        </div>
-        <div class="stat-card">
-          <h4>Lag-Correlated Pairs</h4>
-          <div class="value" id="correlation-strength">—</div>
-        </div>
       </div>
 
     </section>
@@ -788,9 +849,11 @@
         </div>
       </div>
 
-      <div class="content-grid">
+      <div class="tab-workspace split-layout" data-split-layout data-split-id="settings" data-default-split="46" data-min-left-px="320" data-min-right-px="320">
 
-        <div class="data-card">
+        <div class="split-pane split-pane-primary">
+
+        <div class="data-card resizable-panel" data-resizable-panel data-panel-id="settings-thresholds">
           <h3>Alert Thresholds</h3>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-bottom:var(--space-16)">
             Settings are persisted in your browser's <code>localStorage</code>.
@@ -823,7 +886,13 @@
           </div>
         </div>
 
-        <div class="data-card">
+        </div>
+
+        <div class="splitter" data-splitter role="separator" aria-orientation="vertical" aria-label="Resize Settings columns" tabindex="0"></div>
+
+        <div class="split-pane split-pane-secondary">
+
+        <div class="data-card resizable-panel panel-fill" data-resizable-panel data-panel-id="settings-about">
           <h3>About This Application</h3>
           <p style="font-size:var(--font-size-sm);line-height:1.6">
             Real-time monitoring of space weather, global seismic activity, and correlation analysis —
@@ -854,6 +923,8 @@
 
           <h4 style="margin-top:16px;font-size:var(--font-size-sm);color:var(--color-primary)">Version</h4>
           <p style="font-size:12px;color:var(--color-text-secondary)">v0.2.0 — accelerated prototype</p>
+        </div>
+
         </div>
 
       </div>

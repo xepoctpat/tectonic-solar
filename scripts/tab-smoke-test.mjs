@@ -11,6 +11,7 @@ const tabs = [
   { name: 'seismic', button: '[data-tab="seismic"]', panel: '#seismic-tab', probe: '#eq-list-container' },
   { name: 'env', button: '[data-tab="env"]', panel: '#env-tab', probe: '#location-select' },
   { name: 'correlation', button: '[data-tab="correlation"]', panel: '#correlation-tab', probe: '#correlation-timeline' },
+  { name: 'research', button: '[data-tab="research"]', panel: '#research-tab', probe: '#btn-load-foundation' },
   { name: 'settings', button: '[data-tab="settings"]', panel: '#settings-tab', probe: '#alert-eq-mag' },
 ];
 

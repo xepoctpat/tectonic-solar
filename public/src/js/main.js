@@ -1,5 +1,6 @@
 // ===== MAIN APPLICATION ENTRY POINT =====
 import { errorLogger } from './error-logger.js';
+import { initLayoutControls } from './layout.js';
 import { initTabs } from './tabs.js';
 import { registerMapViewport, resizeMapViewport } from './mapViewport.js';
 import {
@@ -68,6 +69,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ---- Initialise tabs ----
   initTabs();
+
+  let layoutRefreshTimer = null;
+  function scheduleLayoutRefresh(delay = 100) {
+    window.clearTimeout(layoutRefreshTimer);
+    layoutRefreshTimer = window.setTimeout(() => {
+      redrawCachedCharts();
+      if (document.getElementById('map-tab')?.classList.contains('active')) {
+        resizeMapViewport();
+      }
+    }, delay);
+  }
+
+  initLayoutControls({
+    onLayoutChange: () => scheduleLayoutRefresh(130),
+  });
+
+  window.addEventListener('space-earth:tabchange', () => {
+    scheduleLayoutRefresh(150);
+  });
 
   // ---- Initialise map ----
   const map = initializeMap();
@@ -795,8 +815,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ---- Resize handler: invalidate the active map viewport ----
   window.addEventListener('resize', () => {
-    if (document.getElementById('map-tab')?.classList.contains('active')) {
-      resizeMapViewport();
-    }
+    scheduleLayoutRefresh(110);
   });
 });

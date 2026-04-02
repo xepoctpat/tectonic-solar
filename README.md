@@ -42,11 +42,12 @@ The tectonic map layers are intentionally **not** live third-party browser depen
 | Tab | What it does |
 |---|---|
 | **Map** | Interactive Leaflet map — the primary 2D research view for live USGS earthquakes, cited PB2002 plate regions, subtype-styled tectonic boundary families (including explicit subduction symbology), a partial local motion-vector artifact keyed to real plate codes, a magnitude filter slider, clearer plate-study controls, and multiple basemaps; any future 3D globe should remain optional and isolated from the default map path |
-| **Space Weather** | Live NOAA solar wind (Chart.js animated line chart), Kp index (colour-coded bar chart), 3-day history with storm threshold, GOES X-ray flare log |
-| **Seismic** | Dynamic USGS earthquake list (newest first, time-ago), statistics (M5+/M6+ counts, largest), magnitude distribution chart (Chart.js horizontal bars with magnitude color-coding) |
-| **Environment** | Real-time weather (temp, feels-like, humidity, pressure, wind, condition) and air quality (PM2.5, PM10, CO, NO₂, European AQI) via Open-Meteo free API, AQI gauge doughnut chart |
-| **Correlation** | 0–60 day lag scan, conditional `P(M5+ | storm 25–30d ago)`, historical USGS ComCat loading, NOAA storm-archive foundation loading, deterministic bootstrap null calibration through a local Python sidecar, correlation timeline, null-hypothesis framing, and a research-workflow status panel that exposes archive readiness, current browser-engine scope, and the boundary to optional Python compute |
-| **Settings** | Configurable alert thresholds, dark mode toggle (☀️/🌙), notifications, localStorage persistence |
+| **Space Weather** | Live NOAA solar wind (Chart.js animated line chart), Kp index (colour-coded bar chart), 3-day history with storm threshold, GOES X-ray flare log, and a resizable split workspace for quick side-by-side reading |
+| **Seismic** | Dynamic USGS earthquake list (newest first, time-ago), statistics (M5+/M6+ counts, largest), magnitude distribution chart (Chart.js horizontal bars with magnitude color-coding), and a resizable split workspace |
+| **Environment** | Real-time weather (temp, feels-like, humidity, pressure, wind, condition) and air quality (PM2.5, PM10, CO, NO₂, European AQI) via Open-Meteo free API, AQI gauge doughnut chart, and a resizable split workspace |
+| **Correlation** | Quick correlation readout: research background, current 27–28 day window status, descriptive probability card, 30-day storms-vs-seismic timeline, and summary stats |
+| **Research Lab** | Historical USGS ComCat loading, NOAA storm-archive foundation loading, deterministic bootstrap null calibration through a local Python sidecar, 0–60 day lag scan, workflow-state reporting, and explicit browser-versus-Python research boundaries |
+| **Settings** | Configurable alert thresholds, dark mode toggle (☀️/🌙), notifications, localStorage persistence, and a resizable split workspace |
 
 ### Sprint 1-4 Enhancements (MVP Redesign)
 
@@ -170,7 +171,7 @@ What it does:
 - binds to `127.0.0.1:5051` only
 - stays **local-only** and is never exposed directly to the browser
 - is reached through the Node proxy at `/api/research/status` and `/api/research/bootstrap`
-- powers the Correlation tab's **Run Bootstrap Null Test** workflow
+- powers the Research Lab tab's **Run Bootstrap Null Test** workflow
 - uses the workspace research stack for heavier analysis (`numpy`, `pandas`, `statsmodels`, `scikit-learn`) when browser JavaScript would become awkward or opaque
 
 This is optional research compute, not normal app startup. If the sidecar is not running, the rest of the dashboard still works.
@@ -230,7 +231,7 @@ tectonic-solar/
 │   ├── research_sidecar.py   # Local-only Flask sidecar for bootstrap null calibration
 │   ├── research_stats.py     # Pure NumPy research helpers used by the sidecar
 │   ├── hypothesis-sim.mjs    # Deterministic lag-analysis sanity harness
-│   ├── tab-smoke-test.mjs    # 6-tab Playwright smoke test
+│   ├── tab-smoke-test.mjs    # 7-tab Playwright smoke test
 │   ├── verify-visuals.js
 │   ├── lighthouse-automation.js
 │   ├── restart-server.js
@@ -263,10 +264,11 @@ Key references:
 Current hypothesis workflow in the app:
 
 - live storm and earthquake monitoring
-- 0–60 day lag scan with explicit null-result framing
+- quick correlation summary in the `Correlation` tab
+- 0–60 day lag scan with explicit null-result framing in `Research Lab`
 - empirical conditional probability of M5+ activity in the 25–30 day post-storm window
 - optional bootstrap null calibration through the local Python sidecar
-- optional historical USGS ComCat load through a validated proxy route
+- optional historical USGS ComCat + NOAA storm-archive loading through validated proxy routes
 
 ### Hypothesis implementation surfaces (by concern)
 
@@ -306,7 +308,7 @@ When moving from setup to real-data analysis, the preferred path is now:
 
 1. run `npm run test:hypothesis-sim`
 2. launch the app
-3. click **Load Full Research Foundation** in the Correlation tab
+3. open the **Research Lab** tab and click **Load Full Research Foundation**
 4. optionally start the Python research sidecar and click **Run Bootstrap Null Test**
 5. rerun the lag scan on the combined NOAA + USGS historical corpus
 

@@ -44,7 +44,7 @@ Open `http://localhost:3000/api/health`
 | **Space Weather** | `/api/noaa/*` endpoints load in Network tab | NOAA upstreams are flaky sometimes; the proxy should degrade gracefully |
 | **Seismic** | `/api/usgs/eq-*` returns 200 | Check internet and proxy status |
 | **Environment** | `/api/openmeteo/*` responds | Check internet and `/api/health` |
-| **Correlation** | `/api/usgs/comcat` historical load works | Confirm valid start/end dates and use the Node proxy runtime |
+| **Correlation / Research Lab** | `/api/usgs/comcat` historical load works | Confirm valid start/end dates and use the Node proxy runtime |
 | **All Tabs** | Console shows fetch attempts | Wait 5-10s; some feeds refresh on timers |
 
 Expected quirk:
@@ -58,9 +58,9 @@ Expected quirk:
 | Symptom | First concern to inspect | First file(s) to inspect | Quick check |
 |---|---|---|---|
 | Lag peak suddenly moves or interpretation buckets feel wrong | Shared lag-analysis logic | `public/src/js/hypothesis-core.mjs` | Run `npm run test:hypothesis-sim` and compare null / positive-control / off-target outcomes |
-| Historical foundation loads inconsistently or corpus counts look odd | Historical loading + orchestration | `public/src/js/prediction.js` | Reload the research foundation and confirm archive flags / counts change coherently |
-| 27–28 day banner or old timeline looks wrong but the newer lag scan is fine | Legacy/basic browser correlation UI | `public/src/js/correlation.js` | Check window dates, timeline refresh, and any Pearson/Fisher display separately |
-| Bootstrap button fails or sidecar state is misleading | Python sidecar bridge | `public/src/js/researchCompute.js`, `scripts/research_sidecar.py` | Verify `/api/research/status` first, then retry the bootstrap workflow |
+| Historical foundation loads inconsistently or corpus counts look odd | Historical loading + orchestration | `public/src/js/prediction.js` | Reload the Research Lab foundation controls and confirm archive flags / counts change coherently |
+| 27–28 day banner or 30-day timeline looks wrong but the lag scan is fine | Legacy/basic browser correlation UI | `public/src/js/correlation.js` | Check window dates, summary cards, and timeline refresh separately from Research Lab diagnostics |
+| Bootstrap button fails or sidecar state is misleading | Python sidecar bridge | `public/src/js/researchCompute.js`, `scripts/research_sidecar.py` | Verify `/api/research/status` first, then retry the Research Lab bootstrap workflow |
 | Simulation output is wrong even before opening the app | Deterministic validation harness | `scripts/hypothesis-sim.mjs` | Confirm null, target-lag, and off-target scenarios still classify correctly |
 
 Do not collapse these into “the correlation code is broken.” The hypothesis workflow is split by concern on purpose.
@@ -184,8 +184,8 @@ Open DevTools, press Ctrl+Shift+M (toggle device toolbar)
 | Viewport | Expected Behavior |
 |----------|-------------------|
 | **375px** | Single-column, stacked tabs |
-| **768px** | 2-column if space, readable fonts |
-| **1440px** | Full grid layout, side-by-side |
+| **768px** | 2-column if space, readable fonts, split handles usable |
+| **1440px** | Full layout, side-by-side panes, resizable non-map workspaces |
 
 ### If Layout Wrong at 375px
 1. DevTools → Toggle device toolbar

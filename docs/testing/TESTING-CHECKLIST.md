@@ -47,7 +47,7 @@ python scripts/research_sidecar.py
 Expected outcome:
 - local sidecar listens on `http://127.0.0.1:5051`
 - `GET /api/research/status` reports the sidecar as online through the Node proxy
-- the Correlation tab can run **Bootstrap Null Test** without exposing Python directly to the browser
+- the Research Lab tab can run **Bootstrap Null Test** without exposing Python directly to the browser
 
 ### Optional static-only check
 ```powershell
@@ -100,8 +100,14 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Real Data**: From Open-Meteo API (free, no key required)
 
 ### 📊 Correlation Tab
-- [ ] **Foundation Button**: "Load Full Research Foundation" is visible and starts the combined archive workflow
+- [ ] **Research Background**: background card renders legibly in the left pane
 - [ ] **Prediction Card**: Statistical prediction card renders with probability / confidence state
+- [ ] **Active Window**: current 27–28 day window state renders clearly
+- [ ] **Timeline**: 30-day storm vs M5+ timeline renders without console errors
+- [ ] **Summary Stats**: storm count, M5+ count, and lag-pair count render without overlap
+
+### 🧪 Research Lab Tab
+- [ ] **Foundation Button**: "Load Full Research Foundation" is visible and starts the combined archive workflow
 - [ ] **Data Foundation**: Historical-load status and corpus span appear
 - [ ] **Research Workflow Panel**: Python sidecar status, null-calibration state, and recommended next step render legibly
 - [ ] **Bootstrap Null Test**: Button is visible, handles sidecar-offline state honestly, and shows empirical p-value / null threshold when the sidecar is running
@@ -109,7 +115,6 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Lag Scan Chart**: 0–60 day lag scan appears or shows explicit empty state
 - [ ] **Lag Verdict**: Null/signal/insufficient-data messaging is visible and legible
 - [ ] **Interpretation State**: UI distinguishes insufficient / null-consistent / off-target / weak bump / candidate signal instead of treating raw percentage alone as evidence
-- [ ] **Timeline**: 30-day storm vs M5+ timeline renders without console errors
 - [ ] **Historical Load**: "Load 2-Year History" button loads ComCat data without breaking the page
 
 ### ⚙️ Settings Tab
@@ -156,6 +161,7 @@ Use the Python static server only for layout/static verification. The Node proxy
 
 ### Mobile Experience (375px - iPhone SE)
 - [ ] **Layout**: Single-column stacking (no side-by-side)
+- [ ] **Resizable Panels**: split layouts collapse cleanly and stop exposing resize handles on narrow screens
 - [ ] **Charts**: Readable on small screen (font size appropriate)
 - [ ] **Map**: Touches, zoom gestures work smoothly
 - [ ] **Header**: Dark mode button visible without scroll
@@ -165,12 +171,14 @@ Use the Python static server only for layout/static verification. The Node proxy
 
 ### Tablet Experience (768px - iPad)
 - [ ] **2-Column**: Charts/lists side-by-side if space permits
+- [ ] **Split Layouts**: drag handles remain usable and panes keep sensible minimum widths
 - [ ] **Map**: Full width, readable labels
 - [ ] **Touch**: Works smoothly without mouse/trackpad
 - [ ] **Landscape**: Rotate device → layout adapts
 
 ### Desktop Experience (1440px)
 - [ ] **Full Layout**: Grid-based layout visible (multiple columns)
+- [ ] **Resizable Workspaces**: non-map tabs keep draggable splitters and resizable cards without clipping content
 - [ ] **Charts**: Large, readable, good use of screen real estate
 - [ ] **Map**: Full-width interactive map
 - [ ] **Performance**: No lag when scrolling or switching tabs

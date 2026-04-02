@@ -1,14 +1,14 @@
 {
   "appUrl": "http://localhost:3000",
-  "generatedAt": "2026-04-02T16:32:52.584Z",
+  "generatedAt": "2026-04-02T16:51:30.541Z",
   "health": {
-    "ok": false,
-    "status": 503,
+    "ok": true,
+    "status": 200,
     "body": {
-      "ok": false,
+      "ok": true,
       "mode": "deployment-simulation",
-      "uptimeSeconds": 7944,
-      "durationMs": 10653,
+      "uptimeSeconds": 9055,
+      "durationMs": 171,
       "checks": {
         "noaa": {
           "ok": true,
@@ -19,8 +19,8 @@
           "status": 200
         },
         "usgs": {
-          "ok": false,
-          "error": "fetch failed"
+          "ok": true,
+          "status": 200
         }
       }
     }
@@ -82,14 +82,14 @@
         "left": 0
       },
       "probeRect": {
-        "x": 39,
-        "y": 643.28125,
-        "width": 297,
-        "height": 18227,
-        "top": 643.28125,
-        "right": 336,
-        "bottom": 18870.28125,
-        "left": 39
+        "x": 45,
+        "y": 626.78125,
+        "width": 756,
+        "height": 294.6875,
+        "top": 626.78125,
+        "right": 801,
+        "bottom": 921.46875,
+        "left": 45
       }
     },
     {
@@ -111,14 +111,14 @@
         "left": 0
       },
       "probeRect": {
-        "x": 39,
+        "x": 45,
         "y": 322.28125,
-        "width": 1362,
+        "width": 756,
         "height": 1963,
         "top": 322.28125,
-        "right": 1401,
+        "right": 801,
         "bottom": 2285.28125,
-        "left": 39
+        "left": 45
       }
     },
     {
@@ -169,14 +169,43 @@
         "left": 0
       },
       "probeRect": {
-        "x": 37,
-        "y": 18786.671875,
-        "width": 1366,
-        "height": 400,
-        "top": 18786.671875,
-        "right": 1403,
-        "bottom": 19186.671875,
-        "left": 37
+        "x": 893,
+        "y": 338.875,
+        "width": 498,
+        "height": 356.09375,
+        "top": 338.875,
+        "right": 1391,
+        "bottom": 694.96875,
+        "left": 893
+      }
+    },
+    {
+      "tab": "research",
+      "passed": true,
+      "panelExists": true,
+      "probeExists": true,
+      "panelActive": true,
+      "panelVisible": true,
+      "probeVisible": true,
+      "panelRect": {
+        "x": 0,
+        "y": 142,
+        "width": 1440,
+        "height": 715,
+        "top": 142,
+        "right": 1440,
+        "bottom": 857,
+        "left": 0
+      },
+      "probeRect": {
+        "x": 43,
+        "y": 573.640625,
+        "width": 229.484375,
+        "height": 18,
+        "top": 573.640625,
+        "right": 272.484375,
+        "bottom": 591.640625,
+        "left": 43
       }
     },
     {
@@ -198,14 +227,14 @@
         "left": 0
       },
       "probeRect": {
-        "x": 39,
+        "x": 45,
         "y": 384.28125,
-        "width": 297,
+        "width": 756,
         "height": 20,
         "top": 384.28125,
-        "right": 336,
+        "right": 801,
         "bottom": 404.28125,
-        "left": 39
+        "left": 45
       }
     }
   ]
