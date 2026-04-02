@@ -1,7 +1,7 @@
 # 🌍 Space-Earth Monitor
 
 A real-time browser dashboard that monitors **space weather**, **global seismic activity**,
-and visualizes the scientifically-studied **27–28 day correlation lag** between geomagnetic
+and visualizes the scientifically-debated **27–28 day correlation lag** between geomagnetic
 storms and earthquake probability.
 
 **No build step. No API key. No database.** Pure ES modules + public APIs.  
@@ -206,6 +206,7 @@ tectonic-solar/
 │   ├── launch.js             # Friendly launcher: start/reuse server + open browser
 │   ├── research_sidecar.py   # Local-only Flask sidecar for bootstrap null calibration
 │   ├── research_stats.py     # Pure NumPy research helpers used by the sidecar
+│   ├── hypothesis-sim.mjs    # Deterministic lag-analysis sanity harness
 │   ├── tab-smoke-test.mjs    # 6-tab Playwright smoke test
 │   ├── verify-visuals.js
 │   ├── lighthouse-automation.js
@@ -225,23 +226,37 @@ tectonic-solar/
 
 ---
 
-## Correlation Research
+## Hypothesis Research
 
-The **27–28 day lag hypothesis** posits that geomagnetic storms trigger increased seismic
-probability approximately one solar rotation later via electromagnetic or tidal stress loading.
+The app is built to test a **contested 27–28 day lag hypothesis**: the idea that
+geomagnetic storms may be associated with elevated earthquake probability roughly one
+solar rotation later. This is an exploratory research target, not an established mechanism.
 
 Key references:
 - Odintsov et al. (2006) — Geomagnetic activity and seismicity
 - Han et al. (2004) — Statistical correlation study
 - Varga & Grafarend (2018) — Earth rotation and seismicity
 
-Current research workflow in the app:
+Current hypothesis workflow in the app:
 
 - live storm and earthquake monitoring
 - 0–60 day lag scan with explicit null-result framing
 - empirical conditional probability of M5+ activity in the 25–30 day post-storm window
 - optional bootstrap null calibration through the local Python sidecar
 - optional historical USGS ComCat load through a validated proxy route
+
+### Hypothesis implementation surfaces (by concern)
+
+| Concern | Primary file(s) | Role |
+|---|---|---|
+| Research narrative / falsification criteria | `docs/research/RESEARCH.md` | Explains what is being tested, what would count as support, and what would falsify the idea |
+| Shared lag-analysis logic | `public/src/js/hypothesis-core.mjs` | Normalization, lag scan, conditional probability, and conservative interpretation states |
+| Historical loading + orchestration | `public/src/js/prediction.js` | Storm seed/archive loading, full analysis runner, and UI-facing prediction outputs |
+| Legacy/basic correlation UI | `public/src/js/correlation.js` | Older 27–28 day window indicator, timeline refresh, and Pearson/Fisher helper path |
+| Optional Python null calibration bridge | `public/src/js/researchCompute.js` | Browser-side adapter for the local Python sidecar behind the Node proxy |
+| Deterministic validation harness | `scripts/hypothesis-sim.mjs` | Null, positive-control, and off-target checks for the same core lag-analysis logic |
+
+This split is intentional. Keep method docs, live UI behavior, heavy compute, and validation notes separated by concern rather than pretending the whole hypothesis workflow lives in one file.
 
 ### Current plan
 
@@ -261,6 +276,8 @@ Use the same lag-analysis core in two modes:
 - **Deterministic simulation mode** to verify that the engine stays near-null under independence, detects an implanted 27-day signal, and does not mislabel an off-target lag
 
 The live app now distinguishes between **insufficient data**, **null-consistent**, **off-target peak**, **weak 25–30d bump**, and **candidate 25–30d signal** so a high percentage alone is not mistaken for evidence.
+
+Legacy Pearson/Fisher outputs still exist for the older/basic browser correlation path, but they are no longer the sole evidence surface for the hypothesis workflow.
 
 When moving from setup to real-data analysis, the preferred path is now:
 
@@ -332,7 +349,7 @@ This project intentionally keeps the research surface area wide **without** loos
 - [ ] All charts render and respond to hover
 - [ ] IndexedDB persists storms/earthquakes after page reload
 - [ ] Service Worker cache inspected in DevTools Application tab
-- [ ] Correlation analysis calculates Pearson r and p-value
+- [ ] Correlation surfaces render correctly, including any legacy Pearson r / p-value outputs still shown in the browser path
 - [ ] Fetch retry: simulate API timeout, verify exponential backoff
 
 ---
@@ -351,7 +368,7 @@ This project intentionally keeps the research surface area wide **without** loos
 
 - [.github/copilot-instructions.md](.github/copilot-instructions.md) — Contributor/AI coding context (server setup, venv, data sources, conventions)
 - [docs/planning/SPRINT-1-DELIVERY.md](docs/planning/SPRINT-1-DELIVERY.md) — Complete list of Sprint 1-4 changes
-- [docs/handoff/HANDOFF.md](docs/handoff/HANDOFF.md) — Security/restructure + research handoff notes
+- [docs/handoff/HANDOFF.md](docs/handoff/HANDOFF.md) — Handoff index / lineage root; see `docs/handoff/` for dated session handoffs
 - [docs/development/DEV-QUICK-REFERENCE.md](docs/development/DEV-QUICK-REFERENCE.md) — Developer guide for extensions and maintenance
 - [docs/planning/ROADMAP.md](docs/planning/ROADMAP.md) — Future features and the current research execution plan
 - [docs/research/RESEARCH.md](docs/research/RESEARCH.md) — Hypothesis analysis and falsification criteria

@@ -75,6 +75,16 @@
 - [x] If Python endpoints are added, bind locally and proxy them through `server.js`
 - [ ] Do not add server-side storage or authenticated services as part of research expansion
 
+### Current hypothesis workflow ownership (keep planning separated by concern)
+
+| Concern | Primary file(s) | Planning note |
+|---|---|---|
+| Shared lag-analysis logic | `public/src/js/hypothesis-core.mjs` | Core math/interpretation changes should be validated against deterministic controls first |
+| Historical loading + orchestration | `public/src/js/prediction.js` | Archive depth, provenance, and orchestration changes belong here |
+| Legacy/basic browser correlation UI | `public/src/js/correlation.js` | Keep older Pearson/timeline behavior distinct from the newer lag-scan engine |
+| Optional Python compute bridge | `public/src/js/researchCompute.js`, `scripts/research_sidecar.py` | Reserve for heavier null calibration / future research compute only |
+| Deterministic validation | `scripts/hypothesis-sim.mjs` | Treat this as the first regression gate before interpreting live-data changes |
+
 ---
 
 ## Phase 3 — Enhanced Analytics

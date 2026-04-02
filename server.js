@@ -11,7 +11,7 @@ const CONTENT_SECURITY_POLICY = [
   "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com",
   "style-src 'self' 'unsafe-inline' https://unpkg.com",
   "img-src 'self' data: https:",
-  "connect-src 'self' https://services.swpc.noaa.gov https://earthquake.usgs.gov https://api.open-meteo.com https://air-quality-api.open-meteo.com https://www.ngdc.noaa.gov",
+  "connect-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://services.swpc.noaa.gov https://earthquake.usgs.gov https://api.open-meteo.com https://air-quality-api.open-meteo.com https://www.ngdc.noaa.gov",
   "font-src 'self' data: https:",
   "manifest-src 'self'",
   "worker-src 'self'",
@@ -201,7 +201,7 @@ app.get('/api/research/status', async (_req, res) => {
   try {
     const upstream = await fetchResearchSidecar('/health', { timeoutMs: 5_000 });
     if (!upstream.ok) {
-      res.status(503).json({
+      res.status(200).json({
         ok: false,
         online: false,
         error: upstream.json?.error || 'Python research sidecar returned a non-success status',
@@ -217,7 +217,7 @@ app.get('/api/research/status', async (_req, res) => {
     });
   } catch (error) {
     const isTimeout = error?.name === 'AbortError';
-    res.status(503).json({
+    res.status(200).json({
       ok: false,
       online: false,
       error: isTimeout ? 'Python research sidecar timeout' : 'Python research sidecar unavailable',

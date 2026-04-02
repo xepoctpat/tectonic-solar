@@ -50,6 +50,20 @@ Open `http://localhost:3000/api/health`
 Expected quirk:
 - NOAA plasma may log a fallback `404` in the local server output. That is expected and should degrade to `[]`, not a broken UI.
 
+---
+
+## If Hypothesis Results Look Wrong
+
+| Symptom | First concern to inspect | First file(s) to inspect | Quick check |
+|---|---|---|---|
+| Lag peak suddenly moves or interpretation buckets feel wrong | Shared lag-analysis logic | `public/src/js/hypothesis-core.mjs` | Run `npm run test:hypothesis-sim` and compare null / positive-control / off-target outcomes |
+| Historical foundation loads inconsistently or corpus counts look odd | Historical loading + orchestration | `public/src/js/prediction.js` | Reload the research foundation and confirm archive flags / counts change coherently |
+| 27–28 day banner or old timeline looks wrong but the newer lag scan is fine | Legacy/basic browser correlation UI | `public/src/js/correlation.js` | Check window dates, timeline refresh, and any Pearson/Fisher display separately |
+| Bootstrap button fails or sidecar state is misleading | Python sidecar bridge | `public/src/js/researchCompute.js`, `scripts/research_sidecar.py` | Verify `/api/research/status` first, then retry the bootstrap workflow |
+| Simulation output is wrong even before opening the app | Deterministic validation harness | `scripts/hypothesis-sim.mjs` | Confirm null, target-lag, and off-target scenarios still classify correctly |
+
+Do not collapse these into “the correlation code is broken.” The hypothesis workflow is split by concern on purpose.
+
 ### Force Refresh Data
 ```javascript
 // Open DevTools Console, paste:

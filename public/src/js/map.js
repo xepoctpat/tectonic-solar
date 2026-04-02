@@ -24,7 +24,7 @@ let allEarthquakes = [];   // raw fetched list (unfiltered)
 let earthquakeMarkers = [];
 let tectonicOverlays = [];
 let currentTileLayer = null;
-const DEFAULT_MAP_TYPE = 'crust';
+const DEFAULT_MAP_TYPE = 'plates';
 
 function createTileLayer(type) {
   const layer = TILE_LAYERS[type];
@@ -316,7 +316,7 @@ export function updateMapLayers() {
 
 export function activatePlateGuideView() {
   const desiredState = {
-    'l-earthquakes': true,
+    'l-earthquakes': false,
     'l-vectors': false,
     'l-convergent': true,
     'l-divergent': true,
@@ -328,7 +328,7 @@ export function activatePlateGuideView() {
     if (checkbox) checkbox.checked = checked;
   });
 
-  switchMapType('crust');
+  switchMapType('plates');
   zoomToRegion('ring');
   updateMapLayers();
 }
@@ -386,6 +386,6 @@ export async function fetchRealEarthquakeData() {
  */
 export function applyMagnitudeFilter(minMag) {
   setMagnitudeFilter(minMag);
-  setText('mag-filter-value', minMag.toFixed(1));
+  setText('mag-filter-value', `${minMag.toFixed(1)}+`);
   addEarthquakeMarkers(allEarthquakes);
 }

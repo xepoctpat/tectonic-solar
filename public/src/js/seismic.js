@@ -1,29 +1,90 @@
 // ===== SEISMIC MODULE =====
-import { alertSettings, historicalEarthquakes } from './store.js';
+import { alertSettings } from './store.js';
 import { sendNotification, showInAppNotification } from './notifications.js';
 import { setText } from './utils.js';
 import { drawMagnitudeDistribution } from './charts.js';
 import { addEarthquake } from './db.js';
+
+const seenEarthquakeAlertKeys = new Set();
+let earthquakeAlertsPrimed = false;
+
+function buildEarthquakeAlertKey(eq) {
+  const time = eq?.date instanceof Date ? eq.date.getTime() : new Date(eq?.date || eq?.time || 0).getTime();
+  return [
+    Number.isFinite(time) ? time : 'unknown-time',
+    Number.isFinite(eq?.lat) ? eq.lat.toFixed(3) : '?',
+    Number.isFinite(eq?.lon) ? eq.lon.toFixed(3) : '?',
+    Number.isFinite(eq?.mag) ? eq.mag.toFixed(1) : '?',
+    eq?.place || '',
+  ].join('|');
+}
 
 /**
  * Check a fresh set of earthquakes against alert thresholds and notify.
  * @param {Array} earthquakes
  */
 export function checkEarthquakeAlerts(earthquakes) {
-  earthquakes.forEach(eq => {
-    if (eq.mag >= alertSettings.earthquakeMagnitude) {
-      // Avoid duplicate alerts for the same event
-      const alreadyAlerted = historicalEarthquakes.some(
-        h => h.lat === eq.lat && h.lon === eq.lon && h.mag === eq.mag,
-      );
-      if (!alreadyAlerted) {
-        sendNotification(
-          `🌍 Major Earthquake M${eq.mag.toFixed(1)}`,
-          `${eq.place} – Depth: ${eq.depth}km`,
-        );
-      }
+  const threshold = alertSettings.earthquakeMagnitude;
+  const qualifying = earthquakes.filter(eq => eq.mag >= threshold);
+
+  if (!earthquakeAlertsPrimed) {
+    qualifying.forEach(eq => seenEarthquakeAlertKeys.add(buildEarthquakeAlertKey(eq)));
+    earthquakeAlertsPrimed = true;
+    return;
+  }
+
+  const recentThresholdMs = 2 * 60 * 60 * 1000;
+  const freshEvents = [];
+
+  qualifying.forEach(eq => {
+    const key = buildEarthquakeAlertKey(eq);
+    if (seenEarthquakeAlertKeys.has(key)) {
+      return;
+    }
+
+    seenEarthquakeAlertKeys.add(key);
+
+    const time = eq?.date instanceof Date ? eq.date.getTime() : new Date(eq?.date || eq?.time || 0).getTime();
+    if (Number.isFinite(time) && Date.now() - time <= recentThresholdMs) {
+      freshEvents.push(eq);
     }
   });
+
+  if (!freshEvents.length) {
+    return;
+  }
+
+  freshEvents.sort((a, b) => b.mag - a.mag);
+
+  if (freshEvents.length === 1) {
+    const [eq] = freshEvents;
+    sendNotification(
+      `🌍 Major Earthquake M${eq.mag.toFixed(1)}`,
+      `${eq.place} – Depth: ${eq.depth}km`,
+    );
+    return;
+  }
+
+  const strongest = freshEvents[0];
+  sendNotification(
+    `🌍 ${freshEvents.length} new major earthquakes`,
+    `Largest: M${strongest.mag.toFixed(1)} near ${strongest.place}`,
+  );
+}
+
+/** Allow the current feed to become the non-alerting baseline again. */
+export function primeEarthquakeAlertBaseline(earthquakes = []) {
+  seenEarthquakeAlertKeys.clear();
+  earthquakes
+    .filter(eq => eq.mag >= alertSettings.earthquakeMagnitude)
+    .forEach(eq => seenEarthquakeAlertKeys.add(buildEarthquakeAlertKey(eq)));
+  earthquakeAlertsPrimed = true;
+}
+
+/** Reset priming state when the app intentionally needs a fresh alert baseline. */
+export function resetEarthquakeAlertBaseline() {
+  seenEarthquakeAlertKeys.clear();
+  earthquakeAlertsPrimed = false;
 }
 
 /**

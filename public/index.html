@@ -65,7 +65,8 @@
         <h2>Global Map</h2>
         <div class="map-controls">
           <button data-map-type="standard"  id="map-standard">Standard</button>
-          <button data-map-type="crust"     id="map-crust" class="active">Crust</button>
+          <button data-map-type="plates"    id="map-plates" class="active">Plate Study</button>
+          <button data-map-type="crust"     id="map-crust">Relief</button>
           <button data-map-type="satellite" id="map-satellite">Satellite</button>
           <button data-map-type="terrain"   id="map-terrain">Terrain</button>
           <button data-map-type="dark"      id="map-dark">Dark</button>
@@ -87,22 +88,25 @@
 
           <div class="control-section">
             <h3>Best for plate reading</h3>
-            <button class="region-btn" id="btn-plate-guide">🧭 Plate Guide View</button>
+            <button class="region-btn" id="btn-plate-guide">🧭 Focus on plate boundaries</button>
             <div class="map-help-text">
-              Switches to a crust/relief basemap, turns on all plate boundaries, hides motion arrows, and zooms to the Ring of Fire.
+              Switches to a neutral plate-study basemap, turns on all plate boundaries, hides earthquake dots and motion arrows, and zooms to the Ring of Fire.
             </div>
           </div>
 
           <div class="control-section">
-            <h3>Magnitude Filter</h3>
+            <h3>Earthquake marker filter</h3>
             <div style="display:flex;align-items:center;gap:8px">
-              <input type="range" id="mag-filter" min="4" max="8" step="0.5" value="4"
+              <input type="range" id="mag-filter" min="4.5" max="7.5" step="0.5" value="4.5"
                      style="flex:1;cursor:pointer" aria-label="Minimum magnitude filter">
               <span style="min-width:28px;font-weight:bold;color:var(--color-primary)"
-                    id="mag-filter-value">4.0+</span>
+                    id="mag-filter-value">4.5+</span>
             </div>
             <div style="font-size:11px;color:var(--color-text-secondary);margin-top:4px">
-              Showing <span id="eq-filter-count">—</span> quakes
+              Showing <span id="eq-filter-count">—</span> quakes from the current USGS map feed
+            </div>
+            <div style="font-size:11px;color:var(--color-text-secondary);margin-top:4px">
+              This only affects earthquake dots. Plate boundaries stay visible regardless of the slider.
             </div>
           </div>
 
@@ -137,11 +141,16 @@
           </div>
 
           <div class="control-section">
-            <h3>How to read this map</h3>
+            <h3>Plate interactions (independent of solar weather)</h3>
             <div style="font-size:11px;line-height:1.8;color:var(--color-text-secondary)">
               <div><span class="guide-chip guide-collide"></span> Red = plates collide</div>
               <div><span class="guide-chip guide-separate"></span> Green = plates pull apart</div>
               <div><span class="guide-chip guide-slide"></span> Orange = plates slide past</div>
+              <div style="margin:8px 0 4px 0;font-weight:bold;color:var(--color-text)">What each usually means</div>
+              <div>Convergent zones: trenches, volcanic arcs, compression, larger and deeper quakes</div>
+              <div>Divergent zones: ridges and rifts, crust spreading, shallower earthquakes</div>
+              <div>Transform zones: strike-slip motion, shallow earthquakes, lateral plate shear</div>
+              <div style="margin-top:4px">Most global earthquake geography is explained first by plate interaction, even before any space-weather hypothesis is considered.</div>
               <div style="margin:8px 0 4px 0;font-weight:bold;color:var(--color-text)">Depth legend</div>
               <div>🟥 Shallow (&lt;35 km)</div>
               <div>🟧 Intermediate (35–100 km)</div>
@@ -164,7 +173,7 @@
           <span class="legend-item"><span class="color dot" style="background:#FF9800"></span> M5.5–5.9</span>
           <span class="legend-item"><span class="color dot" style="background:#F44336"></span> M6+</span>
         </div>
-        <span class="attribution">Data: USGS Earthquake Hazards Program · Relief tiles © Esri</span>
+        <span class="attribution">Earthquakes: USGS · Basemaps: OSM / Esri / OpenTopoMap / CARTO</span>
       </div>
 
     </section>
@@ -179,26 +188,33 @@
         <button id="btn-refresh-space" class="btn btn-primary">↻ Refresh</button>
       </div>
 
+      <div id="space-weather-summary" style="font-size:12px;color:var(--color-text-secondary);margin-bottom:12px">
+        Checking NOAA feeds…
+      </div>
+
       <div class="content-grid">
 
         <!-- Solar Wind -->
         <div class="data-card">
           <h3>Solar Wind <small style="font-weight:normal;color:var(--color-text-secondary)">(NOAA DSCOVR/ACE)</small></h3>
+          <div id="solar-wind-source" style="font-size:11px;color:var(--color-text-secondary);margin:0 0 12px 0">
+            Checking NOAA solar-wind feeds…
+          </div>
           <div class="metric">
             <span class="label">Speed</span>
-            <span><span class="value" id="solar-wind-speed">450</span><span class="unit">km/s</span></span>
+            <span><span class="value" id="solar-wind-speed">—</span><span class="unit">km/s</span></span>
           </div>
           <div class="metric">
             <span class="label">Density</span>
-            <span><span class="value" id="solar-wind-density">5.0</span><span class="unit">p/cm³</span></span>
+            <span><span class="value" id="solar-wind-density">—</span><span class="unit">p/cm³</span></span>
           </div>
           <div class="metric">
             <span class="label">Bt (Total Field)</span>
-            <span><span class="value" id="solar-wind-bt">5.0</span><span class="unit">nT</span></span>
+            <span><span class="value" id="solar-wind-bt">—</span><span class="unit">nT</span></span>
           </div>
           <div class="metric">
             <span class="label">Bz (S-N Component)</span>
-            <span><span class="value" id="solar-wind-bz">0.0</span><span class="unit">nT</span>
+            <span><span class="value" id="solar-wind-bz">—</span><span class="unit">nT</span>
               <span style="font-size:10px;color:var(--color-text-secondary);margin-left:4px">(– = active)</span></span>
           </div>
           <div class="metric">
@@ -212,11 +228,14 @@
         <!-- Geomagnetic Activity -->
         <div class="data-card">
           <h3>Geomagnetic Activity <small style="font-weight:normal;color:var(--color-text-secondary)">(NOAA)</small></h3>
+          <div id="kp-source" style="font-size:11px;color:var(--color-text-secondary);margin:0 0 12px 0">
+            Checking NOAA Kp feeds…
+          </div>
           <div class="metric">
             <span class="label">Kp Index</span>
             <span>
-              <span class="value" id="kp-value">3</span>
-              <span class="status" id="kp-status">Quiet</span>
+              <span class="value" id="kp-value">—</span>
+              <span class="status" id="kp-status">Loading…</span>
             </span>
           </div>
           <canvas id="kp-chart" width="300" height="100" aria-label="Kp index 3-day history chart"></canvas>
@@ -226,13 +245,16 @@
         <!-- Solar Flares -->
         <div class="data-card">
           <h3>Solar Flares <small style="font-weight:normal;color:var(--color-text-secondary)">(GOES X-ray)</small></h3>
+          <div id="flare-source" style="font-size:11px;color:var(--color-text-secondary);margin:0 0 12px 0">
+            Checking NOAA X-ray feed…
+          </div>
           <div class="metric">
             <span class="label">Recent Flares (7 days)</span>
-            <span class="value" id="flare-count">0</span>
+            <span class="value" id="flare-count">—</span>
           </div>
           <div class="metric">
             <span class="label">Latest Flare Class</span>
-            <span class="value" id="latest-flare">None</span>
+            <span class="value" id="latest-flare">Loading…</span>
           </div>
           <div style="margin-top:12px">
             <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:6px;font-weight:bold">FLARE LOG</div>

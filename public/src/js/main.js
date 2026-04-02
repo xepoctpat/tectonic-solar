@@ -14,7 +14,11 @@ import {
   applyMagnitudeFilter,
 } from './map.js';
 import { fetchNOAASpaceWeather, refreshSpaceData } from './spaceWeather.js';
-import { checkEarthquakeAlerts, refreshEarthquakeData, updateSeismicDisplay } from './seismic.js';
+import {
+  checkEarthquakeAlerts,
+  refreshEarthquakeData,
+  updateSeismicDisplay,
+} from './seismic.js';
 import { initLocationSelector, fetchEnvironmentData } from './environment.js';
 import { refreshCorrelationData, updateCorrelationWindow } from './correlation.js';
 import { drawSpaceCharts, drawLagScanChart, redrawCachedCharts } from './charts.js';
@@ -112,8 +116,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-plate-guide')?.addEventListener('click', () => {
     activatePlateGuideView();
     showInAppNotification(
-      'Plate guide view',
-      'Switched to the crust/relief basemap, emphasized plate boundaries, and zoomed to the Ring of Fire.',
+      'Plate study view',
+      'Switched to the neutral plate-study basemap, hid earthquake dots, emphasized boundaries, and zoomed to the Ring of Fire.',
       'info',
     );
   });

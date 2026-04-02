@@ -1,5 +1,70 @@
 # Handoff: Security Hardening + Project Restructure + Research Methodology
 
+## Handoff Index + Lineage (2026-04-02)
+
+This file is now the **handoff index + lineage root** for the repository.
+
+Going forward, create **new standalone handoff files** in `docs/handoff/` instead of endlessly appending one monolithic session log. Use the naming convention:
+
+- `YYYY-MM-DD-short-title.md`
+
+Keep this file for:
+
+- the read order / precedence rules
+- links to the latest standalone handoffs
+- older embedded checkpoints that are still useful as historical context
+
+### Standalone handoffs (newest first)
+
+- [`2026-04-02-frontend-honesty-and-lineage.md`](./2026-04-02-frontend-honesty-and-lineage.md) — current runtime/UI checkpoint covering honest space-weather degradation, plate-study UX, quieter sidecar offline behavior, notification noise reduction, and the shift to standalone handoff files
+
+### Read order / precedence
+
+1. **Latest standalone handoff file(s) in `docs/handoff/`**
+  - Treat the newest dated file as the current operational checkpoint.
+2. **Checkpoint Addendum — Hypothesis Documentation + Customization Alignment (2026-04-02)**
+  - Current checkpoint for how docs, prompts, skills, and instructions map the hypothesis workflow by concern.
+3. **Checkpoint Addendum — Python Null Calibration Sidecar + UI Wiring (2026-04-02)**
+  - Current checkpoint for the local-only Python sidecar architecture and bootstrap workflow.
+4. **Checkpoint Addendum — Map Architecture + Hypothesis Validation + Historical Foundation (2026-04-02)**
+  - Current checkpoint for 2D map direction, shared lag-analysis extraction, simulation harness, and archive foundation.
+5. **Session Summary / Prior Session Recap / older lower sections**
+  - Historical provenance only.
+  - Statements like **"clean working tree"** or **"no Python server exists yet"** are preserved for context, but are superseded where newer checkpoints conflict.
+
+When two sections disagree, trust the **newest standalone handoff or addendum above** and then confirm with live validation in the current workspace.
+
+## Checkpoint Addendum — Hypothesis Documentation + Customization Alignment (2026-04-02)
+
+This addendum supersedes the implicit assumption that contributors can infer the full 27–28 day workflow from one file name. The repo docs and workspace customizations now point to the **actual hypothesis implementation surfaces** and separate them by concern.
+
+### What changed in this checkpoint
+
+1. **Contributor docs now map the hypothesis workflow by concern**
+  - Updated `README.md` with a concise implementation-surface map.
+  - Updated `docs/research/RESEARCH.md` to describe the split between the older `correlation.js` path and the newer `hypothesis-core.mjs` + `prediction.js` workflow.
+  - Updated `docs/planning/ROADMAP.md` to keep planning discussions aligned with the actual code ownership split.
+  - Updated `docs/testing/TESTING-CHECKLIST.md` and `docs/testing/TESTING-TROUBLESHOOT.md` so validation and debugging now point to the correct file by concern.
+
+2. **Workspace customization files now reference the real hypothesis surfaces**
+  - Updated `.github/prompts/docs-sync.prompt.md` to inspect the actual hypothesis files before touching docs.
+  - Updated `.github/prompts/hypothesis-evidence-summary.prompt.md` to include the simulation harness and concern-based starting points.
+  - Updated `.github/skills/space-earth-hypothesis-check/SKILL.md` so the workflow explicitly names the core, orchestration, legacy/UI, sidecar, and simulation surfaces.
+
+3. **Contributor/AI guidance was tightened**
+  - Updated `.github/copilot-instructions.md` so the source layout and hypothesis guidance no longer imply that everything lives in `correlation.js`.
+
+### Validation completed for this checkpoint
+
+- Static error check on the updated markdown files → no reported file errors
+- Readback verification confirmed the new concern split appears in the expected docs and customization files
+
+### What remains open / not yet fully closed
+
+- These updates improve navigation and claim discipline, but they do not replace runtime validation when hypothesis code changes.
+- The older Pearson/Fisher path in `correlation.js` still exists; the docs now describe that honestly instead of pretending it is the whole engine.
+- Future hypothesis-related changes should still update the same docs in the same work session so the concern split stays current.
+
 ## Checkpoint Addendum — Python Null Calibration Sidecar + UI Wiring (2026-04-02)
 
 This addendum supersedes the older note that "no Python server exists yet." The project now has a **local-only Python research sidecar** for deterministic null calibration, and the Correlation tab can call it through the existing Node proxy without exposing Python directly to browser clients.
@@ -176,9 +241,9 @@ This addendum supersedes the older “clean working tree” snapshot below. Sinc
 
 Run the full research-foundation load once in the live app, confirm the resulting storm + earthquake corpus counts, and then inspect whether the lag interpretation remains null-like, off-target, weak, or candidate-level on the enlarged historical base.
 
-## Session Summary
+## Session Summary (historical baseline — later addenda above take precedence)
 
-This session resolved all 6 GitHub CodeQL security alerts, restructured the project to isolate the web root under `public/`, organized all documentation into categorized subdirectories, and discussed the scientific research methodology for testing the 27–28 day lag hypothesis. Current HEAD: `9b8bc47` on `main`. Clean working tree — no uncommitted changes.
+At the time of this historical checkpoint, the session resolved all 6 GitHub CodeQL security alerts, restructured the project to isolate the web root under `public/`, organized all documentation into categorized subdirectories, and discussed the scientific research methodology for testing the 27–28 day lag hypothesis. Checkpoint HEAD: `9b8bc47` on `main`. Clean working tree at that checkpoint.
 
 ---
 
@@ -280,7 +345,7 @@ scripts/
 HEAD:    9b8bc47  refactor: restructure project for security and organization
 Branch:  main (up to date with origin/main)
 Remote:  https://github.com/xepoctpat/tectonic-solar.git
-Status:  Clean working tree
+Status:  Clean working tree at that historical checkpoint
 ```
 
 Recent commit history:
@@ -324,7 +389,7 @@ The last topic before this handoff was **how to effectively conduct serious rese
 
 ### Python venv readiness
 - `solar-env/` has Python 3.13 with scipy, pandas, numpy, Flask — scaffolded for a compute service
-- **No Python server exists yet** — all serving is Node.js
+- **Historical note at that checkpoint:** no Python server existed yet. This is superseded above; the current repo now has the local-only `scripts/research_sidecar.py` sidecar behind the Node proxy.
 - Bootstrap permutation testing (1000× permutations) and regional b-value analysis are natural candidates for a Python compute service via Flask, since browser JS is CPU-limited for large permutation workloads
 
 ---
@@ -348,7 +413,7 @@ The last topic before this handoff was **how to effectively conduct serious rese
 | 1 | USGS ComCat pagination | Medium | `loadHistoricalUSGS()` fetches up to 5000 events in one call. If 2-year M5+ exceeds 5000, add `offset` loop. |
 | 2 | `correlation.js` Pearson bias | Low | Old matched-pairs approach remains live alongside new engine. Not broken, just imprecise. |
 | 3 | Hypothesis verdict threshold (1.15×) | Low | Not calibrated against null distribution. Needs bootstrap permutation testing. |
-| 4 | No Python server yet | Low | `solar-env/` venv ready (Flask, scipy, pandas) but no `app.py` or routes exist. |
+| 4 | Historical gap — no Python server yet | Low | Superseded by newer addenda above. The current repo now has a local-only Python research sidecar instead of this earlier no-server state. |
 
 ---
 

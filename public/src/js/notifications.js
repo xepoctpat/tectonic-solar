@@ -2,6 +2,30 @@
 import { alertSettings } from './store.js';
 import { setText } from './utils.js';
 
+const MAX_VISIBLE_TOASTS = 4;
+const ALERT_DEDUP_WINDOW_MS = 10 * 60 * 1000;
+const recentAlertKeys = new Map();
+
+function pruneRecentAlertKeys(now = Date.now()) {
+  recentAlertKeys.forEach((timestamp, key) => {
+    if (now - timestamp > ALERT_DEDUP_WINDOW_MS) {
+      recentAlertKeys.delete(key);
+    }
+  });
+}
+
+function shouldSuppressAlert(key) {
+  const now = Date.now();
+  pruneRecentAlertKeys(now);
+  const lastSeen = recentAlertKeys.get(key);
+  if (lastSeen && now - lastSeen < ALERT_DEDUP_WINDOW_MS) {
+    return true;
+  }
+
+  recentAlertKeys.set(key, now);
+  return false;
+}
+
 /**
  * Request browser notification permission and update UI status.
  * @returns {Promise<boolean>}
@@ -39,6 +63,11 @@ export async function requestNotificationPermission() {
 export function sendNotification(title, message, icon) {
   if (!alertSettings.enabled) return;
 
+  const alertKey = `${title}::${message}`;
+  if (shouldSuppressAlert(alertKey)) {
+    return;
+  }
+
   if ('Notification' in window && Notification.permission === 'granted') {
     const options = {
       body: message,
@@ -73,8 +102,22 @@ export function sendNotification(title, message, icon) {
  * @param {'info'|'warning'|'error'|'success'} [type='info']
  */
 export function showInAppNotification(title, message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toastKey = `${type}::${title}::${message}`;
+  const duplicateToast = [...container.children].find(node => node.dataset?.toastKey === toastKey);
+  if (duplicateToast) {
+    return;
+  }
+
+  while (container.children.length >= MAX_VISIBLE_TOASTS) {
+    container.firstElementChild?.remove();
+  }
+
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
+  toast.dataset.toastKey = toastKey;
 
   const header = document.createElement('div');
   header.className = 'toast-header';
@@ -97,9 +140,6 @@ export function showInAppNotification(title, message, type = 'info') {
   toast.appendChild(body);
 
   closeBtn.addEventListener('click', () => toast.remove());
-
-  const container = document.getElementById('toast-container');
-  if (!container) return;
 
   container.appendChild(toast);
   // Trigger CSS enter transition

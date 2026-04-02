@@ -9,6 +9,26 @@ export const spaceWeatherCache = {
   kpIndex: null,
   xrayFlux: null,
   lastUpdate: 0,
+  feedStatus: {
+    solarWind: {
+      state: 'loading',
+      source: 'live',
+      message: 'Checking NOAA solar-wind feeds…',
+      updatedAt: 0,
+    },
+    kpIndex: {
+      state: 'loading',
+      source: 'live',
+      message: 'Checking NOAA Kp feeds…',
+      updatedAt: 0,
+    },
+    xrayFlux: {
+      state: 'loading',
+      source: 'live',
+      message: 'Checking NOAA X-ray feed…',
+      updatedAt: 0,
+    },
+  },
 };
 
 // ---- Historical time-series for charting ----
@@ -24,8 +44,8 @@ export function setKpHistory(data)        { kpHistory = data; }
 export const alertSettings = { ...DEFAULT_ALERT_SETTINGS };
 
 // ---- Magnitude filter for map ----
-/** Minimum magnitude to show on the map (4.0 = show all). */
-export let magnitudeFilter = 4.0;
+/** Minimum magnitude to show on the map (live USGS map feed starts at M4.5+). */
+export let magnitudeFilter = 4.5;
 export function setMagnitudeFilter(val) { magnitudeFilter = val; }
 
 // ---- Historical data for correlation analysis ----

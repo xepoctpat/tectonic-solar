@@ -126,6 +126,12 @@ export const TILE_LAYERS = {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     name: 'Standard',
   },
+  plates: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Plate study basemap © Esri World Light Gray Canvas',
+    name: 'Plate Study',
+    maxZoom: 16,
+  },
   crust: {
     url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',
     attribution: 'Relief tiles © Esri',

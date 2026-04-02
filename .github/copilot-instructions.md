@@ -130,8 +130,12 @@ public/                 Web root — only this directory is served to browsers
       spaceWeather.js   Fetches all NOAA feeds, updates cache, triggers charts/alerts
       seismic.js        USGS earthquake list rendering + M5+/M6+ stats
       map.js            Leaflet map, USGS markers, tectonic overlays, plate vectors
-      correlation.js    27-28d lag analysis, Pearson r, Fisher p-value
-      prediction.js     Bayesian prediction engine, lag scan, USGS ComCat loader
+      mapViewport.js    Renderer-agnostic map viewport contract for tabs/layout
+      correlation.js    Legacy/basic 27-28d window UI, timeline refresh, Pearson/Fisher helpers
+      hypothesis-core.mjs Pure lag-analysis + evidence interpretation core
+      prediction.js     Historical loaders + full lag-scan orchestration + prediction outputs
+      researchCompute.js Browser-side adapter for the optional Python research sidecar
+      stormArchive.mjs  Pure NOAA dayind parsing/date-range helpers
       charts.js         Chart.js wrappers (solar wind, Kp, magnitude, AQI, lag scan)
       environment.js    Open-Meteo weather + air quality cards
       db.js             IndexedDB wrapper (storms + earthquakes, 90-day window)
@@ -149,6 +153,7 @@ docs/                   Project documentation (not served)
   testing/              Testing checklists and troubleshooting
 scripts/                Dev/test scripts (not served)
   launch.js             Friendly local launcher: start/reuse server + open browser
+  hypothesis-sim.mjs    Deterministic lag-analysis sanity harness
   research_sidecar.py   Local-only Flask sidecar for deterministic bootstrap null calibration
   research_stats.py     Pure NumPy helpers used by the research sidecar
   tab-smoke-test.mjs    Playwright smoke test (6 tabs, HTTP errors, console errors)
@@ -170,11 +175,21 @@ scripts/                Dev/test scripts (not served)
 - **Error handling** — non-critical failures (space weather feeds) should log via `error-logger.js` and degrade gracefully. Critical failures (app can't start) may throw.
 - **State** — shared state lives in `store.js`. Do not scatter mutable globals across modules.
 
+### Hypothesis workflow separation
+
+- Do not assume the whole 27–28 day workflow lives in `correlation.js`.
+- `hypothesis-core.mjs` is the shared lag-analysis / interpretation core.
+- `prediction.js` owns historical loading, orchestration, and UI-facing analysis outputs.
+- `correlation.js` still exists for older/basic window and timeline behavior plus Pearson/Fisher helpers.
+- `researchCompute.js` is only the browser bridge for the optional Python sidecar.
+- `scripts/hypothesis-sim.mjs` is the first validation gate for hypothesis-core changes.
+- Keep method docs, planning notes, runtime behavior, and test guidance separated by concern rather than collapsing them into one “correlation” edit.
+
 ### Documentation discipline
 
 - Keep a running track record as development progresses. Do not treat docs as optional cleanup.
 - For any meaningful feature, fix, UX change, security change, runtime change, or research-method change, update the most relevant existing docs in the same work session when practical.
-- Prefer updating existing docs over creating new markdown files.
+- Prefer updating existing docs over creating new markdown files, except for **new dated handoff files in `docs/handoff/`**.
 - Record both:
   - **what worked / what improved**
   - **what failed, regressed, stayed risky, or remains uncertain**
@@ -184,7 +199,7 @@ scripts/                Dev/test scripts (not served)
   - `docs/planning/PROJECT-STATUS.md` — status shifts and supersession notes
   - `docs/development/DEV-QUICK-REFERENCE.md` — developer workflow, runtime, extension points
   - `docs/testing/*` — validation steps, expected outcomes, troubleshooting
-  - `docs/handoff/HANDOFF.md` — meaningful session recaps and validated outcomes
+  - `docs/handoff/` — create a new dated handoff file for meaningful session recaps and validated outcomes; keep `docs/handoff/HANDOFF.md` as the lineage/index
 - Do not rewrite history. If an older document is preserved for historical context, annotate it as superseded rather than silently replacing its past assumptions.
 
 ---
@@ -223,5 +238,5 @@ Expected results: 6/6 tabs pass, 0 console errors, 0 HTTP errors.
 1. **No server-side storage** — the app has no database and must not grow one without explicit discussion.
 2. **No API keys** — all data sources are public/keyless. Do not introduce authenticated APIs.
 3. **No build step** — the browser loads `index.html` directly. Do not add a bundler.
-4. **Prediction is correlation-based** — the 27–28d lag model is computed in `correlation.js` from live data windows. It is not ML, not a trained model, not persisted state.
+4. **Prediction is correlation-based** — the current lag-analysis workflow lives across `hypothesis-core.mjs`, `prediction.js`, and the Correlation UI, with `correlation.js` retaining older/basic Pearson-window helpers. It is not ML, not a trained model, not persisted state.
 5. **Python venv must be active** for any `python` or `pip` command. The venv is at `solar-env/`.

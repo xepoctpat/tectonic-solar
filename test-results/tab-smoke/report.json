@@ -1,24 +1,24 @@
 {
   "appUrl": "http://localhost:3000",
-  "generatedAt": "2026-04-01T22:11:08.601Z",
+  "generatedAt": "2026-04-02T01:35:14.544Z",
   "health": {
     "ok": true,
     "status": 200,
     "body": {
       "ok": true,
       "mode": "deployment-simulation",
-      "uptimeSeconds": 62,
-      "durationMs": 141,
+      "uptimeSeconds": 2306,
+      "durationMs": 402,
       "checks": {
         "usgs": {
           "ok": true,
           "status": 200
         },
-        "noaa": {
+        "openmeteo": {
           "ok": true,
           "status": 200
         },
-        "openmeteo": {
+        "noaa": {
           "ok": true,
           "status": 200
         }
@@ -83,12 +83,12 @@
       },
       "probeRect": {
         "x": 38,
-        "y": 493,
+        "y": 563,
         "width": 299,
-        "height": 16959,
-        "top": 493,
+        "height": 1278,
+        "top": 563,
         "right": 337,
-        "bottom": 17452,
+        "bottom": 1841,
         "left": 38
       }
     },
@@ -114,10 +114,10 @@
         "x": 38,
         "y": 273,
         "width": 1364,
-        "height": 824,
+        "height": 1204,
         "top": 273,
         "right": 1402,
-        "bottom": 1097,
+        "bottom": 1477,
         "left": 38
       }
     },
@@ -170,12 +170,12 @@
       },
       "probeRect": {
         "x": 37,
-        "y": 15208.21875,
+        "y": 4408,
         "width": 1366,
         "height": 400,
-        "top": 15208.21875,
+        "top": 4408,
         "right": 1403,
-        "bottom": 15608.21875,
+        "bottom": 4808,
         "left": 37
       }
     },

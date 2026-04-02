@@ -26,6 +26,18 @@ Expected outcome:
 - implanted 27-day signal peaks near 25–30d
 - off-target signal does not get mislabeled as 27–28d support
 
+### If you changed hypothesis-related files
+
+| Changed file(s) | Treat as | Minimum validation |
+|---|---|---|
+| `public/src/js/hypothesis-core.mjs` | Shared analysis math / interpretation | Run `npm run test:hypothesis-sim`, then inspect the Correlation tab verdict states |
+| `public/src/js/prediction.js` | Historical loading + analysis orchestration | Run `npm run test:hypothesis-sim`, load the research foundation, and verify corpus counts / lag scan refresh |
+| `public/src/js/correlation.js` | Legacy/basic correlation UI | Check the 27–28 day window indicator, timeline, and any legacy Pearson/Fisher outputs |
+| `public/src/js/researchCompute.js` | Python sidecar bridge | Start the sidecar, verify `/api/research/status`, then run **Bootstrap Null Test** in the UI |
+| `scripts/hypothesis-sim.mjs` | Deterministic validation harness | Confirm null, positive-control, and off-target scenarios still pass and remain honestly labeled |
+
+Do not treat these as one concern. A sidecar-bridge regression, a lag-scan math bug, and a misleading interpretation label need different checks.
+
 ### Optional Python null-calibration sidecar
 ```powershell
 solar-env\Scripts\Activate.ps1

@@ -56,6 +56,28 @@ python scripts/research_sidecar.py
 - Use it for conservative hypothesis analysis, NOAA/USGS research tasks, validation planning, optional Python data science / modeling / permutation-testing work, `hypothesis-core.mjs` / `prediction.js` / `correlation.js` work, and research-method documentation.
 - It inherits the repo guardrails: no build step, no database, no API keys, public/keyless data only, Node/Express as the public runtime, and Python reserved for heavier research compute after activating `solar-env`.
 
+## Workspace Skills
+
+- `.github/skills/space-earth-safe-change/SKILL.md` — repo-safe workflow for general feature work, bug fixes, validation, and doc sync.
+- `.github/skills/space-earth-feed-change/SKILL.md` — focused workflow for NOAA/USGS/Open-Meteo/research-sidecar endpoint and proxy changes.
+- `.github/skills/space-earth-hypothesis-check/SKILL.md` — conservative lag-hypothesis workflow for `hypothesis-core.mjs`, `correlation.js`, `prediction.js`, simulation, and null-check interpretation.
+
+These skills are workspace-scoped and meant to be invoked on demand when a task fits their trigger phrases.
+
+## Workspace Instructions
+
+- `.github/instructions/space-earth-frontend.instructions.md` — auto-attached rules for edits under `public/src/js/**`.
+- `.github/instructions/space-earth-server-proxy.instructions.md` — auto-attached rules for `server.js` proxy and runtime changes.
+
+These are file-scoped guardrails, not general-purpose prompts: they attach when matching files are edited.
+
+## Workspace Prompts
+
+- `.github/prompts/docs-sync.prompt.md` — focused slash prompt for updating the right existing docs after a code, runtime, or research change.
+- `.github/prompts/hypothesis-evidence-summary.prompt.md` — focused slash prompt for conservative evidence summaries around the 27–28 day lag workflow.
+
+Use prompts for single reusable tasks, skills for multi-step workflows, and file instructions for auto-applied rules on matching files.
+
 ---
 
 ## Documentation Workflow
@@ -71,7 +93,7 @@ Keep docs current as part of the implementation process, not as an afterthought.
 | Research direction / next steps | `docs/planning/ROADMAP.md` |
 | Runtime / developer workflow | `docs/development/DEV-QUICK-REFERENCE.md` |
 | Test procedure / smoke / troubleshooting | `docs/testing/TESTING-CHECKLIST.md`, `docs/testing/TESTING-TROUBLESHOOT.md` |
-| Meaningful session recap | `docs/handoff/HANDOFF.md` |
+| Meaningful session recap | `docs/handoff/` (create a new `YYYY-MM-DD-short-title.md` handoff and keep `docs/handoff/HANDOFF.md` updated as the lineage/index) |
 | Historical status docs | annotate as superseded instead of rewriting the original context |
 
 ### What to record
@@ -84,6 +106,8 @@ Keep docs current as part of the implementation process, not as an afterthought.
 ### Rule of thumb
 
 If a change would confuse a future developer unless they saw it written down, update the doc in the same stretch of work.
+
+For handoffs specifically, prefer a **new dated file in `docs/handoff/`** over appending the one historical monolith forever.
 
 ---
 
@@ -111,6 +135,20 @@ If a change would confuse a future developer unless they saw it written down, up
 | `notifications.js` | Toast UI system | showSuccess, showError, showInfo, showWarning |
 | `config.js` | API keys, constants | DEMO_MODE, API endpoints |
 | `seismic.js` | EQ data parsing | — |
+
+### Hypothesis workflow surfaces (separated by concern)
+
+| Concern | Primary file(s) | Why it matters |
+|---|---|---|
+| Research narrative / claim discipline | `docs/research/RESEARCH.md` | Canonical explanation of the contested hypothesis, falsification criteria, and methodological cautions |
+| Pure lag-analysis logic | `public/src/js/hypothesis-core.mjs` | Shared normalization, lag scan, conditional-probability, and conservative interpretation logic used by both live UI and simulation |
+| Legacy/basic correlation UI | `public/src/js/correlation.js` | Window indicator, timeline refresh, and older Pearson/Fisher helpers still present in the browser path |
+| Historical loading + prediction orchestration | `public/src/js/prediction.js` | Storm seed/archive loading, full analysis runner, lag scan orchestration, and UI-facing prediction outputs |
+| Optional Python null-calibration bridge | `public/src/js/researchCompute.js` | Browser adapter for the local Python sidecar behind the Node proxy |
+| Deterministic validation harness | `scripts/hypothesis-sim.mjs` | Positive-control, null, and off-target simulation checks for the same core lag-analysis logic |
+| Research execution priorities | `docs/planning/ROADMAP.md` | Tracks what still needs to be built or tightened for stronger evidence |
+
+If a change touches the 27–28 day workflow, inspect these files by concern before editing docs so method, runtime, testing, and planning stay distinct.
 
 ### Service Worker & PWA
 

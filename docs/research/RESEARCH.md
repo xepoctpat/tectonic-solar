@@ -18,6 +18,21 @@ The lag duration corresponds almost exactly to one **synodic solar rotation peri
 
 The hypothesis is not a fringe claim — it appears in peer-reviewed literature (see §4) — but it remains unconfirmed and is disputed by the mainstream seismological community.
 
+### Implementation surfaces (keep concerns separated)
+
+The current codebase no longer routes all hypothesis work through one browser module. For contributors and reviewers, the relevant surfaces are intentionally split by concern:
+
+| Concern | Primary file(s) | Why it matters |
+|---|---|---|
+| Research narrative / falsification criteria | `docs/research/RESEARCH.md` | Canonical explanation of the claim, caveats, and what would count as failure |
+| Shared lag-analysis logic | `public/src/js/hypothesis-core.mjs` | Normalization, lag scan, conditional frequency, and conservative evidence interpretation |
+| Historical loading + orchestration | `public/src/js/prediction.js` | Storm seed/archive ingestion, full analysis runner, and UI-facing orchestration |
+| Legacy/basic correlation UI | `public/src/js/correlation.js` | Older window/timeline/Pearson path still present in the browser |
+| Optional Python null calibration | `public/src/js/researchCompute.js`, `scripts/research_sidecar.py`, `scripts/research_stats.py` | Local-only bootstrap/null path behind the Node proxy |
+| Deterministic validation harness | `scripts/hypothesis-sim.mjs` | Sanity checks for null, target-lag, and off-target behavior |
+
+When updating docs or reviewing results, keep these concerns separate. A bug in the Python null-calibration bridge is not the same class of issue as a weak research claim or a regression in the shared lag-analysis core.
+
 ---
 
 ## 2. What the App Currently Measures
@@ -44,20 +59,29 @@ The hypothesis is not a fringe claim — it appears in peer-reviewed literature 
 | 7-day M4.5+ feed | USGS M4.5+ past week | Used for correlation analysis |
 | Historical window | IndexedDB, 90-day rolling | Pearson r + Fisher p-value computation |
 
-### 2.3 Current Correlation Engine
+### 2.3 Current Analysis Workflow
 
-The app computes, in `correlation.js`:
+The app currently has **two related analysis layers**, not one monolithic "correlation engine":
 
-1. **Correlation window check** — was there a Kp≥5 storm 27–28 days ago? Simple binary flag.
-2. **Pearson correlation coefficient (r)** — computed on `(Kp, Magnitude)` pairs where the earthquake occurs within ±3 days of `storm_date + 27.5d`. Uses only matched pairs.
-3. **Fisher p-value (two-tailed)** — via z-transform approximation, tests whether r is distinguishable from zero.
-4. **Configurable lag window** — default 21–35 days, mid-point 27–28 days. Adjustable in `analyzeCorrelation()`.
+1. **`correlation.js` (legacy/basic browser path)**
+   - correlation window check — was there a Kp≥5 storm 27–28 days ago?
+   - Pearson correlation coefficient on matched `(Kp, magnitude)` pairs
+   - Fisher-transform p-value approximation
+   - 30-day timeline refresh / legacy UI support
+
+2. **`hypothesis-core.mjs` + `prediction.js` (current hypothesis workflow)**
+   - 0–60 day event-rate lag scan
+   - empirical conditional `P(M5+ | storm 25–30d ago)`
+   - normalization of storm and earthquake catalogs
+   - conservative interpretation states: insufficient-data / null-consistent / off-target / weak bump / candidate signal
+   - optional bootstrap null calibration via `researchCompute.js` and the local Python sidecar
 
 **Current limitations of the engine:**
 - Correlation is computed on a rolling 30-day window — too short for statistical significance (need 90–365 days minimum).
 - The matched-pairs approach (±3 days) is a strong filter that may discard legitimate lag associations.
 - Storm threshold is Kp≥5, but Dst-based thresholds are more physically meaningful for storm energy.
 - No regional stratification — a global M5+ pool dilutes any regional signal.
+- The legacy Pearson/Fisher path in `correlation.js` is still useful for basic UI/context, but it should not be treated as the sole evidence engine for current hypothesis claims.
 
 ---
 
