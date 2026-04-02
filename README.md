@@ -42,7 +42,7 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 | **Space Weather** | Live NOAA solar wind (Chart.js animated line chart), Kp index (colour-coded bar chart), 3-day history with storm threshold, GOES X-ray flare log |
 | **Seismic** | Dynamic USGS earthquake list (newest first, time-ago), statistics (M5+/M6+ counts, largest), magnitude distribution chart (Chart.js horizontal bars with magnitude color-coding) |
 | **Environment** | Real-time weather (temp, feels-like, humidity, pressure, wind, condition) and air quality (PM2.5, PM10, CO, NO₂, European AQI) via Open-Meteo free API, AQI gauge doughnut chart |
-| **Correlation** | 0–60 day lag scan, conditional `P(M5+ | storm 25–30d ago)`, historical USGS ComCat loading, correlation timeline, and null-hypothesis framing for the 27–28 day research question |
+| **Correlation** | 0–60 day lag scan, conditional `P(M5+ | storm 25–30d ago)`, historical USGS ComCat loading, NOAA storm-archive foundation loading, deterministic bootstrap null calibration through a local Python sidecar, correlation timeline, null-hypothesis framing, and a research-workflow status panel that exposes archive readiness, current browser-engine scope, and the boundary to optional Python compute |
 | **Settings** | Configurable alert thresholds, dark mode toggle (☀️/🌙), notifications, localStorage persistence |
 
 ### Sprint 1-4 Enhancements (MVP Redesign)
@@ -143,7 +143,25 @@ python -m http.server 8000 --directory public
 
 Use this mode only for quick static rendering checks. It is **not** the recommended way to run the full app because some live data streams will be blocked or degraded without the Node proxy.
 
-### Python venv (future research mode)
+### Optional Python research sidecar (deterministic null tests)
+
+The browser app can now call an **optional local Python sidecar** for deterministic bootstrap / permutation-style null calibration.
+
+```powershell
+solar-env\Scripts\Activate.ps1
+python scripts/research_sidecar.py
+```
+
+What it does:
+
+- binds to `127.0.0.1:5051` only
+- stays **local-only** and is never exposed directly to the browser
+- is reached through the Node proxy at `/api/research/status` and `/api/research/bootstrap`
+- powers the Correlation tab's **Run Bootstrap Null Test** workflow
+
+This is optional research compute, not normal app startup. If the sidecar is not running, the rest of the dashboard still works.
+
+### Python venv (research mode)
 
 The venv at `solar-env/` is reserved for future research/compute work such as:
 
@@ -152,14 +170,14 @@ The venv at `solar-env/` is reserved for future research/compute work such as:
 - Gutenberg–Richter / b-value calculations
 - optional sidecar analytics services
 
-**No Python server currently exists** and the venv is **not required** for normal dashboard usage.
+An optional local Python research sidecar now exists at `scripts/research_sidecar.py`, but the venv is still **not required** for normal dashboard usage.
 
 When Python is used in this repo, the rule is strict:
 
 - always activate `solar-env\Scripts\Activate.ps1` first
 - never use system Python
 - keep Node/Express as the main user-facing server
-- if a Python sidecar is added later, proxy it through `server.js` rather than exposing it directly to the browser
+- proxy any Python sidecar through `server.js` rather than exposing it directly to the browser
 
 ```powershell
 # To set up the venv from scratch:
@@ -186,11 +204,15 @@ tectonic-solar/
 │       └── js/
 ├── scripts/
 │   ├── launch.js             # Friendly launcher: start/reuse server + open browser
+│   ├── research_sidecar.py   # Local-only Flask sidecar for bootstrap null calibration
+│   ├── research_stats.py     # Pure NumPy research helpers used by the sidecar
 │   ├── tab-smoke-test.mjs    # 6-tab Playwright smoke test
 │   ├── verify-visuals.js
 │   ├── lighthouse-automation.js
 │   ├── restart-server.js
 │   └── test-automation.js
+├── tests/
+│   └── test_research_stats.py # Pytest checks for bootstrap/null helper behavior
 ├── docs/
 │   ├── planning/
 │   ├── research/
@@ -218,6 +240,7 @@ Current research workflow in the app:
 - live storm and earthquake monitoring
 - 0–60 day lag scan with explicit null-result framing
 - empirical conditional probability of M5+ activity in the 25–30 day post-storm window
+- optional bootstrap null calibration through the local Python sidecar
 - optional historical USGS ComCat load through a validated proxy route
 
 ### Current plan
@@ -244,7 +267,8 @@ When moving from setup to real-data analysis, the preferred path is now:
 1. run `npm run test:hypothesis-sim`
 2. launch the app
 3. click **Load Full Research Foundation** in the Correlation tab
-4. rerun the lag scan on the combined NOAA + USGS historical corpus
+4. optionally start the Python research sidecar and click **Run Bootstrap Null Test**
+5. rerun the lag scan on the combined NOAA + USGS historical corpus
 
 ```powershell
 npm run test:hypothesis-sim

@@ -1,5 +1,98 @@
 # Handoff: Security Hardening + Project Restructure + Research Methodology
 
+## Checkpoint Addendum — Python Null Calibration Sidecar + UI Wiring (2026-04-02)
+
+This addendum supersedes the older note that "no Python server exists yet." The project now has a **local-only Python research sidecar** for deterministic null calibration, and the Correlation tab can call it through the existing Node proxy without exposing Python directly to browser clients.
+
+### What changed in this checkpoint
+
+1. **A local Python research sidecar now exists**
+  - Added `scripts/research_sidecar.py`.
+  - Added `scripts/research_stats.py` with pure NumPy helpers.
+  - Binds to `127.0.0.1:5051` only.
+  - Scope is intentionally narrow: deterministic bootstrap/shuffled-storm null calibration.
+
+2. **Node now proxies the sidecar instead of exposing it**
+  - Added `GET /api/research/status`
+  - Added `POST /api/research/bootstrap`
+  - Payloads are validated and size-limited before forwarding.
+  - Browser clients never talk to Python directly.
+
+3. **The Correlation tab can run null calibration from the interface**
+  - Added a **Bootstrap Null Calibration** panel.
+  - Added a **Run Bootstrap Null Test** button.
+  - The UI now shows:
+    - sidecar online/offline state
+    - permutations used
+    - observed target-window peak
+    - null 95th percentile
+    - empirical p-value
+    - conservative verdict text
+
+4. **Workflow status got more honest**
+  - The existing research-workflow panel now reports Python sidecar availability.
+  - The null-calibration row can now say whether calibration is pending, unavailable, or completed.
+  - The "next step" messaging now changes depending on whether the sidecar is online and whether calibration has already run.
+
+5. **A targeted Python test file was added**
+  - Added `tests/test_research_stats.py`.
+  - Covers bucket normalization, an implanted target-window signal, and a deterministic bootstrap null check.
+
+### Validation completed for this checkpoint
+
+- Static error check on edited browser files → no reported file errors
+- `pytest tests/test_research_stats.py -q` → **3 passed**
+- `npm run test:hypothesis-sim` → passes
+- `GET /api/research/status` through Node proxy → reports sidecar online
+- `POST /api/research/bootstrap` through Node proxy → returns deterministic null-calibration summary
+- Browser smoke test → **6/6 tabs pass**, **0 console errors**, **0 page errors**, **0 request failures**
+
+### What remains open / not yet fully closed
+
+- The Python sidecar still has to be started manually after activating `solar-env`.
+- No regional stratification yet.
+- No Dst-vs-Kp comparative null calibration yet.
+- The current null calibration uses a shuffled/circularly shifted storm catalog; it is a meaningful null calibration step, but not yet a full regional or storm-definition control suite.
+
+### Session-end continuation roadmap
+
+#### Immediate restart checklist
+
+1. Start the Node app with `npm run launch` (or `npm start` if direct server control is preferred).
+2. If null calibration is needed, activate `solar-env` and run `python scripts/research_sidecar.py`.
+3. Open the Correlation tab and confirm:
+   - historical foundation state
+   - Python sidecar status
+   - bootstrap panel visibility
+4. Re-run:
+   - `pytest tests/test_research_stats.py -q`
+   - `npm run test:hypothesis-sim`
+   - `$env:APP_URL="http://localhost:3000"; node scripts/tab-smoke-test.mjs`
+
+#### Next recommended implementation steps
+
+1. **Reduce startup friction**
+  - Decide whether `scripts/launch.js` should optionally auto-start the Python sidecar for research sessions.
+  - If not, add clearer in-app guidance or a helper task for launching it.
+
+2. **Improve null quality**
+  - Add alternative null families beyond circular storm shifts.
+  - Add Bonferroni-aware or multiple-comparison-aware framing for lag-peak interpretation.
+
+3. **Add stronger controls**
+  - Regional stratification
+  - Dst-vs-Kp comparative storm definitions
+  - Provenance text showing which archive paths fed the current corpus
+
+4. **Tighten user-facing interpretation**
+  - Ensure bootstrap verdicts and browser lag-scan verdicts remain aligned but clearly distinct.
+  - Keep the probability card subordinate to null calibration and corpus quality.
+
+5. **Keep the security posture intact**
+  - Do not expose Python directly to the browser.
+  - Do not add server-side persistence for research outputs.
+  - Keep model/LLM integration, if any, advisory-only and downstream of deterministic compute.
+
 ## Checkpoint Addendum — Map Architecture + Hypothesis Validation + Historical Foundation (2026-04-02)
 
 This addendum supersedes the older “clean working tree” snapshot below. Since that earlier checkpoint, the project has gained a more explicit research workflow, a cleaner map architecture boundary, and a stronger historical-data foundation for testing the 27–28 day lag idea without overstating the evidence.

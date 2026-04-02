@@ -5,6 +5,10 @@ node_modules/
 solar-env/
 .venv/
 venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
 
 # OS/editor artifacts
 .DS_Store

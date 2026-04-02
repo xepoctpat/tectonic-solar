@@ -356,6 +356,20 @@ Load validated historical USGS ComCat data and the official NOAA/NCEI `dayind` s
 
 ### Step 4 — Regional and storm-definition controls
 
+### Step 3.5 — Bootstrap null calibration
+
+Once the historical corpus is loaded, run the Correlation tab's **Run Bootstrap Null Test** control.
+
+- The browser sends the current normalized storm and earthquake catalogs through the Node proxy.
+- A local Python sidecar builds a shuffled-storm target-window null distribution.
+- The current implementation uses **circular shifts of the storm catalog** to preserve storm spacing while breaking the claimed storm → lag relationship.
+
+This helps answer a narrower and more defensible question:
+
+> Is the best 25–30 day bump larger than what we usually get when the same storm catalog is shifted away from the observed timing relationship?
+
+That is still **not** evidence of causation. It is calibration against a null, which is exactly what the live browser path needed.
+
 Only after the basic engine behaves under steps 1–3 should the project branch into:
 
 - regional stratification

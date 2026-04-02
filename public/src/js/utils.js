@@ -97,12 +97,15 @@ export function getCSSVar(varName) {
  * @param {number} timeoutMs - Timeout in milliseconds (default 10000).
  * @returns {Promise<Response>}
  */
-export async function fetchWithTimeout(url, timeoutMs = 10000) {
+export async function fetchWithTimeout(url, timeoutMs = 10000, options = {}) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(url, { signal: controller.signal });
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
     clearTimeout(timeoutId);
     return response;
   } catch (error) {
@@ -121,12 +124,12 @@ export async function fetchWithTimeout(url, timeoutMs = 10000) {
  * @param {number} baseDelay - Base delay in ms (default 2000).
  * @returns {Promise<Response>}
  */
-export async function fetchWithRetry(url, maxRetries = 3, baseDelay = 2000) {
+export async function fetchWithRetry(url, maxRetries = 3, baseDelay = 2000, options = {}) {
   let lastError;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      return await fetchWithTimeout(url);
+      return await fetchWithTimeout(url, 10000, options);
     } catch (error) {
       lastError = error;
       if (attempt < maxRetries) {

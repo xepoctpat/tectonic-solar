@@ -294,5 +294,9 @@ export async function runFullAnalysis() {
     prediction,
     interpretation,
     meta,
+    catalogs: {
+      storms,
+      earthquakes,
+    },
   };
 }

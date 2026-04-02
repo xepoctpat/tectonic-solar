@@ -65,14 +65,14 @@
 - [ ] Add provenance so researchers can see which feed produced each plotted value
 
 ### 4. Add heavier statistics only when warranted
-- [ ] Bootstrap / permutation null distribution (1000×+)
+- [x] Bootstrap / permutation null distribution (1000×+) via optional local Python sidecar + Node proxy
 - [ ] Regional stratification (Ring of Fire, Mediterranean-Himalayan, Cratons)
 - [ ] Bonferroni-aware lag scanning and significance calibration
 
 ### 5. Use Python only as an optional compute sidecar
 - [ ] Reserve Python for heavy research workloads (bootstrap, b-values, archive joins)
 - [ ] Keep Node/Express as the primary user-facing server
-- [ ] If Python endpoints are added, bind locally and proxy them through `server.js`
+- [x] If Python endpoints are added, bind locally and proxy them through `server.js`
 - [ ] Do not add server-side storage or authenticated services as part of research expansion
 
 ---
@@ -133,7 +133,7 @@
 
 > Target: scientific value beyond dashboarding
 
-- [ ] **Bootstrap null distribution** — permutation-based empirical p-values for lag peaks
+- [x] **Bootstrap null distribution** — permutation-based empirical p-values for lag peaks via the local Python sidecar
 - [ ] **Configurable lag window** — UI to test 7-day, 14-day, 27-day, 35-day lags
 - [ ] **Multi-year historical data** — NOAA Kp archive + USGS ComCat batch API
 - [ ] **Regional stratification** — analyze Ring of Fire / Mediterranean-Himalayan / stable craton regions separately
@@ -141,7 +141,7 @@
 - [ ] **Paper citation panel** — clickable research references with abstracts
 - [ ] **Data provenance tracking** — show exactly which API call produced each displayed value
 - [ ] **Compare periods** — side-by-side comparison of active vs quiet space weather periods
-- [ ] **Optional Python compute sidecar** — bootstrap and archive analytics behind the Node proxy, never as the public entry point
+- [x] **Optional Python compute sidecar** — local Flask bootstrap sidecar behind the Node proxy, never as the public entry point
 
 ---
 

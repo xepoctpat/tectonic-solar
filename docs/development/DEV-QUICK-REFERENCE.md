@@ -38,6 +38,24 @@ python -m http.server 8000 --directory public
 
 Use the Python static server only for quick static rendering checks. It is not the recommended path for live data validation because the Node proxy handles CORS, rate limiting, and request validation.
 
+### Optional — Python research sidecar (deterministic null calibration)
+
+```powershell
+solar-env\Scripts\Activate.ps1
+python scripts/research_sidecar.py
+```
+
+- Binds to `127.0.0.1:5051` only.
+- Never talks to the browser directly; Node proxies it through `/api/research/status` and `/api/research/bootstrap`.
+- Used by the Correlation tab's **Run Bootstrap Null Test** button.
+- Current scope: shuffled-storm null calibration for the 25–30 day target window.
+
+## Workspace Custom Agent
+
+- `.github/agents/space-earth-lab.agent.md` — a workspace-scoped Copilot agent tuned for the project’s scientific lab workflow.
+- Use it for conservative hypothesis analysis, NOAA/USGS research tasks, validation planning, optional Python data science / modeling / permutation-testing work, `hypothesis-core.mjs` / `prediction.js` / `correlation.js` work, and research-method documentation.
+- It inherits the repo guardrails: no build step, no database, no API keys, public/keyless data only, Node/Express as the public runtime, and Python reserved for heavier research compute after activating `solar-env`.
+
 ---
 
 ## Documentation Workflow
@@ -84,6 +102,7 @@ If a change would confuse a future developer unless they saw it written down, up
 | `map.js` | Leaflet + USGS earthquakes | refreshSeismicData, getMajorEarthquakes |
 | `mapViewport.js` | Renderer-agnostic active map viewport contract | registerMapViewport, resizeMapViewport |
 | `hypothesis-core.mjs` | Pure lag-analysis + evidence interpretation core | scanAllLags, computePrediction, interpretHypothesisEvidence |
+| `researchCompute.js` | Browser-side adapter for the optional Python research sidecar | checkResearchSidecarStatus, runBootstrapNullTest |
 | `stormArchive.mjs` | Pure NOAA dayind parsing/date-range helpers | parseDayindStorms, enumerateUtcDateRange |
 | `environment.js` | Open-Meteo: weather + AQI | refreshEnvironmentData |
 | `db.js` | IndexedDB: 90-day rolling storage | initDB, addStorm, addEarthquake, getStorms, getEarthquakes, pruneOldRecords, clearAll |

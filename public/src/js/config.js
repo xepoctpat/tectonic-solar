@@ -98,6 +98,12 @@ export const OPEN_METEO_APIS = {
     ),
 };
 
+// ===== OPTIONAL PYTHON RESEARCH SIDECAR (Node proxy only) =====
+export const RESEARCH_APIS = {
+  status: IS_PROXY_MODE ? resolveApiUrl('/research/status', null) : null,
+  bootstrap: IS_PROXY_MODE ? resolveApiUrl('/research/bootstrap', null) : null,
+};
+
 // ===== DEFAULT ALERT SETTINGS =====
 export const DEFAULT_ALERT_SETTINGS = {
   earthquakeMagnitude: 6.0,

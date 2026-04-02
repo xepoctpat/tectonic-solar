@@ -26,6 +26,17 @@ Expected outcome:
 - implanted 27-day signal peaks near 25–30d
 - off-target signal does not get mislabeled as 27–28d support
 
+### Optional Python null-calibration sidecar
+```powershell
+solar-env\Scripts\Activate.ps1
+python scripts/research_sidecar.py
+```
+
+Expected outcome:
+- local sidecar listens on `http://127.0.0.1:5051`
+- `GET /api/research/status` reports the sidecar as online through the Node proxy
+- the Correlation tab can run **Bootstrap Null Test** without exposing Python directly to the browser
+
 ### Optional static-only check
 ```powershell
 solar-env\Scripts\Activate.ps1
@@ -76,6 +87,8 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Foundation Button**: "Load Full Research Foundation" is visible and starts the combined archive workflow
 - [ ] **Prediction Card**: Statistical prediction card renders with probability / confidence state
 - [ ] **Data Foundation**: Historical-load status and corpus span appear
+- [ ] **Research Workflow Panel**: Python sidecar status, null-calibration state, and recommended next step render legibly
+- [ ] **Bootstrap Null Test**: Button is visible, handles sidecar-offline state honestly, and shows empirical p-value / null threshold when the sidecar is running
 - [ ] **Storm Archive Load**: "Load 2-Year Storm Archive" ingests NOAA/NCEI dayind history and updates the storm status line
 - [ ] **Lag Scan Chart**: 0–60 day lag scan appears or shows explicit empty state
 - [ ] **Lag Verdict**: Null/signal/insufficient-data messaging is visible and legible
@@ -100,6 +113,8 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Kp Index**: Real-time Kp values populate chart
 - [ ] **Flare Data**: X-ray flux shows current solar activity
 - [ ] **Historical Storm Archive Endpoint**: `/api/noaa/dayind?date=2024-05-10` returns a NOAA/NCEI dayind text file through the local proxy
+- [ ] **Research Sidecar Status Endpoint**: `/api/research/status` reports online when the Python sidecar is running
+- [ ] **Research Bootstrap Endpoint**: `/api/research/bootstrap` rejects malformed payloads and succeeds with a valid archive-backed corpus payload
 - [ ] **Retry Logic**: Force offline, wait 10s → should retry (check console)
 
 ### USGS Live Data (Earthquakes)

@@ -65,7 +65,7 @@ python -m http.server 8000 --directory public
 
 Key packages installed: Flask 3.1.3, flask-cors 6.0.2, gunicorn 25.1.0, gevent 25.9.1, pandas 3.0.1, numpy 2.4.3, pytest 9.0.2, pytest-cov 7.1.0, python-dotenv 1.2.2, requests 2.32.5.
 
-> Note: No Python server (`app.py`, `wsgi.py`, Flask routes) exists yet. The venv is scaffolded for a planned future Python compute service (e.g. bootstrap statistics, Dst/correlation analytics, CME API integration). All current user-facing serving is done by Node.js.
+> Note: An optional local Python research sidecar now exists at `scripts/research_sidecar.py`. It is for deterministic compute only (currently bootstrap null calibration) and must stay bound locally and proxied through `server.js`. All current user-facing serving is still done by Node.js.
 
 ---
 
@@ -149,6 +149,8 @@ docs/                   Project documentation (not served)
   testing/              Testing checklists and troubleshooting
 scripts/                Dev/test scripts (not served)
   launch.js             Friendly local launcher: start/reuse server + open browser
+  research_sidecar.py   Local-only Flask sidecar for deterministic bootstrap null calibration
+  research_stats.py     Pure NumPy helpers used by the research sidecar
   tab-smoke-test.mjs    Playwright smoke test (6 tabs, HTTP errors, console errors)
   restart-server.js     Server restart utility
   verify-visuals.js     Visual verification

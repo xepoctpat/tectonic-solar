@@ -29,6 +29,7 @@ import {
   loadHistoricalStormArchive,
   runFullAnalysis,
 } from './prediction.js';
+import { checkResearchSidecarStatus, runBootstrapNullTest } from './researchCompute.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // ---- Register Service Worker (PWA) ----
@@ -185,6 +186,117 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  let latestAnalysisResult = null;
+  let latestBootstrapResult = null;
+  let latestResearchSidecarStatus = {
+    ok: false,
+    online: false,
+    reason: 'unknown',
+    message: 'Python sidecar status not checked yet.',
+  };
+
+  function formatSidecarStatus(status) {
+    if (status?.online) {
+      return `Online at ${status.host || '127.0.0.1'}:${status.port || 5051}`;
+    }
+
+    if (status?.reason === 'proxy-required') {
+      return 'Unavailable in static mode — use the Node proxy';
+    }
+
+    return 'Offline — activate solar-env and start scripts/research_sidecar.py';
+  }
+
+  function sidecarTone(status) {
+    if (status?.online) return 'good';
+    if (status?.reason === 'proxy-required') return 'muted';
+    return 'warn';
+  }
+
+  function clearBootstrapResultUI(reasonText = 'Run the null test to compare the target-window bump against a shuffled-storm null distribution.') {
+    const fields = {
+      'bootstrap-permutations': '—',
+      'bootstrap-observed': '—',
+      'bootstrap-null95': '—',
+      'bootstrap-pvalue': '—',
+      'bootstrap-corpus': '—',
+    };
+
+    Object.entries(fields).forEach(([id, value]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    });
+
+    const verdictEl = document.getElementById('bootstrap-verdict');
+    if (verdictEl) {
+      verdictEl.textContent = 'Awaiting run…';
+      applyToneClass(verdictEl, 'muted');
+    }
+
+    const detailEl = document.getElementById('bootstrap-detail');
+    if (detailEl) detailEl.textContent = reasonText;
+
+    const noteEl = document.getElementById('bootstrap-note');
+    if (noteEl) {
+      noteEl.textContent = 'This is deterministic statistical compute, not model-generated opinion. It uses the same lag-scan corpus currently in your browser and tests it against shuffled storm timings.';
+      applyToneClass(noteEl, 'muted');
+    }
+  }
+
+  async function refreshResearchSidecarStatus() {
+    latestResearchSidecarStatus = await checkResearchSidecarStatus();
+
+    const statusEl = document.getElementById('bootstrap-status');
+    if (statusEl) {
+      statusEl.textContent = latestResearchSidecarStatus.online
+        ? 'Python sidecar online'
+        : 'Python sidecar offline';
+      applyToneClass(statusEl, sidecarTone(latestResearchSidecarStatus));
+    }
+
+    return latestResearchSidecarStatus;
+  }
+
+  function updateBootstrapResultUI(result) {
+    const summary = result?.summary;
+    if (!summary) {
+      clearBootstrapResultUI();
+      return;
+    }
+
+    const permutationsEl = document.getElementById('bootstrap-permutations');
+    const observedEl = document.getElementById('bootstrap-observed');
+    const null95El = document.getElementById('bootstrap-null95');
+    const pValueEl = document.getElementById('bootstrap-pvalue');
+    const corpusEl = document.getElementById('bootstrap-corpus');
+    const verdictEl = document.getElementById('bootstrap-verdict');
+    const detailEl = document.getElementById('bootstrap-detail');
+    const noteEl = document.getElementById('bootstrap-note');
+
+    if (permutationsEl) permutationsEl.textContent = summary.permutations.toLocaleString();
+    if (observedEl) {
+      observedEl.textContent = `${summary.observedTargetPeakLag}d at ${summary.observedTargetPeakRatio.toFixed(2)}× (rank #${summary.observedTargetRank})`;
+    }
+    if (null95El) null95El.textContent = `${summary.null95Percentile.toFixed(2)}×`;
+    if (pValueEl) pValueEl.textContent = summary.empiricalPValue.toFixed(3);
+    if (corpusEl) {
+      corpusEl.textContent = `${summary.stormCount} storms • ${summary.earthquakeCount} earthquakes • ${summary.dataSpanDays} days`;
+    }
+    if (verdictEl) {
+      verdictEl.textContent = summary.verdict;
+      applyToneClass(verdictEl, summary.tone || 'muted');
+    }
+    if (detailEl) {
+      detailEl.textContent = `${summary.whyText} Null mean ${summary.nullMean.toFixed(2)}×; 99th percentile ${summary.null99Percentile.toFixed(2)}×.`;
+    }
+    if (noteEl) {
+      noteEl.textContent = summary.supportLevel === 'null-consistent'
+        ? 'The observed target-window bump is currently consistent with a shuffled-storm null. That argues for restraint, not narrative escalation.'
+        : 'A target-window bump can be interesting without being causal. Treat this as empirical calibration against a null, not proof of mechanism.';
+      applyToneClass(noteEl, summary.tone || 'muted');
+    }
+  }
+
   function describeFoundationState(meta) {
     if (meta.historicalEarthquakesLoaded && meta.stormArchiveLoaded) {
       return {
@@ -248,12 +360,155 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  function updateResearchWorkflowUI(meta, prediction, interpretation) {
+    const engineEl = document.getElementById('research-engine-status');
+    const pythonEl = document.getElementById('research-python-status');
+    const stormDefinitionEl = document.getElementById('research-storm-definition');
+    const regionEl = document.getElementById('research-region-status');
+    const nullEl = document.getElementById('research-null-status');
+    const modelingEl = document.getElementById('research-modeling-status');
+    const nextStepEl = document.getElementById('research-next-step');
+    const noteEl = document.getElementById('research-workflow-note');
+
+    const usingHistoricalCorpus = meta.historicalEarthquakesLoaded || meta.stormArchiveLoaded || meta.stormArchivePartial;
+    const foundationReady = meta.historicalEarthquakesLoaded && meta.stormArchiveLoaded;
+
+    if (engineEl) {
+      engineEl.textContent = usingHistoricalCorpus
+        ? 'Browser statistical engine + historical IndexedDB corpus'
+        : 'Browser statistical engine on seed/live corpus';
+    }
+
+    if (pythonEl) {
+      pythonEl.textContent = formatSidecarStatus(latestResearchSidecarStatus);
+      pythonEl.style.color = toneColor(sidecarTone(latestResearchSidecarStatus));
+    }
+
+    if (stormDefinitionEl) {
+      if (meta.stormArchiveLoaded) {
+        stormDefinitionEl.textContent = 'Kp≥5 with official NOAA archive; Dst comparison pending';
+      } else if (meta.stormArchivePartial) {
+        stormDefinitionEl.textContent = 'Kp≥5 with partial NOAA archive; Dst comparison pending';
+      } else {
+        stormDefinitionEl.textContent = 'Kp≥5 seed/live only; Dst comparison pending';
+      }
+    }
+
+    if (regionEl) {
+      regionEl.textContent = 'Global only — regional stratification is not wired in yet';
+    }
+
+    if (nullEl) {
+      if (latestBootstrapResult?.summary) {
+        nullEl.textContent = `Empirical p=${latestBootstrapResult.summary.empiricalPValue.toFixed(3)}; 95% null cutoff ${latestBootstrapResult.summary.null95Percentile.toFixed(2)}×`;
+      } else if (interpretation?.state === 'null-consistent') {
+        nullEl.textContent = 'Current corpus looks null-like; permutation calibration still pending';
+      } else {
+        nullEl.textContent = latestResearchSidecarStatus.online
+          ? 'Python sidecar ready — bootstrap / permutation calibration not run yet'
+          : 'Bootstrap / permutation calibration pending — Python sidecar offline';
+      }
+    }
+
+    if (modelingEl) {
+      modelingEl.textContent = foundationReady
+        ? 'Empirical lag scan + conditional probability on archive-backed corpus'
+        : 'Empirical lag scan + conditional probability, kept exploratory';
+    }
+
+    if (nextStepEl) {
+      if (!latestResearchSidecarStatus.online) {
+        nextStepEl.textContent = 'Start the local Python sidecar, then run the bootstrap null test through the interface.';
+      } else if (!foundationReady) {
+        nextStepEl.textContent = 'Load both archives and rerun the lag scan before leaning on the probability card.';
+      } else if (!latestBootstrapResult?.summary) {
+        nextStepEl.textContent = 'The sidecar is ready. Run the bootstrap null test to calibrate whether the 25–30 day bump rises above shuffled-storm behavior.';
+      } else if (interpretation?.state === 'insufficient-data') {
+        nextStepEl.textContent = 'The interface is wired, but the corpus is still thin for strong claims; the next honest step is bootstrap/permutation calibration.';
+      } else if (interpretation?.state === 'null-consistent') {
+        nextStepEl.textContent = 'The current interface read is null-like. The next useful step is regional stratification or permutation testing, not stronger rhetoric.';
+      } else {
+        nextStepEl.textContent = 'If heavier permutation or regional modeling is needed, add a local Python sidecar and proxy it through Node instead of moving the app runtime.';
+      }
+    }
+
+    if (noteEl) {
+      noteEl.textContent = latestResearchSidecarStatus.online
+        ? 'The browser path and the local Python sidecar are both visible in the interface now. Deterministic bootstrap null testing is available without exposing Python directly to the browser.'
+        : 'The interface now exposes the workflow honestly, including the missing Python sidecar. Start it locally if you want deterministic bootstrap null calibration.';
+      applyToneClass(noteEl, latestResearchSidecarStatus.online ? 'good' : 'warn');
+    }
+  }
+
+  async function runBootstrapCalibration() {
+    const button = document.getElementById('btn-run-bootstrap');
+
+    if (!latestAnalysisResult) {
+      await updatePredictionUI();
+    }
+
+    await refreshResearchSidecarStatus();
+    if (!latestResearchSidecarStatus.online) {
+      clearBootstrapResultUI('Python sidecar is offline. Activate solar-env and start scripts/research_sidecar.py, then rerun the null test.');
+      if (latestAnalysisResult) {
+        updateResearchWorkflowUI(latestAnalysisResult.meta, latestAnalysisResult.prediction, latestAnalysisResult.interpretation);
+      }
+      return;
+    }
+
+    if (!latestAnalysisResult?.catalogs) {
+      clearBootstrapResultUI('No analysis corpus is available yet. Run the browser analysis first.');
+      return;
+    }
+
+    if (button) button.disabled = true;
+    const statusEl = document.getElementById('bootstrap-status');
+    if (statusEl) {
+      statusEl.textContent = 'Running 1000× null test…';
+      applyToneClass(statusEl, 'warn');
+    }
+
+    try {
+      latestBootstrapResult = await runBootstrapNullTest({
+        storms: latestAnalysisResult.catalogs.storms,
+        earthquakes: latestAnalysisResult.catalogs.earthquakes,
+        permutations: 1000,
+        maxLag: 60,
+        targetMinLag: 25,
+        targetMaxLag: 30,
+        randomSeed: 42,
+      });
+
+      updateBootstrapResultUI(latestBootstrapResult);
+      updateResearchWorkflowUI(latestAnalysisResult.meta, latestAnalysisResult.prediction, latestAnalysisResult.interpretation);
+
+      if (statusEl) {
+        statusEl.textContent = 'Bootstrap null test complete';
+        applyToneClass(statusEl, latestBootstrapResult.summary?.tone || 'good');
+      }
+    } catch (error) {
+      console.warn('Bootstrap null calibration failed:', error);
+      clearBootstrapResultUI(error?.message || 'Bootstrap null test failed.');
+      if (statusEl) {
+        statusEl.textContent = 'Bootstrap null test failed';
+        applyToneClass(statusEl, 'warn');
+      }
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
   /** Render prediction results into the Correlation tab UI. */
   async function updatePredictionUI() {
     const statusEl = document.getElementById('data-load-status');
     if (statusEl) statusEl.textContent = 'Running analysis…';
     try {
-      const { scanResults, prediction, interpretation, meta } = await runFullAnalysis();
+      await refreshResearchSidecarStatus();
+      const analysis = await runFullAnalysis();
+      const { scanResults, prediction, interpretation, meta } = analysis;
+      latestAnalysisResult = analysis;
+      latestBootstrapResult = null;
+      clearBootstrapResultUI('Run the null test to compare the target-window bump against a shuffled-storm null distribution.');
 
       // Data foundation status
       const eqStatusEl = document.getElementById('data-eq-status');
@@ -289,6 +544,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         foundationNoteEl.textContent = foundationState.note;
         applyToneClass(foundationNoteEl, foundationState.tone);
       }
+
+      updateResearchWorkflowUI(meta, prediction, interpretation);
 
       // Lag scan chart
       drawLagScanChart(scanResults);
@@ -382,6 +639,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Seed storm data and run initial analysis silently on first load
   seedHistoricalStorms().then(() => updatePredictionUI()).catch(() => {});
+  refreshResearchSidecarStatus().then(() => {
+    if (latestAnalysisResult) {
+      updateResearchWorkflowUI(latestAnalysisResult.meta, latestAnalysisResult.prediction, latestAnalysisResult.interpretation);
+    }
+  }).catch(() => {});
 
   // "Load Full Research Foundation" button
   document.getElementById('btn-load-foundation')?.addEventListener('click', async () => {
@@ -511,6 +773,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // "Run Analysis" button
   document.getElementById('btn-run-analysis')?.addEventListener('click', updatePredictionUI);
+  document.getElementById('btn-run-bootstrap')?.addEventListener('click', runBootstrapCalibration);
 
   // ---- Settings ----
   document.getElementById('btn-save-settings')?.addEventListener('click', saveAlertSettings);

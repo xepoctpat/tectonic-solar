@@ -23,6 +23,14 @@ const CONTENT_SECURITY_POLICY = [
 const ISO_DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const ALLOWED_COMCAT_ORDER = new Set(['time-asc', 'time', 'magnitude']);
 const DAYIND_ARCHIVE_MIN_DATE = new Date('2011-01-01T00:00:00Z');
+const RESEARCH_SIDECAR = {
+  baseUrl: 'http://127.0.0.1:5051',
+  timeoutMs: 120_000,
+  payloadLimit: '512kb',
+  maxStorms: 5_000,
+  maxEarthquakes: 10_000,
+};
+const researchJsonParser = express.json({ limit: RESEARCH_SIDECAR.payloadLimit });
 
 app.disable('x-powered-by');
 
@@ -44,8 +52,6 @@ app.use((req, res, next) => {
   res.setHeader('Permissions-Policy', 'camera=(), geolocation=(), microphone=()');
   next();
 });
-
-app.use(express.json({ limit: '16kb' }));
 
 // Serve only the public/ directory — no project root files are web-accessible
 app.use(express.static(PUBLIC_DIR, {
@@ -95,6 +101,188 @@ function buildDayindArchiveUrl(dateOnly) {
   const [year, month, day] = dateOnly.split('-');
   return `${UPSTREAM.noaa.dayindArchiveBase}/${year}/${month}/${year}${month}${day}dayind.txt`;
 }
+
+function parseResearchEpochMs(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function validateResearchStorms(items) {
+  if (!Array.isArray(items)) {
+    throw new Error('storms must be an array');
+  }
+  if (items.length > RESEARCH_SIDECAR.maxStorms) {
+    throw new Error(`storms exceeds limit (${RESEARCH_SIDECAR.maxStorms})`);
+  }
+
+  return items.map((storm, index) => {
+    const date = parseResearchEpochMs(storm?.date);
+    const kp = Number(storm?.kp);
+    if (!Number.isFinite(date) || !Number.isFinite(kp)) {
+      throw new Error(`storm[${index}] must include finite date and kp values`);
+    }
+
+    return { date, kp };
+  });
+}
+
+function validateResearchEarthquakes(items) {
+  if (!Array.isArray(items)) {
+    throw new Error('earthquakes must be an array');
+  }
+  if (items.length > RESEARCH_SIDECAR.maxEarthquakes) {
+    throw new Error(`earthquakes exceeds limit (${RESEARCH_SIDECAR.maxEarthquakes})`);
+  }
+
+  return items.map((earthquake, index) => {
+    const date = parseResearchEpochMs(earthquake?.date);
+    const mag = Number(earthquake?.mag);
+    if (!Number.isFinite(date) || !Number.isFinite(mag)) {
+      throw new Error(`earthquake[${index}] must include finite date and mag values`);
+    }
+
+    const lat = Number(earthquake?.lat);
+    const lon = Number(earthquake?.lon);
+
+    return {
+      date,
+      mag,
+      ...(Number.isFinite(lat) ? { lat } : {}),
+      ...(Number.isFinite(lon) ? { lon } : {}),
+      ...(earthquake?.place ? { place: String(earthquake.place) } : {}),
+    };
+  });
+}
+
+async function fetchResearchSidecar(pathname, { method = 'GET', body, timeoutMs = RESEARCH_SIDECAR.timeoutMs } = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(`${RESEARCH_SIDECAR.baseUrl}${pathname}`, {
+      method,
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'tectonic-solar-local-proxy/1.0',
+        Accept: 'application/json',
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
+      },
+      ...(body ? { body } : {}),
+    });
+
+    const text = await response.text();
+    let json = null;
+    try {
+      json = text ? JSON.parse(text) : null;
+    } catch {
+      json = null;
+    }
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      json,
+      text,
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+app.get('/api/research/status', async (_req, res) => {
+  try {
+    const upstream = await fetchResearchSidecar('/health', { timeoutMs: 5_000 });
+    if (!upstream.ok) {
+      res.status(503).json({
+        ok: false,
+        online: false,
+        error: upstream.json?.error || 'Python research sidecar returned a non-success status',
+        message: upstream.json?.message || upstream.text || 'Start the local Python research sidecar after activating solar-env.',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      ok: true,
+      online: true,
+      ...(upstream.json || {}),
+    });
+  } catch (error) {
+    const isTimeout = error?.name === 'AbortError';
+    res.status(503).json({
+      ok: false,
+      online: false,
+      error: isTimeout ? 'Python research sidecar timeout' : 'Python research sidecar unavailable',
+      message: 'Activate solar-env and run python scripts/research_sidecar.py to enable deterministic bootstrap null testing.',
+    });
+  }
+});
+
+app.post('/api/research/bootstrap', researchJsonParser, async (req, res) => {
+  let storms;
+  let earthquakes;
+
+  try {
+    storms = validateResearchStorms(req.body?.storms);
+    earthquakes = validateResearchEarthquakes(req.body?.earthquakes);
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error?.message || 'Invalid research payload' });
+    return;
+  }
+
+  const permutations = parseBoundedNumber(req.body?.permutations, { min: 100, max: 5000, fallback: 1000 });
+  const maxLag = parseBoundedNumber(req.body?.maxLag, { min: 1, max: 120, fallback: 60 });
+  const targetMinLag = parseBoundedNumber(req.body?.targetMinLag, { min: 0, max: maxLag, fallback: Math.min(25, maxLag) });
+  const targetMaxLag = parseBoundedNumber(req.body?.targetMaxLag, {
+    min: targetMinLag,
+    max: maxLag,
+    fallback: Math.min(Math.max(30, targetMinLag), maxLag),
+  });
+  const randomSeed = parseBoundedNumber(req.body?.randomSeed, { min: 0, max: 2_147_483_647, fallback: 42 });
+
+  try {
+    const upstream = await fetchResearchSidecar('/bootstrap-null', {
+      method: 'POST',
+      body: JSON.stringify({
+        storms,
+        earthquakes,
+        permutations,
+        maxLag,
+        targetMinLag,
+        targetMaxLag,
+        randomSeed,
+      }),
+    });
+
+    if (!upstream.ok) {
+      res.status(upstream.status >= 400 && upstream.status < 500 ? upstream.status : 503).json({
+        ok: false,
+        error: upstream.json?.error || 'Python bootstrap null test failed',
+        message: upstream.json?.message || upstream.text || 'The local Python research sidecar did not complete the bootstrap request.',
+      });
+      return;
+    }
+
+    res.status(200).json(upstream.json || { ok: true });
+  } catch (error) {
+    const isTimeout = error?.name === 'AbortError';
+    res.status(503).json({
+      ok: false,
+      error: isTimeout ? 'Python bootstrap null test timed out' : 'Python research sidecar unavailable',
+      message: 'Activate solar-env and run python scripts/research_sidecar.py before requesting bootstrap null calibration.',
+    });
+  }
+});
+
+app.use(express.json({ limit: '16kb' }));
 
 async function fetchWithTimeout(url) {
   const controller = new AbortController();

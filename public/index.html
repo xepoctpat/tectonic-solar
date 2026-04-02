@@ -565,6 +565,99 @@
 
       </div>
 
+      <div class="timeline-container" style="margin-top:0">
+        <h3>Research Workflow Status</h3>
+        <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-bottom:8px">
+          This panel exposes what the interface can support right now: browser-side lag analysis,
+          archive readiness, and the boundary between current UX features and future Python-side research compute.
+        </p>
+        <div class="analysis-grid" aria-label="Research workflow status">
+          <div class="analysis-item">
+            <div class="analysis-label">Analysis engine</div>
+            <div class="analysis-value" id="research-engine-status">Browser statistical engine</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Python sidecar</div>
+            <div class="analysis-value" id="research-python-status">Not connected</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Storm definition</div>
+            <div class="analysis-value" id="research-storm-definition">Kp≥5 seed/live only</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Region mode</div>
+            <div class="analysis-value" id="research-region-status">Global only</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Null calibration</div>
+            <div class="analysis-value" id="research-null-status">Permutation test pending</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Modeling posture</div>
+            <div class="analysis-value" id="research-modeling-status">Interpretable empirical scan</div>
+          </div>
+          <div class="analysis-item analysis-item-wide">
+            <div class="analysis-label">Recommended next interface step</div>
+            <div class="analysis-value" id="research-next-step">
+              Load both archives and rerun the lag scan before treating the probability card as anything stronger than exploratory.
+            </div>
+          </div>
+        </div>
+        <div class="analysis-note tone-muted" id="research-workflow-note">
+          The interface can now show workflow state explicitly. Python-driven statistics still require a real sidecar or export path; they do not exist in the browser app yet.
+        </div>
+      </div>
+
+      <div class="timeline-container" style="margin-top:0">
+        <h3>Bootstrap Null Calibration</h3>
+        <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-bottom:8px">
+          Runs a deterministic shuffled-storm null distribution in the local Python sidecar,
+          proxied through Node. This calibrates whether the best 25–30 day bump exceeds what
+          circularly shifted storm catalogs would usually produce by chance.
+        </p>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <button id="btn-run-bootstrap" class="btn btn-primary" style="font-size:var(--font-size-sm)">
+            ∿ Run Bootstrap Null Test
+          </button>
+          <div class="analysis-badge tone-muted" id="bootstrap-status">Python sidecar status not checked</div>
+        </div>
+        <div class="analysis-grid" aria-label="Bootstrap null calibration results">
+          <div class="analysis-item">
+            <div class="analysis-label">Permutations</div>
+            <div class="analysis-value" id="bootstrap-permutations">—</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Observed target peak</div>
+            <div class="analysis-value" id="bootstrap-observed">—</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Null 95th percentile</div>
+            <div class="analysis-value" id="bootstrap-null95">—</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Empirical p-value</div>
+            <div class="analysis-value" id="bootstrap-pvalue">—</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Verdict</div>
+            <div class="analysis-badge tone-muted" id="bootstrap-verdict">Awaiting run…</div>
+          </div>
+          <div class="analysis-item">
+            <div class="analysis-label">Corpus used</div>
+            <div class="analysis-value" id="bootstrap-corpus">—</div>
+          </div>
+          <div class="analysis-item analysis-item-wide">
+            <div class="analysis-label">Interpretation</div>
+            <div class="analysis-value" id="bootstrap-detail">
+              Start the local Python sidecar, then run the null test to see whether the target-window bump rises above a shuffled-storm null.
+            </div>
+          </div>
+        </div>
+        <div class="analysis-note tone-muted" id="bootstrap-note">
+          This is deterministic statistical compute, not model-generated opinion. It uses the same lag-scan corpus currently in your browser and tests it against shuffled storm timings.
+        </div>
+      </div>
+
       <!-- ===== CROSS-LAG SCAN ===== -->
       <div class="timeline-container" style="margin-top:0">
         <h3>0–60 Day Hypothesis Test: Event Ratio vs. Lag</h3>
