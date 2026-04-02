@@ -2,8 +2,8 @@
 
 ## Project: Tectonic-Solar Space-Earth Monitor
 
-**Stack**: Vanilla JavaScript ES modules, Chart.js (CDN), Leaflet 1.9.4 (CDN), IndexedDB  
-**Status**: Active research dashboard with hardened Node proxy and no-build frontend  
+**Stack**: Vanilla JavaScript ES modules, Chart.js (CDN), Leaflet 1.9.4 (CDN), IndexedDB, Node/Express proxy, optional Python research stack (`Flask`, `numpy`, `pandas`, `statsmodels`, `scikit-learn`)  
+**Status**: Active research dashboard with hardened Node proxy, no-build frontend, cited local PB2002 plate-model artifacts, and a refreshed custom UI polish pass  
 **Recommended launch**: `npm run launch`  
 **App URL**: `http://localhost:3000`  
 **Health endpoint**: `http://localhost:3000/api/health`  
@@ -49,6 +49,17 @@ python scripts/research_sidecar.py
 - Never talks to the browser directly; Node proxies it through `/api/research/status` and `/api/research/bootstrap`.
 - Used by the Correlation tab's **Run Bootstrap Null Test** button.
 - Current scope: shuffled-storm null calibration for the 25–30 day target window.
+- Preferred Python research toolbelt now includes:
+  - `numpy` / `pandas` for corpus prep and archive joins
+  - `statsmodels` for interpretable GLMs, logit/count models, and coefficient-level inference
+  - `scikit-learn` for calibration, dummy baselines, holdout scorecards, and multi-metric comparison
+
+## Containerization direction (future / optional)
+
+- Docker is a **future reproducibility and deployment option**, not the default contributor workflow.
+- If containers are added later, keep **Node/Express as the public entry point**.
+- Treat the Python research sidecar as a **separate optional service** (for example in Compose) rather than collapsing the entire project into one opaque runtime blob.
+- Do not make Docker mandatory unless the normal local Node + `solar-env` workflow becomes genuinely unmanageable.
 
 ## Workspace Custom Agent
 
@@ -61,6 +72,8 @@ python scripts/research_sidecar.py
 - `.github/skills/space-earth-safe-change/SKILL.md` — repo-safe workflow for general feature work, bug fixes, validation, and doc sync.
 - `.github/skills/space-earth-feed-change/SKILL.md` — focused workflow for NOAA/USGS/Open-Meteo/research-sidecar endpoint and proxy changes.
 - `.github/skills/space-earth-hypothesis-check/SKILL.md` — conservative lag-hypothesis workflow for `hypothesis-core.mjs`, `correlation.js`, `prediction.js`, simulation, and null-check interpretation.
+- `.github/skills/space-earth-change-continuation/SKILL.md` — continuity-first workflow for resuming work from a handoff, recap, or partially validated checkpoint while preserving validated outcomes and separating unrelated regressions.
+- `.github/skills/space-earth-runtime-degradation/SKILL.md` — focused runtime/proxy investigation workflow for `/api/health` `503`, startup failures, route-specific degradation, and upstream-vs-local regression triage.
 
 These skills are workspace-scoped and meant to be invoked on demand when a task fits their trigger phrases.
 
@@ -73,6 +86,7 @@ These are file-scoped guardrails, not general-purpose prompts: they attach when 
 
 ## Workspace Prompts
 
+- `.github/prompts/create-space-earth-micro-handoff.prompt.md` — focused slash prompt for creating a compact continuity checkpoint with goals, files, validation, caveats, and the immediate next step.
 - `.github/prompts/docs-sync.prompt.md` — focused slash prompt for updating the right existing docs after a code, runtime, or research change.
 - `.github/prompts/hypothesis-evidence-summary.prompt.md` — focused slash prompt for conservative evidence summaries around the 27–28 day lag workflow.
 
@@ -123,7 +137,7 @@ For handoffs specifically, prefer a **new dated file in `docs/handoff/`** over a
 | `charts.js` | Chart.js visualization (5 charts) | drawRealSolarWindChart, drawRealKpChart, drawMagnitudeDistribution, drawAqiChart, drawCorrelationTimeline |
 | `correlation.js` | 27.5-day lag analysis + statistics | analyzeCorrelation, calculatePearsonCorrelation, estimatePValue, getCorrelationStrength |
 | `spaceWeather.js` | NOAA API: solar wind, Kp index | refreshSpaceWeatherData, getGeomagneticStorms |
-| `map.js` | Leaflet + USGS earthquakes | refreshSeismicData, getMajorEarthquakes |
+| `map.js` | Leaflet + USGS earthquakes + PB2002 tectonic overlay loading | refreshSeismicData, getMajorEarthquakes |
 | `mapViewport.js` | Renderer-agnostic active map viewport contract | registerMapViewport, resizeMapViewport |
 | `hypothesis-core.mjs` | Pure lag-analysis + evidence interpretation core | scanAllLags, computePrediction, interpretHypothesisEvidence |
 | `researchCompute.js` | Browser-side adapter for the optional Python research sidecar | checkResearchSidecarStatus, runBootstrapNullTest |
@@ -135,6 +149,14 @@ For handoffs specifically, prefer a **new dated file in `docs/handoff/`** over a
 | `notifications.js` | Toast UI system | showSuccess, showError, showInfo, showWarning |
 | `config.js` | API keys, constants | DEMO_MODE, API endpoints |
 | `seismic.js` | EQ data parsing | — |
+
+### Curated tectonic artifact
+
+- `public/data/tectonics/pb2002-plates.geojson` — preferred cited present-day PB2002 plate polygons used for the default plate-region overlay in `map.js`
+- `public/data/tectonics/pb2002-boundaries.geojson` — cited PB2002 boundary classes layered above the polygons in `map.js`
+- `scripts/build-pb2002-boundaries.mjs` — reproducible generator that converts Bird PB2002 source files into both local GeoJSON artifacts
+- If the boundary artifact fails to load, `map.js` falls back to the built-in sketch lines and the UI should say so explicitly instead of pretending the cited boundary layer is active
+- The recent visual refresh intentionally stayed inside the existing tokenized CSS system; no external CSS/JS framework was adopted because the no-build-friendly candidates were a poor fit for a Leaflet-heavy research app
 
 ### Hypothesis workflow surfaces (separated by concern)
 
@@ -345,6 +367,9 @@ npm run launch:headless
 
 # Direct server control
 npm start
+
+# Rebuild the local PB2002 tectonic artifact
+npm run build:tectonics
 ```
 
 ### Debug Service Worker
@@ -407,6 +432,7 @@ Chrome DevTools → Network → Offline (checkbox)
 - [ ] Verify IndexedDB persists data across reload
 - [ ] Dark mode toggle persists on refresh
 - [ ] All API calls use `fetchWithRetry()` (no bare `fetch()`)
+- [ ] If the PB2002 tectonic artifact changed, rerun `npm run build:tectonics` and update `public/sw.js` cache entries/version
 - [ ] Service Worker cache list updated (if new CDN libs added)
 - [ ] Manifest icons verified (192px + 512px SVG)
 - [ ] Tested on mobile: iOS Safari, Android Chrome
@@ -425,6 +451,9 @@ npm run launch:headless
 
 # Manual server start
 npm start
+
+# Rebuild cited PB2002 plate-model artifacts
+npm run build:tectonics
 
 # Smoke test (server running at localhost:3000)
 $env:APP_URL="http://localhost:3000"; node scripts/tab-smoke-test.mjs
@@ -460,6 +489,6 @@ python -m http.server 8000 --directory public
 
 ---
 
-**Last Updated**: April 1, 2026  
+**Last Updated**: April 2, 2026  
 **Maintainer**: GitHub Copilot / Tectonic-Solar Team  
 **Contact**: GitHub Issues

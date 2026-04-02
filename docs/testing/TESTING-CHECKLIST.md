@@ -68,6 +68,10 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Pan**: Can drag and pan around the globe
 - [ ] **Magnitude Filter**: Slider filters earthquakes by magnitude threshold
 - [ ] **Tectonic Boundaries**: Plate boundaries overlay visible (if tectonic layer enabled)
+- [ ] **Boundary Subtypes**: Hovering visible boundary lines reveals subtype-aware labels (for example subduction, spreading ridge, continental rift, or transform fault)
+- [ ] **Tectonic Source Label**: Map info box resolves to `Bird PB2002 (2003)` during normal local runs; `Fallback sample boundaries` only appears if the local artifact fails to load
+- [ ] **Plate Distinction**: PB2002 plate polygons read as distinct colored regions with stronger borders rather than a nearly uniform wash
+- [ ] **Vector Layer Honesty**: Turning on motion arrows shows a partial local vector artifact (currently 6 plates) without implying full global coverage or authoritative modern motion values
 - [ ] **Popup**: Click earthquake marker → popup shows magnitude, location, depth
 - [ ] **Layer Toggle**: Can switch between 4 tile layers (OSM, Satellite, Topo, Dark)
 - [ ] **Status**: No 404 errors in DevTools Console
@@ -128,6 +132,11 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Research Sidecar Status Endpoint**: `/api/research/status` reports online when the Python sidecar is running
 - [ ] **Research Bootstrap Endpoint**: `/api/research/bootstrap` rejects malformed payloads and succeeds with a valid archive-backed corpus payload
 - [ ] **Retry Logic**: Force offline, wait 10s → should retry (check console)
+
+### Curated Tectonic Layer
+- [ ] **PB2002 Artifact**: `GET /data/tectonics/pb2002-boundaries.geojson` returns `200` and a feature collection with 7 features
+- [ ] **Source Attribution**: Footer/info panel reports the PB2002 tectonic source after page load
+- [ ] **Fallback Honesty**: If the artifact is intentionally removed or renamed for testing, the UI should say `Fallback sample boundaries` rather than still claiming PB2002
 
 ### USGS Live Data (Earthquakes)
 - [ ] **Recent Earthquakes**: Significant earthquakes M4.5+ from last 30 days appear

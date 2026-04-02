@@ -49,6 +49,7 @@ Open `http://localhost:3000/api/health`
 
 Expected quirk:
 - NOAA plasma may log a fallback `404` in the local server output. That is expected and should degrade to `[]`, not a broken UI.
+- Repeated copies of the same NOAA plasma fallback should now be throttled; an occasional first-hit warning is normal, but a flood of identical lines usually means the server has not been restarted onto the latest code.
 
 ---
 

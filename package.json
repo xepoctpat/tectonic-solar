@@ -9,6 +9,7 @@
     "launch:headless": "node scripts/launch.js --no-open",
     "start": "node server.js",
     "start:sim": "node server.js",
+    "build:tectonics": "node scripts/build-pb2002-boundaries.mjs",
     "test:hypothesis-sim": "node scripts/hypothesis-sim.mjs",
     "test:tabs": "node scripts/tab-smoke-test.mjs"
   },

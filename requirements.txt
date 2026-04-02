@@ -4,6 +4,8 @@ requests==2.33.0
 python-dotenv==1.2.2
 pandas==3.0.1
 numpy==2.4.3
+statsmodels==0.14.6
+scikit-learn==1.8.0
 pytest==9.0.2
 pytest-cov==7.1.0
 gunicorn==25.1.0

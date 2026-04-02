@@ -1,16 +1,16 @@
 {
   "appUrl": "http://localhost:3000",
-  "generatedAt": "2026-04-02T01:35:14.544Z",
+  "generatedAt": "2026-04-02T16:32:52.584Z",
   "health": {
-    "ok": true,
-    "status": 200,
+    "ok": false,
+    "status": 503,
     "body": {
-      "ok": true,
+      "ok": false,
       "mode": "deployment-simulation",
-      "uptimeSeconds": 2306,
-      "durationMs": 402,
+      "uptimeSeconds": 7944,
+      "durationMs": 10653,
       "checks": {
-        "usgs": {
+        "noaa": {
           "ok": true,
           "status": 200
         },
@@ -18,9 +18,9 @@
           "ok": true,
           "status": 200
         },
-        "noaa": {
-          "ok": true,
-          "status": 200
+        "usgs": {
+          "ok": false,
+          "error": "fetch failed"
         }
       }
     }
@@ -44,23 +44,23 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 120,
+        "y": 142,
         "width": 1440,
-        "height": 739,
-        "top": 120,
+        "height": 715,
+        "top": 142,
         "right": 1440,
-        "bottom": 859,
+        "bottom": 857,
         "left": 0
       },
       "probeRect": {
-        "x": 272,
-        "y": 229,
-        "width": 1146,
-        "height": 551,
-        "top": 229,
-        "right": 1418,
-        "bottom": 780,
-        "left": 272
+        "x": 281,
+        "y": 285.875,
+        "width": 1138,
+        "height": 477.125,
+        "top": 285.875,
+        "right": 1419,
+        "bottom": 763,
+        "left": 281
       }
     },
     {
@@ -73,23 +73,23 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 120,
+        "y": 142,
         "width": 1440,
-        "height": 739,
-        "top": 120,
+        "height": 715,
+        "top": 142,
         "right": 1440,
-        "bottom": 859,
+        "bottom": 857,
         "left": 0
       },
       "probeRect": {
-        "x": 38,
-        "y": 563,
-        "width": 299,
-        "height": 1278,
-        "top": 563,
-        "right": 337,
-        "bottom": 1841,
-        "left": 38
+        "x": 39,
+        "y": 643.28125,
+        "width": 297,
+        "height": 18227,
+        "top": 643.28125,
+        "right": 336,
+        "bottom": 18870.28125,
+        "left": 39
       }
     },
     {
@@ -102,23 +102,23 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 120,
+        "y": 142,
         "width": 1440,
-        "height": 739,
-        "top": 120,
+        "height": 715,
+        "top": 142,
         "right": 1440,
-        "bottom": 859,
+        "bottom": 857,
         "left": 0
       },
       "probeRect": {
-        "x": 38,
-        "y": 273,
-        "width": 1364,
-        "height": 1204,
-        "top": 273,
-        "right": 1402,
-        "bottom": 1477,
-        "left": 38
+        "x": 39,
+        "y": 322.28125,
+        "width": 1362,
+        "height": 1963,
+        "top": 322.28125,
+        "right": 1401,
+        "bottom": 2285.28125,
+        "left": 39
       }
     },
     {
@@ -131,22 +131,22 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 120,
+        "y": 142,
         "width": 1440,
-        "height": 739,
-        "top": 120,
+        "height": 715,
+        "top": 142,
         "right": 1440,
-        "bottom": 859,
+        "bottom": 857,
         "left": 0
       },
       "probeRect": {
         "x": 1192.4375,
-        "y": 158,
+        "y": 195.140625,
         "width": 130,
         "height": 22,
-        "top": 158,
+        "top": 195.140625,
         "right": 1322.4375,
-        "bottom": 180,
+        "bottom": 217.140625,
         "left": 1192.4375
       }
     },
@@ -160,22 +160,22 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 120,
+        "y": 142,
         "width": 1440,
-        "height": 739,
-        "top": 120,
+        "height": 715,
+        "top": 142,
         "right": 1440,
-        "bottom": 859,
+        "bottom": 857,
         "left": 0
       },
       "probeRect": {
         "x": 37,
-        "y": 4408,
+        "y": 18786.671875,
         "width": 1366,
         "height": 400,
-        "top": 4408,
+        "top": 18786.671875,
         "right": 1403,
-        "bottom": 4808,
+        "bottom": 19186.671875,
         "left": 37
       }
     },
@@ -189,23 +189,23 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 120,
+        "y": 142,
         "width": 1440,
-        "height": 739,
-        "top": 120,
+        "height": 715,
+        "top": 142,
         "right": 1440,
-        "bottom": 859,
+        "bottom": 857,
         "left": 0
       },
       "probeRect": {
-        "x": 38,
-        "y": 329,
-        "width": 299,
+        "x": 39,
+        "y": 384.28125,
+        "width": 297,
         "height": 20,
-        "top": 329,
-        "right": 337,
-        "bottom": 349,
-        "left": 38
+        "top": 384.28125,
+        "right": 336,
+        "bottom": 404.28125,
+        "left": 39
       }
     }
   ]

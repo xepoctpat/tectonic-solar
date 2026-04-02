@@ -65,12 +65,21 @@
 - [ ] Add provenance so researchers can see which feed produced each plotted value
 
 ### 4. Add heavier statistics only when warranted
+- [x] Standardize the optional Python research environment on `statsmodels` + `scikit-learn` for interpretable modeling, calibration, and scorecard work
 - [x] Bootstrap / permutation null distribution (1000×+) via optional local Python sidecar + Node proxy
 - [ ] Regional stratification (Ring of Fire, Mediterranean-Himalayan, Cratons)
 - [ ] Bonferroni-aware lag scanning and significance calibration
 
-### 5. Use Python only as an optional compute sidecar
+### 5. Keep optional factor models subordinate to the baseline
+- [ ] Freeze and preserve a storm-only benchmark before adding extra factors
+- [ ] Add factor provenance fields such as tectonic region, boundary family, storm strength, and solar-cycle phase
+- [ ] Treat sidereal/synodic phase experiments as optional research-only sidequests, not replacements for the main hypothesis
+- [ ] Require factor-conditioned models to beat the simpler baseline on calibration and forward/holdout checks before promoting them
+
+### 6. Use Python only as an optional compute sidecar
 - [ ] Reserve Python for heavy research workloads (bootstrap, b-values, archive joins)
+- [ ] Use `statsmodels` first for interpretable GLMs / count models before reaching for black-box predictors
+- [ ] Use `scikit-learn` primarily for calibration, baselines, holdout comparison, and scorecards rather than as an excuse for premature complexity
 - [ ] Keep Node/Express as the primary user-facing server
 - [x] If Python endpoints are added, bind locally and proxy them through `server.js`
 - [ ] Do not add server-side storage or authenticated services as part of research expansion
@@ -148,6 +157,9 @@
 - [ ] **Multi-year historical data** — NOAA Kp archive + USGS ComCat batch API
 - [ ] **Regional stratification** — analyze Ring of Fire / Mediterranean-Himalayan / stable craton regions separately
 - [ ] **Dst-based storm thresholds** — compare Kp and Dst as the triggering classifier
+- [ ] **Factor-model bakeoff** — compare storm-only baseline with storm+factor variants (region, boundary family, storm strength, solar-cycle phase)
+- [ ] **Optional sidereal/synodic sidequest** — preregistered periodic-factor experiment kept research-only until it beats null and simpler models
+- [ ] **Out-of-sample scorecard** — Brier score, log loss, calibration, and holdout hit-rate comparison across model variants
 - [ ] **Paper citation panel** — clickable research references with abstracts
 - [ ] **Data provenance tracking** — show exactly which API call produced each displayed value
 - [ ] **Compare periods** — side-by-side comparison of active vs quiet space weather periods
@@ -161,6 +173,16 @@
 - [ ] **Custom alert webhooks** — POST to Discord/Slack when thresholds are crossed
 - [ ] **Embeddable widget** — `<iframe>`-compatible minimal version of each data card
 - [ ] **Open API documentation** — document all external APIs used, rate limits, CORS status
+
+---
+
+## Phase 8 — Operations & Reproducibility
+
+> Target: keep the stack reproducible without letting packaging redefine the architecture
+
+- [ ] **Optional Docker packaging** — add container support only after the Node + Python lanes stabilize
+- [ ] **Optional Docker Compose workflow** — support Node proxy + optional Python sidecar without making containers mandatory for contributors
+- [ ] **Preserve runtime boundaries** — if Docker is added, keep Node as the public entry point and keep the Python research layer optional/local-facing
 
 ---
 

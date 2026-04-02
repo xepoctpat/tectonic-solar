@@ -1,0 +1,131 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "name": "Space-Earth Monitor illustrative plate motion vectors",
+    "status": "illustrative-partial",
+    "createdAt": "2026-04-02",
+    "coverageCount": 6,
+    "generatedBy": "manual artifact seeding from the legacy in-repo vector layer",
+    "notes": [
+      "This artifact replaces the old hardcoded PLATE_VECTORS constant with a local file keyed to PB2002 plate codes.",
+      "Values are carried forward from the earlier illustrative prototype and should not be treated as authoritative plate-motion estimates.",
+      "The intended future upgrade is a modern public local motion artifact with broader coverage and real provenance."
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-pa",
+        "plateCode": "PA",
+        "displayName": "Pacific Plate",
+        "speedMmYr": 80,
+        "azimuthDeg": 300,
+        "coverage": "illustrative",
+        "note": "Legacy illustrative vector retained until a modern local motion artifact is wired in."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -140,
+          0
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-na",
+        "plateCode": "NA",
+        "displayName": "North American Plate",
+        "speedMmYr": 20,
+        "azimuthDeg": 245,
+        "coverage": "illustrative",
+        "note": "Legacy illustrative vector retained until a modern local motion artifact is wired in."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -100,
+          45
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-eu",
+        "plateCode": "EU",
+        "displayName": "Eurasian Plate",
+        "speedMmYr": 25,
+        "azimuthDeg": 95,
+        "coverage": "illustrative",
+        "note": "Legacy illustrative vector retained until a modern local motion artifact is wired in."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          90,
+          55
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-au",
+        "plateCode": "AU",
+        "displayName": "Australian Plate",
+        "speedMmYr": 70,
+        "azimuthDeg": 35,
+        "coverage": "illustrative",
+        "note": "Legacy illustrative vector retained until a modern local motion artifact is wired in."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135,
+          -25
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sa",
+        "plateCode": "SA",
+        "displayName": "South American Plate",
+        "speedMmYr": 25,
+        "azimuthDeg": 270,
+        "coverage": "illustrative",
+        "note": "Legacy illustrative vector retained until a modern local motion artifact is wired in."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -60,
+          -15
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-nz",
+        "plateCode": "NZ",
+        "displayName": "Nazca Plate",
+        "speedMmYr": 150,
+        "azimuthDeg": 80,
+        "coverage": "illustrative",
+        "note": "Legacy illustrative vector retained until a modern local motion artifact is wired in."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -100,
+          -20
+        ]
+      }
+    }
+  ]
+}

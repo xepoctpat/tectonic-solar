@@ -163,7 +163,19 @@ export const MAP_REGIONS = {
   cali: { center: [37, -120], zoom: 7 },
 };
 
-// ===== TECTONIC BOUNDARIES =====
+// ===== TECTONIC DATASET =====
+export const TECTONIC_DATASET = {
+  boundariesUrl: './data/tectonics/pb2002-boundaries.geojson',
+  platesUrl: './data/tectonics/pb2002-plates.geojson',
+  vectorsUrl: './data/tectonics/plate-motion-vectors.json',
+  primaryLabel: 'Bird PB2002 (2003)',
+  primaryAttribution: 'Bird PB2002 plate model (local GeoJSON artifacts)',
+  partialAttribution: 'Bird PB2002 plate regions loaded; fallback sample boundaries still in use',
+  fallbackLabel: 'Fallback sample boundaries',
+  fallbackAttribution: 'Fallback sample boundaries only — PB2002 artifact unavailable',
+};
+
+// ===== TECTONIC BOUNDARY FALLBACK SKETCHES =====
 export const TECTONIC_BOUNDARIES = {
   convergent: [
     [[50, -125], [42, -123], [36, -120], [32, -115]],
@@ -180,16 +192,6 @@ export const TECTONIC_BOUNDARIES = {
     [[-45, 166], [-42, 170], [-40, 172], [-38, 177]],
   ],
 };
-
-// ===== PLATE MOTION VECTORS =====
-export const PLATE_VECTORS = [
-  { lat: 0, lon: -140, speed: 80, direction: 300, name: 'Pacific Plate', color: '#4CAF50' },
-  { lat: 45, lon: -100, speed: 20, direction: 245, name: 'N. American Plate', color: '#2196F3' },
-  { lat: 55, lon: 90, speed: 25, direction: 95, name: 'Eurasian Plate', color: '#9C27B0' },
-  { lat: -25, lon: 135, speed: 70, direction: 35, name: 'Australian Plate', color: '#00BCD4' },
-  { lat: -15, lon: -60, speed: 25, direction: 270, name: 'S. American Plate', color: '#E91E63' },
-  { lat: -20, lon: -100, speed: 150, direction: 80, name: 'Nazca Plate (fastest!)', color: '#F44336' },
-];
 
 // ===== DEMO DATA (fallback when APIs are unavailable) =====
 export const DEMO_EARTHQUAKES = [

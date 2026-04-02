@@ -5,9 +5,9 @@ and visualizes the scientifically-debated **27–28 day correlation lag** betwee
 storms and earthquake probability.
 
 **No build step. No API key. No database.** Pure ES modules + public APIs.  
-All data is fetched live from NOAA, USGS, and Open-Meteo at runtime.  
+Operational earthquake, space-weather, and environmental feeds are fetched live from NOAA, USGS, and Open-Meteo at runtime. The tectonic map now uses cited local PB2002 GeoJSON artifacts for both present-day plate regions and boundary geometry, generated from Bird's public source files.  
 Client-side IndexedDB provides a 90-day rolling event window for correlation analysis.  
-A Node.js Express server proxies external APIs to eliminate CORS issues in deployment and enforce query validation/security headers.
+A Node.js Express server proxies external APIs to eliminate CORS issues in deployment and enforce query validation/security headers. An optional local Python research stack (`Flask`, `numpy`, `pandas`, `statsmodels`, `scikit-learn`) is reserved for heavier null calibration, interpretable modeling, and scorecard-style evaluation without changing the public runtime.
 
 > Recommended local launch: `npm run launch`  
 > See [docs/planning/ROADMAP.md](docs/planning/ROADMAP.md) for the full development plan.  
@@ -15,7 +15,7 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 
 ---
 
-## Live Data Sources
+## Live / Curated Data Sources
 
 | Data | Source | Feed |
 |---|---|---|
@@ -30,7 +30,10 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 | Historical geomagnetic indices | NOAA/NCEI SWPC `dayind` archive | Validated proxy via `/api/noaa/dayind?date=YYYY-MM-DD` |
 | Weather | Open-Meteo | Free API, no key |
 | Air Quality (PM2.5, AQI) | Open-Meteo Air Quality | Free API, no key |
+| Global tectonic plate regions + boundaries | Bird PB2002 (2003) | Local GeoJSON artifacts at `public/data/tectonics/pb2002-plates.geojson` and `public/data/tectonics/pb2002-boundaries.geojson` |
 | Map Tiles | OpenStreetMap / Esri / CARTO | CDN |
+
+The tectonic map layers are intentionally **not** live third-party browser dependencies. They are reproducible local artifacts generated from Peter Bird's public PB2002 source files via `npm run build:tectonics`, so the default plate-study view remains cited, stable, and cacheable.
 
 ---
 
@@ -38,7 +41,7 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 
 | Tab | What it does |
 |---|---|
-| **Map** | Interactive Leaflet map — the primary 2D research view for live USGS earthquakes, tectonic boundaries, plate motion vectors, magnitude filter slider, and multiple basemaps; any future 3D globe should remain optional and isolated from the default map path |
+| **Map** | Interactive Leaflet map — the primary 2D research view for live USGS earthquakes, cited PB2002 plate regions, subtype-styled tectonic boundary families (including explicit subduction symbology), a partial local motion-vector artifact keyed to real plate codes, a magnitude filter slider, clearer plate-study controls, and multiple basemaps; any future 3D globe should remain optional and isolated from the default map path |
 | **Space Weather** | Live NOAA solar wind (Chart.js animated line chart), Kp index (colour-coded bar chart), 3-day history with storm threshold, GOES X-ray flare log |
 | **Seismic** | Dynamic USGS earthquake list (newest first, time-ago), statistics (M5+/M6+ counts, largest), magnitude distribution chart (Chart.js horizontal bars with magnitude color-coding) |
 | **Environment** | Real-time weather (temp, feels-like, humidity, pressure, wind, condition) and air quality (PM2.5, PM10, CO, NO₂, European AQI) via Open-Meteo free API, AQI gauge doughnut chart |
@@ -124,6 +127,16 @@ The Node proxy is the **primary** runtime because it:
 - proxies NOAA / USGS / Open-Meteo to avoid browser CORS issues
 - applies rate limiting, CSP, `X-Frame-Options`, `nosniff`, and query validation
 
+### Regenerate the tectonic baselayer artifact
+
+If you change the curated tectonic-source workflow or want to rebuild the local PB2002 plate-model artifacts from Bird's source files:
+
+```powershell
+npm run build:tectonics
+```
+
+This regenerates both `public/data/tectonics/pb2002-plates.geojson` and `public/data/tectonics/pb2002-boundaries.geojson` for the browser map. The runtime uses those cited local artifacts first and only falls back to the old built-in sketch lines if the boundary file fails to load.
+
 Port is configurable. PowerShell example:
 
 ```powershell
@@ -158,6 +171,7 @@ What it does:
 - stays **local-only** and is never exposed directly to the browser
 - is reached through the Node proxy at `/api/research/status` and `/api/research/bootstrap`
 - powers the Correlation tab's **Run Bootstrap Null Test** workflow
+- uses the workspace research stack for heavier analysis (`numpy`, `pandas`, `statsmodels`, `scikit-learn`) when browser JavaScript would become awkward or opaque
 
 This is optional research compute, not normal app startup. If the sidecar is not running, the rest of the dashboard still works.
 
@@ -168,6 +182,8 @@ The venv at `solar-env/` is reserved for future research/compute work such as:
 - bootstrap or permutation testing for the null distribution
 - regional stratification and long-window archive analysis
 - Gutenberg–Richter / b-value calculations
+- interpretable GLMs / count models via `statsmodels`
+- calibration and holdout scorecards via `scikit-learn`
 - optional sidecar analytics services
 
 An optional local Python research sidecar now exists at `scripts/research_sidecar.py`, but the venv is still **not required** for normal dashboard usage.
@@ -186,6 +202,8 @@ solar-env\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
+Containerization note: **Docker is a future optional reproducibility/deployment path**, not the default local workflow. If adopted later, Node should remain the public entry point and the Python research sidecar should stay optional rather than becoming a mandatory second runtime for every contributor.
+
 ---
 
 ## Project Structure
@@ -199,11 +217,16 @@ tectonic-solar/
 │   ├── index.html
 │   ├── manifest.json
 │   ├── sw.js
+│   ├── data/
+│   │   └── tectonics/
+│   │       ├── pb2002-plates.geojson
+│   │       └── pb2002-boundaries.geojson
 │   └── src/
 │       ├── css/
 │       └── js/
 ├── scripts/
 │   ├── launch.js             # Friendly launcher: start/reuse server + open browser
+│   ├── build-pb2002-boundaries.mjs # Rebuild cited PB2002 plate/boundary GeoJSON artifacts
 │   ├── research_sidecar.py   # Local-only Flask sidecar for bootstrap null calibration
 │   ├── research_stats.py     # Pure NumPy research helpers used by the sidecar
 │   ├── hypothesis-sim.mjs    # Deterministic lag-analysis sanity harness
@@ -341,6 +364,7 @@ This project intentionally keeps the research surface area wide **without** loos
 
 **Testing Checklist**:
 - [ ] Launch via `npm run launch`
+- [ ] Confirm the Map info/footer source labels resolve to `Bird PB2002 (2003)` rather than the fallback sample state
 - [ ] Run `npm run test:hypothesis-sim` and confirm null / positive-control / off-target scenarios behave as expected
 - [ ] Load the 2-year NOAA storm archive and confirm the storm catalog moves beyond seed/live-only mode
 - [ ] Responsive layout at 375px, 768px, 1440px
@@ -357,6 +381,8 @@ This project intentionally keeps the research surface area wide **without** loos
 ## Known Limitations
 
 - **Service Worker**: Static asset list is manual (update `sw.js` if new CDN libs added)
+- **Tectonic layer**: PB2002 is a cited present-day plate model (regions + boundaries), not a live plate-motion service or a time-varying tectonic reconstruction
+- **Motion vectors**: the current arrow layer is now loaded from a local partial artifact keyed to PB2002 plate codes, but it still only covers 6 plates and remains illustrative rather than authoritative
 - **Dark Mode & Leaflet**: Leaflet map tiles don't respond to dark mode toggle (Leaflet layer limitation)
 - **IndexedDB Data Volume**: Pruning uses synchronous cursor traversal (acceptable up to ~1M records)
 - **Correlation**: Default lag window 21–35 days (27–28 day mid-point) — adjustable via JavaScript but no UI slider yet

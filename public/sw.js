@@ -1,10 +1,13 @@
 // ===== SERVICE WORKER: OFFLINE & CACHING SUPPORT =====
 
-const CACHE_NAME = 'tectonic-solar-v2';
-const API_CACHE_NAME = 'tectonic-solar-api-v2';
+const CACHE_NAME = 'tectonic-solar-v7';
+const API_CACHE_NAME = 'tectonic-solar-api-v7';
 const STATIC_ASSETS = [
   './',
   './index.html',
+  './data/tectonics/pb2002-boundaries.geojson',
+  './data/tectonics/pb2002-plates.geojson',
+  './data/tectonics/plate-motion-vectors.json',
   './src/css/variables.css',
   './src/css/base.css',
   './src/css/components.css',

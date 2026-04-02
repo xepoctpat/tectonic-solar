@@ -16,6 +16,13 @@ Keep this file for:
 
 ### Standalone handoffs (newest first)
 
+- [`2026-04-02-pre-push-bundle-checkpoint.md`](./2026-04-02-pre-push-bundle-checkpoint.md) — pre-push continuity checkpoint covering the bundled 2026-04-02 map/runtime/docs/stack changes, the fresh validation run, and the currently degraded NOAA health status
+- [`2026-04-02-stack-lanes-and-docker-direction.md`](./2026-04-02-stack-lanes-and-docker-direction.md) — records the adopted lane-based stack decision, adds `statsmodels` and `scikit-learn` to the Python research environment, and captures Docker as a future optional reproducibility path rather than a runtime rewrite
+- [`2026-04-02-factor-sidequest-framing.md`](./2026-04-02-factor-sidequest-framing.md) — documents the reframing that sidereal/synodic ideas are optional factor sidequests, not replacements for the base storm-lag hypothesis, and records the new roadmap lane for factor-model evaluation
+- [`2026-04-02-vector-artifact-groundwork.md`](./2026-04-02-vector-artifact-groundwork.md) — replaced the old hardcoded vector constant with a local partial artifact, anchored vectors to PB2002 plate regions, tightened arrow rendering, and kept the UI explicit that the current motion layer is still illustrative
+- [`2026-04-02-map-semantic-tightening.md`](./2026-04-02-map-semantic-tightening.md) — stronger PB2002 plate-region distinction, subtype-aware boundary rendering, schematic subduction teeth, honest vector-layer copy, and SW cache bump for the refreshed tectonic map surface
+- [`2026-04-02-pb2002-plates-and-ui-polish.md`](./2026-04-02-pb2002-plates-and-ui-polish.md) — plate-polygon baseline upgrade on top of PB2002 boundaries, plus a no-build UI polish pass after framework due diligence
+- [`2026-04-02-pb2002-tectonic-baselayer.md`](./2026-04-02-pb2002-tectonic-baselayer.md) — map-layer checkpoint replacing hardcoded sample boundaries with a cited PB2002 local GeoJSON artifact, plus UI source attribution, SW caching, and regeneration workflow
 - [`2026-04-02-frontend-honesty-and-lineage.md`](./2026-04-02-frontend-honesty-and-lineage.md) — current runtime/UI checkpoint covering honest space-weather degradation, plate-study UX, quieter sidecar offline behavior, notification noise reduction, and the shift to standalone handoff files
 
 ### Read order / precedence

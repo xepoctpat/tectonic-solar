@@ -23,6 +23,7 @@ const CONTENT_SECURITY_POLICY = [
 const ISO_DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const ALLOWED_COMCAT_ORDER = new Set(['time-asc', 'time', 'magnitude']);
 const DAYIND_ARCHIVE_MIN_DATE = new Date('2011-01-01T00:00:00Z');
+const FALLBACK_LOG_THROTTLE_MS = 15 * 60 * 1000;
 const RESEARCH_SIDECAR = {
   baseUrl: 'http://127.0.0.1:5051',
   timeoutMs: 120_000,
@@ -31,6 +32,7 @@ const RESEARCH_SIDECAR = {
   maxEarthquakes: 10_000,
 };
 const researchJsonParser = express.json({ limit: RESEARCH_SIDECAR.payloadLimit });
+const fallbackLogState = new Map();
 
 app.disable('x-powered-by');
 
@@ -113,6 +115,29 @@ function parseResearchEpochMs(value) {
   }
 
   return null;
+}
+
+function logFallbackEvent(url, detail) {
+  const key = `${url}::${detail}`;
+  const now = Date.now();
+  const existing = fallbackLogState.get(key);
+
+  if (existing && now - existing.lastLoggedAt < FALLBACK_LOG_THROTTLE_MS) {
+    existing.suppressedCount += 1;
+    return;
+  }
+
+  const suppressedCount = existing?.suppressedCount || 0;
+  fallbackLogState.set(key, {
+    lastLoggedAt: now,
+    suppressedCount: 0,
+  });
+
+  const suffix = suppressedCount > 0
+    ? ` (+${suppressedCount} similar event${suppressedCount === 1 ? '' : 's'} suppressed)`
+    : '';
+
+  console.log(`[proxy] ${url} fell back to default (${detail})${suffix}`);
 }
 
 function validateResearchStorms(items) {
@@ -348,7 +373,7 @@ async function proxyRequest(res, url, options = {}) {
         res.status(200)
            .type(options.fallbackContentType || 'application/json')
            .send(options.fallbackData || '[]');
-        console.log(`[proxy] ${url} fell back to default (status ${upstream.status})`);
+        logFallbackEvent(url, `status ${upstream.status}`);
         return;
       }
 
@@ -372,7 +397,7 @@ async function proxyRequest(res, url, options = {}) {
       res.status(200)
          .type(options.fallbackContentType || 'application/json')
          .send(options.fallbackData || '[]');
-      console.log(`[proxy] ${url} fell back to default (error: ${error?.message})`);
+      logFallbackEvent(url, `error: ${error?.message || 'unknown error'}`);
       return;
     }
 

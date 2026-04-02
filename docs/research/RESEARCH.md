@@ -18,6 +18,28 @@ The lag duration corresponds almost exactly to one **synodic solar rotation peri
 
 The hypothesis is not a fringe claim — it appears in peer-reviewed literature (see §4) — but it remains unconfirmed and is disputed by the mainstream seismological community.
 
+### Scope discipline — primary claim vs optional factor sidequests
+
+The project should keep **one primary claim** and treat additional factors as optional conditioning variables rather than quiet replacements for the main theory.
+
+- **Primary hypothesis**: test whether storm timing alone is associated with a higher earthquake rate in the target lag window.
+- **Extended hypothesis**: test whether that storm-linked rate is better explained when conditioned on extra factors such as tectonic region, boundary family, storm intensity, solar-cycle phase, or a predeclared sidereal/synodic phase bin.
+- **Non-goal**: an optional factor model must not be presented as the new default explanation before it outperforms the simpler storm-only baseline.
+
+Useful shorthand:
+
+- Base: `P(EQ in target window | storm)`
+- Extended: `P(EQ in target window | storm, factor-set)`
+
+This matters because optional factors can improve explanation or calibration **without changing the central falsifiable question**. In this repo, factor sidequests are acceptable only if they:
+
+1. are defined in advance (period, phase convention, bins, regions, thresholds);
+2. are compared against nulls and nearby alternative periods, not just the favored one;
+3. show incremental value beyond the storm-only baseline; and
+4. remain explicitly **research-only / sidequest** until that incremental value survives validation.
+
+For example, a sidereal factor is allowed as an optional extension, but it should stay subordinate to the main lag hypothesis unless it clearly beats simpler models under the same validation rules.
+
 ### Implementation surfaces (keep concerns separated)
 
 The current codebase no longer routes all hypothesis work through one browser module. For contributors and reviewers, the relevant surfaces are intentionally split by concern:
@@ -256,6 +278,24 @@ The following are concrete, implementable extensions to the existing codebase.
 **Why**: Several papers claim precursory anomalies in Bz or ionospheric TEC 1–7 days before major earthquakes. This is highly controversial, but the app collects the data needed to test it.
 
 **Implementation**: Add a "Pre-Event Analysis" panel to the Correlation tab that, when a M6.5+ earthquake is selected from the list, fetches or queries recent space weather from IndexedDB and plots a 30-day pre-event timeline.
+
+### 6.8 Optional Factor-Model Extensions (Priority: Research-Only)
+
+**What**: Add research-only factor tests that condition the base storm-lag workflow on extra variables such as tectonic region, boundary family, storm intensity, solar-cycle phase, and predeclared sidereal/synodic phase bins.
+
+**Why**: A weak global signal may hide meaningful structure. Factor models can test whether the base hypothesis becomes more informative in specific tectonic settings or periodic states without pretending that the factor itself has replaced the main theory.
+
+**Implementation**:
+- add factor provenance to normalized storm/earthquake records;
+- preserve the storm-only baseline as the comparison model;
+- compute side-by-side scorecards for baseline vs factor-conditioned variants; and
+- keep factor toggles in a clearly marked research-only workflow.
+
+**Guardrails**:
+1. preregister the factor definition before reading results;
+2. compare favored periodic factors against neighboring periods and shuffled/null controls;
+3. require incremental value on holdout or forward-looking data, not just retrospective fit; and
+4. avoid promoting any factor model into default app claims until it survives the same falsification standards as the base hypothesis.
 
 ---
 

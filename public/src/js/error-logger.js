@@ -15,6 +15,55 @@ class ErrorLogger {
     this.isProxyMode = options.isProxyMode !== false;
     this.suppressConsoleErrors = options.suppressConsoleErrors !== false;
     this.criticalErrorPatterns = options.criticalErrorPatterns || [];
+    this.dedupeWindowMs = options.dedupeWindowMs || (15 * 60 * 1000);
+    this.recentNonCriticalEvents = new Map();
+  }
+
+  buildNonCriticalKey(errorData = {}) {
+    return [
+      errorData.severity || 'unknown',
+      errorData.type || 'unknown',
+      errorData.endpoint || 'no-endpoint',
+      errorData.description || 'no-description',
+      errorData.message || 'no-message',
+    ].join('::');
+  }
+
+  dedupeNonCriticalError(errorData = {}) {
+    if (errorData.severity === 'critical') {
+      return { suppress: false, suppressedCount: 0 };
+    }
+
+    if (errorData.severity !== 'non_critical' && errorData.type !== 'upstream_failure') {
+      return { suppress: false, suppressedCount: 0 };
+    }
+
+    const key = this.buildNonCriticalKey(errorData);
+    const now = Date.now();
+    const existing = this.recentNonCriticalEvents.get(key);
+
+    if (existing && now - existing.lastLoggedAt < this.dedupeWindowMs) {
+      existing.suppressedCount += 1;
+      return {
+        suppress: true,
+        suppressedCount: existing.suppressedCount,
+      };
+    }
+
+    const suppressedCount = existing?.suppressedCount || 0;
+    this.recentNonCriticalEvents.set(key, {
+      lastLoggedAt: now,
+      suppressedCount: 0,
+    });
+
+    const cutoff = now - (this.dedupeWindowMs * 2);
+    for (const [entryKey, entry] of this.recentNonCriticalEvents.entries()) {
+      if (entry.lastLoggedAt < cutoff) {
+        this.recentNonCriticalEvents.delete(entryKey);
+      }
+    }
+
+    return { suppress: false, suppressedCount };
   }
 
   /**
@@ -30,12 +79,26 @@ class ErrorLogger {
       userAgent: navigator.userAgent,
     };
 
+    const dedupe = this.dedupeNonCriticalError(errorData);
+    if (dedupe.suppress) {
+      return {
+        ...errorData,
+        suppressedDuplicate: true,
+        suppressedCount: dedupe.suppressedCount,
+      };
+    }
+
+    if (dedupe.suppressedCount > 0) {
+      errorData.suppressedDuplicates = dedupe.suppressedCount;
+    }
+
     // Send to Proto-SIR learner if available
     if (this.isProxyMode) {
       try {
         fetch(this.logEndpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          keepalive: true,
           body: JSON.stringify(errorData),
         }).catch(() => {
           // Silent catch: if logging itself fails, don't create cascading errors
@@ -131,6 +194,7 @@ class ErrorLogger {
 export const errorLogger = new ErrorLogger({
   isProxyMode: typeof IS_PROXY_MODE !== 'undefined' ? IS_PROXY_MODE : true,
   suppressConsoleErrors: true,
+  dedupeWindowMs: 15 * 60 * 1000,
   criticalErrorPatterns: [
     'parsing',
     'cannot read',

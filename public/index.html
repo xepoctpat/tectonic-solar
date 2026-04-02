@@ -31,8 +31,8 @@
   <!-- ===== HEADER ===== -->
   <header>
     <h1>🌍 Space-Earth Monitor</h1>
-    <div class="header-status">
-      <button id="dark-mode-toggle" class="btn-secondary" style="padding: 4px 8px; font-size: 14px;">🌙</button>
+    <div class="header-status" role="status" aria-live="polite">
+      <button id="dark-mode-toggle" class="btn-secondary header-icon-btn" aria-label="Toggle dark mode">🌙</button>
       <span class="status-dot status-loading" id="status-dot"></span>
       <span id="status-text">Loading…</span>
       <span>•</span>
@@ -62,7 +62,10 @@
     <section id="map-tab" class="tab-content active" role="tabpanel">
 
       <div class="tab-header">
-        <h2>Global Map</h2>
+        <div class="tab-heading">
+          <h2>Global Map</h2>
+          <p class="tab-subtitle">Plate geometry first, subtype-styled boundary interactions next, earthquakes layered on top for context and exploration.</p>
+        </div>
         <div class="map-controls">
           <button data-map-type="standard"  id="map-standard">Standard</button>
           <button data-map-type="plates"    id="map-plates" class="active">Plate Study</button>
@@ -79,18 +82,19 @@
 
           <div class="control-section">
             <h3>Layers</h3>
-            <label><input type="checkbox" id="l-earthquakes" checked> Earthquakes</label>
-            <label><input type="checkbox" id="l-vectors"> Motion arrows (plate movement)</label>
-            <label><input type="checkbox" id="l-convergent"  checked> Convergent — plates collide</label>
-            <label><input type="checkbox" id="l-divergent"   checked> Divergent — plates pull apart</label>
-            <label><input type="checkbox" id="l-transform"   checked> Transform — plates slide past</label>
+            <label class="layer-option"><input type="checkbox" id="l-plate-regions" checked><span class="layer-copy"><span class="layer-title">Plate regions</span><span class="layer-note">PB2002 polygons with curated fills and stronger borders</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-earthquakes" checked><span class="layer-copy"><span class="layer-title">Earthquakes</span><span class="layer-note">USGS live markers with depth-coded borders</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-vectors"><span class="layer-copy"><span class="layer-title">Motion arrows</span><span class="layer-note">Local partial artifact (6 plates) — still illustrative until a modern motion model is wired in</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-convergent"  checked><span class="layer-copy"><span class="layer-title">Convergent family</span><span class="layer-note">Subduction, oceanic convergence, and continental collision</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-divergent"   checked><span class="layer-copy"><span class="layer-title">Divergent family</span><span class="layer-note">Oceanic spreading ridges and continental rifts</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-transform"   checked><span class="layer-copy"><span class="layer-title">Transform family</span><span class="layer-note">Oceanic and continental strike-slip boundaries</span></span></label>
           </div>
 
           <div class="control-section">
             <h3>Best for plate reading</h3>
-            <button class="region-btn" id="btn-plate-guide">🧭 Focus on plate boundaries</button>
+            <button class="region-btn" id="btn-plate-guide">🧭 Focus on plates &amp; boundaries</button>
             <div class="map-help-text">
-              Switches to a neutral plate-study basemap, turns on all plate boundaries, hides earthquake dots and motion arrows, and zooms to the Ring of Fire.
+              Switches to a neutral plate-study basemap, turns on PB2002 plate regions plus all boundary classes, hides earthquake dots and motion arrows, and zooms to the Ring of Fire.
             </div>
           </div>
 
@@ -126,8 +130,12 @@
                 <span class="value" id="map-update">Just now</span>
               </div>
               <div class="info-item">
-                <span class="label">Source:</span>
+                <span class="label">EQ Source:</span>
                 <span class="value" id="data-source">USGS</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Tectonics:</span>
+                <span class="value" id="tectonic-source">Loading…</span>
               </div>
               <div class="info-item">
                 <span class="label">Earthquakes:</span>
@@ -138,18 +146,24 @@
                 <span class="value" id="zoom-display">Z2</span>
               </div>
             </div>
+            <div style="font-size:11px;color:var(--color-text-secondary);margin-top:8px">
+              Preferred tectonic layer: cited PB2002 present-day plate regions and subtype-aware boundary geometry. The old sketch lines only appear if the local boundary artifact fails to load.
+            </div>
           </div>
 
           <div class="control-section">
             <h3>Plate interactions (independent of solar weather)</h3>
             <div style="font-size:11px;line-height:1.8;color:var(--color-text-secondary)">
-              <div><span class="guide-chip guide-collide"></span> Red = plates collide</div>
-              <div><span class="guide-chip guide-separate"></span> Green = plates pull apart</div>
-              <div><span class="guide-chip guide-slide"></span> Orange = plates slide past</div>
+              <div><span class="guide-tooth"></span> Teeth mark subduction-style segments</div>
+              <div><span class="guide-chip guide-collide"></span> Red family = subduction / oceanic convergence / collision</div>
+              <div><span class="guide-chip guide-separate"></span> Cyan–green = spreading ridges / continental rifts</div>
+              <div><span class="guide-chip guide-slide"></span> Amber–orange = oceanic / continental transform faulting</div>
+              <div style="margin-top:4px">Colored regions = PB2002 plate polygons with stronger borders; hover a region or boundary to inspect the plate or interaction subtype.</div>
               <div style="margin:8px 0 4px 0;font-weight:bold;color:var(--color-text)">What each usually means</div>
-              <div>Convergent zones: trenches, volcanic arcs, compression, larger and deeper quakes</div>
-              <div>Divergent zones: ridges and rifts, crust spreading, shallower earthquakes</div>
-              <div>Transform zones: strike-slip motion, shallow earthquakes, lateral plate shear</div>
+              <div>Subduction zones: trenches, volcanic arcs, compression, and deeper Benioff-zone earthquakes</div>
+              <div>Collision and oceanic convergence: crustal shortening, uplift, and stronger compressional belts</div>
+              <div>Divergent zones: ridges and rifts, crust spreading, shallower extensional earthquakes</div>
+              <div>Transform zones: strike-slip motion, shallow earthquakes, and lateral plate shear</div>
               <div style="margin-top:4px">Most global earthquake geography is explained first by plate interaction, even before any space-weather hypothesis is considered.</div>
               <div style="margin:8px 0 4px 0;font-weight:bold;color:var(--color-text)">Depth legend</div>
               <div>🟥 Shallow (&lt;35 km)</div>
@@ -166,14 +180,16 @@
 
       <div class="map-footer">
         <div class="legend">
-          <span class="legend-item"><span class="color" style="background:#FF3333"></span> Convergent = collide</span>
-          <span class="legend-item"><span class="color" style="background:#4CAF50"></span> Divergent = pull apart</span>
-          <span class="legend-item"><span class="color" style="background:#FF9800"></span> Transform = slide past</span>
+          <span class="legend-item"><span class="color legend-swatch legend-swatch-plate"></span> Plate regions</span>
+          <span class="legend-item"><span class="color legend-tooth"></span> Subduction teeth</span>
+          <span class="legend-item"><span class="color legend-swatch legend-swatch-convergent"></span> Convergent family</span>
+          <span class="legend-item"><span class="color legend-swatch legend-swatch-divergent"></span> Divergent family</span>
+          <span class="legend-item"><span class="color legend-swatch legend-swatch-transform"></span> Transform family</span>
           <span class="legend-item"><span class="color dot" style="background:#FFC107"></span> M4.5–5.4</span>
           <span class="legend-item"><span class="color dot" style="background:#FF9800"></span> M5.5–5.9</span>
           <span class="legend-item"><span class="color dot" style="background:#F44336"></span> M6+</span>
         </div>
-        <span class="attribution">Earthquakes: USGS · Basemaps: OSM / Esri / OpenTopoMap / CARTO</span>
+        <span class="attribution">Earthquakes: USGS · <span id="tectonic-attribution">Tectonics: loading Bird PB2002 local artifact…</span> · Basemaps: OSM / Esri / OpenTopoMap / CARTO</span>
       </div>
 
     </section>
@@ -184,7 +200,10 @@
     <section id="space-tab" class="tab-content" role="tabpanel">
 
       <div class="tab-header">
-        <h2>Space Weather</h2>
+        <div class="tab-heading">
+          <h2>Space Weather</h2>
+          <p class="tab-subtitle">Live solar-wind, geomagnetic, and flare context from NOAA feeds.</p>
+        </div>
         <button id="btn-refresh-space" class="btn btn-primary">↻ Refresh</button>
       </div>
 
@@ -298,7 +317,10 @@
     <section id="seismic-tab" class="tab-content" role="tabpanel">
 
       <div class="tab-header">
-        <h2>Seismic Activity</h2>
+        <div class="tab-heading">
+          <h2>Seismic Activity</h2>
+          <p class="tab-subtitle">Recent global M4.5+ earthquakes with quick-look stats and distribution.</p>
+        </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">
             Updated: <span id="seismic-last-update">—</span>
@@ -369,7 +391,10 @@
     <section id="env-tab" class="tab-content" role="tabpanel">
 
       <div class="tab-header">
-        <h2>Environmental Data</h2>
+        <div class="tab-heading">
+          <h2>Environmental Data</h2>
+          <p class="tab-subtitle">Weather and air-quality context for the selected location via Open-Meteo.</p>
+        </div>
         <div style="display:flex;align-items:center;gap:8px">
           <div class="location-selector">
             <label for="location-select">Location:</label>
@@ -484,7 +509,10 @@
     <section id="correlation-tab" class="tab-content" role="tabpanel">
 
       <div class="tab-header">
-        <h2>Space Weather – Earthquake Correlation</h2>
+        <div class="tab-heading">
+          <h2>Space Weather – Earthquake Correlation</h2>
+          <p class="tab-subtitle">Exploratory lag analysis with explicit null-hypothesis guardrails and corpus checks.</p>
+        </div>
         <button id="btn-refresh-correlation" class="btn btn-primary">↻ Refresh</button>
       </div>
 
@@ -750,7 +778,10 @@
     <section id="settings-tab" class="tab-content" role="tabpanel">
 
       <div class="tab-header">
-        <h2>Alert Settings</h2>
+        <div class="tab-heading">
+          <h2>Alert Settings</h2>
+          <p class="tab-subtitle">Browser-local alert thresholds and runtime preferences for this device.</p>
+        </div>
         <div style="display:flex;gap:8px">
           <button id="btn-reset-settings"  class="btn btn-secondary">Reset Defaults</button>
           <button id="btn-save-settings"   class="btn btn-primary">Save Settings</button>
@@ -796,7 +827,7 @@
           <h3>About This Application</h3>
           <p style="font-size:var(--font-size-sm);line-height:1.6">
             Real-time monitoring of space weather, global seismic activity, and correlation analysis —
-            all in the browser with no backend required.
+            in a no-build browser UI, with the local Node proxy providing full live-data support.
           </p>
 
           <h4 style="margin-top:16px;font-size:var(--font-size-sm);color:var(--color-primary)">Live Data Sources</h4>
@@ -804,6 +835,7 @@
             <li><a href="https://earthquake.usgs.gov/" target="_blank" rel="noopener">USGS Earthquake Catalog</a> — M4.5+ real-time GeoJSON</li>
             <li><a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener">NOAA SWPC</a> — Solar wind, Kp index, X-ray flux</li>
             <li><a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — Weather &amp; air quality (no API key)</li>
+            <li>Peter Bird PB2002 plate model — curated local GeoJSON artifacts for the map's plate regions and global boundary layer</li>
           </ul>
 
           <h4 style="margin-top:16px;font-size:var(--font-size-sm);color:var(--color-primary)">Features</h4>
@@ -816,7 +848,7 @@
             <li>Real weather + air quality via Open-Meteo (free)</li>
             <li>Browser &amp; in-app toast notifications</li>
             <li>27–28 day geomagnetic ↔ seismic correlation timeline</li>
-            <li>Tectonic plate boundaries &amp; motion vectors</li>
+            <li>Cited PB2002 plate regions, subtype-styled tectonic boundaries &amp; a partial local vector artifact (currently 6 illustrative plates)</li>
             <li>Settings persistence via <code>localStorage</code></li>
           </ul>
 

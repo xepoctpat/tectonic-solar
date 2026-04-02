@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Default map layers: keep boundaries on, but leave motion arrows off for a clearer first view.
   const defaultLayerState = {
+    'l-plate-regions': true,
     'l-convergent': true,
     'l-divergent': true,
     'l-transform': true,
@@ -117,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     activatePlateGuideView();
     showInAppNotification(
       'Plate study view',
-      'Switched to the neutral plate-study basemap, hid earthquake dots, emphasized boundaries, and zoomed to the Ring of Fire.',
+      'Switched to the neutral plate-study basemap, turned on plate regions plus boundaries, hid earthquake dots, and zoomed to the Ring of Fire.',
       'info',
     );
   });

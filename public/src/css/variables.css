@@ -83,6 +83,11 @@
   /* Borders & Shadows */
   --radius-sm: 4px;
   --radius-base: 8px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --shadow-soft: 0 18px 50px rgba(var(--color-slate-900-rgb), 0.08);
+  --shadow-panel: 0 14px 30px rgba(var(--color-slate-900-rgb), 0.08), 0 2px 8px rgba(var(--color-slate-900-rgb), 0.05);
+  --shadow-focus: 0 0 0 3px rgba(var(--color-teal-500-rgb), 0.18);
 
   /* Animation */
   --duration-fast: 150ms;

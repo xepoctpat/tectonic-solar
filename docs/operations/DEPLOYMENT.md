@@ -170,20 +170,37 @@ npm i -g vercel
 vercel --prod
 ```
 
-#### Docker + Cloud Run (Google Cloud or AWS)
+#### Docker + Cloud Run (future / optional)
+
+Docker should be treated as a **future packaging path**, not the default way to run this repo locally.
+
+If container support is added later, keep the architecture the same:
+
+- **Node/Express remains the public entry point**
+- the browser still talks only to Node routes
+- the Python research sidecar remains **optional** and is best handled as a separate service/container when needed
+- Docker should improve reproducibility, not quietly rewrite the runtime model
+
+Minimal Node runtime container example:
 
 ```dockerfile
 FROM node:20-alpine
 WORKDIR /app
-COPY . .
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY server.js ./
+COPY public ./public
 EXPOSE 8080
-CMD ["python3", "-m", "http.server", "8080"]
+ENV PORT=8080
+CMD ["node", "server.js"]
 ```
 
 ```bash
 gcloud builds submit --tag gcr.io/PROJECT_ID/tectonic-solar
 gcloud run deploy tectonic-solar --image gcr.io/PROJECT_ID/tectonic-solar --platform managed
 ```
+
+If later you want containerized research mode, prefer a second optional container (or Compose service) for `python scripts/research_sidecar.py` rather than forcing every deployment to carry the Python lane.
 
 ---
 
