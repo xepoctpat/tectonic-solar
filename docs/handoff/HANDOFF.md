@@ -16,6 +16,8 @@ Keep this file for:
 
 ### Standalone handoffs (newest first)
 
+- [`2026-08-16-coupling-chain-pipeline.md`](./2026-08-16-coupling-chain-pipeline.md) — full solar-terrestrial pipeline: Dst + GOES protons finally consumed, derived P_dyn/E_y coupling metrics, typed driver-event store (DB v2), selectable storm definitions in Research Lab, Coupling Chain Monitor, UX overhaul; records that NOAA retired the public plasma JSON during the DSCOVR→IMAP transition
+- [`2026-08-16-pb2002-computed-motion-vectors.md`](./2026-08-16-pb2002-computed-motion-vectors.md) — replaces the 6-plate illustrative vector artifact with computed velocities for all 52 PB2002 plates from Bird (2003) Table 1 Euler poles (Pacific reference frame), including the committed pole source file, build-time geological sanity anchors, and per-point vector rendering with Euler-pole popups
 - [`2026-04-02-resizable-layout-and-user-test-readiness.md`](./2026-04-02-resizable-layout-and-user-test-readiness.md) — records the new 7-tab layout with resizable non-map workspaces, the `Correlation` / `Research Lab` split, the 7/7 smoke pass, and the honest recommendation that the app is ready for focused user testing with caveats
 - [`2026-04-02-pre-push-bundle-checkpoint.md`](./2026-04-02-pre-push-bundle-checkpoint.md) — pre-push continuity checkpoint covering the bundled 2026-04-02 map/runtime/docs/stack changes, the fresh validation run, and the currently degraded NOAA health status
 - [`2026-04-02-stack-lanes-and-docker-direction.md`](./2026-04-02-stack-lanes-and-docker-direction.md) — records the adopted lane-based stack decision, adds `statsmodels` and `scikit-learn` to the Python research environment, and captures Docker as a future optional reproducibility path rather than a runtime rewrite

@@ -8,6 +8,8 @@ export const spaceWeatherCache = {
   solarWind: null,
   kpIndex: null,
   xrayFlux: null,
+  dst: null,
+  protonFlux: null,
   lastUpdate: 0,
   feedStatus: {
     solarWind: {
@@ -28,17 +30,32 @@ export const spaceWeatherCache = {
       message: 'Checking NOAA X-ray feed…',
       updatedAt: 0,
     },
+    dst: {
+      state: 'loading',
+      source: 'live',
+      message: 'Checking NOAA/Kyoto Dst feed…',
+      updatedAt: 0,
+    },
+    protonFlux: {
+      state: 'loading',
+      source: 'live',
+      message: 'Checking NOAA GOES proton feed…',
+      updatedAt: 0,
+    },
   },
 };
 
 // ---- Historical time-series for charting ----
-/** Array of {speed, density, bz, time} – last 60 minutes of solar wind plasma readings. */
+/** Array of {time, speed, density, bt, bz, pdyn, ey} – recent solar-wind samples. */
 export let solarWindHistory = [];
 /** Array of {kp, time} – last 72 readings from 3-day Kp product (~72 entries). */
 export let kpHistory = [];
+/** Array of {dst, time} – hourly Dst samples for the Dst chart. */
+export let dstHistory = [];
 
 export function setSolarWindHistory(data) { solarWindHistory = data; }
 export function setKpHistory(data)        { kpHistory = data; }
+export function setDstHistory(data)       { dstHistory = data; }
 
 // ---- Alert settings (loaded from localStorage via settings module) ----
 export const alertSettings = { ...DEFAULT_ALERT_SETTINGS };

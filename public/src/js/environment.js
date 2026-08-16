@@ -47,7 +47,8 @@ export async function fetchEnvironmentData(locationName) {
 
   const source = (weatherOk && aqOk) ? 'Open-Meteo (live)'
     : weatherOk ? 'Open-Meteo (live) / AQ unavailable'
-    : 'Demo data';
+    : aqOk ? 'Open-Meteo AQ (live) / weather unavailable'
+    : 'Open-Meteo unavailable — values may be stale';
   setText('env-source', source);
 }
 

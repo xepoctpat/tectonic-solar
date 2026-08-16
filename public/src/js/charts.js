@@ -5,6 +5,7 @@ const chartInstances = {};
 const chartCache = {
   solarWindHistory: [],
   kpHistory: [],
+  dstHistory: [],
   earthquakes: [],
   aqiValue: undefined,
   lagData: [],
@@ -89,6 +90,7 @@ function destroyChart(key) {
 export function redrawCachedCharts() {
   drawRealSolarWindChart(chartCache.solarWindHistory);
   drawRealKpChart(chartCache.kpHistory);
+  drawDstChart(chartCache.dstHistory);
   drawMagnitudeDistribution(chartCache.earthquakes);
   drawAqiChart(chartCache.aqiValue);
 
@@ -104,8 +106,9 @@ export function redrawCachedCharts() {
 }
 
 /**
- * Draw solar wind speed history.
- * @param {Array<{speed:number, time:string}>} history
+ * Draw solar wind history: speed plus toggleable density and dynamic-pressure
+ * series (data available since the composite solar-wind history change).
+ * @param {Array<{speed:number, density:number, bt:number, bz:number, pdyn:number, ey:number, time:string}>} history
  */
 export function drawRealSolarWindChart(history = []) {
   const canvas = document.getElementById('solar-wind-chart');
@@ -113,26 +116,116 @@ export function drawRealSolarWindChart(history = []) {
 
   destroyChart('solarWind');
 
-  const recent = history.slice(-60);
+  const recent = history.slice(-120);
   cacheData('solarWindHistory', recent);
 
-  const data = recent.length > 0
-    ? recent.map(d => Number(d.speed) || 0)
-    : createPlaceholderSeries(12);
-  const labels = recent.length > 0 ? data.map((_, i) => `${i}m`) : createSequenceLabels(12, 'm');
-  const hasData = hasSeriesData(data);
+  const hasData = recent.some(sample => Number.isFinite(Number(sample.speed)));
+  const labels = recent.length > 0 ? recent.map((_, i) => `${i}m`) : createSequenceLabels(12, 'm');
+  const speed = recent.length > 0 ? recent.map(d => Number(d.speed) || null) : createPlaceholderSeries(12);
+  const density = recent.map(d => Number.isFinite(Number(d.density)) ? Number(d.density) : null);
+  const pdyn = recent.map(d => Number.isFinite(Number(d.pdyn)) ? Number(d.pdyn) : null);
 
   chartInstances.solarWind = new Chart(canvas.getContext('2d'), {
     type: 'line',
     data: {
       labels,
+      datasets: [
+        {
+          label: 'Speed (km/s)',
+          data: speed,
+          borderColor: colorVar('--color-primary', '#32B8C6'),
+          backgroundColor: 'rgba(33, 128, 141, 0.12)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          yAxisID: 'y',
+        },
+        {
+          label: 'Density (cm⁻³)',
+          data: density,
+          borderColor: '#FF9800',
+          backgroundColor: 'transparent',
+          borderDash: [4, 3],
+          tension: 0.35,
+          pointRadius: 0,
+          hidden: true,
+          yAxisID: 'y1',
+        },
+        {
+          label: 'P_dyn (nPa)',
+          data: pdyn,
+          borderColor: '#AB47BC',
+          backgroundColor: 'transparent',
+          borderDash: [2, 3],
+          tension: 0.35,
+          pointRadius: 0,
+          hidden: true,
+          yAxisID: 'y1',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          labels: { color: tickColor(), boxWidth: 12, font: { size: 10 } },
+        },
+        emptyStateMessage: {
+          hasData,
+          message: 'Waiting for live solar wind data',
+        },
+      },
+      scales: {
+        x: { display: false },
+        y: {
+          beginAtZero: false,
+          grid: { color: gridColor() },
+          ticks: { color: tickColor() },
+        },
+        y1: {
+          position: 'right',
+          beginAtZero: true,
+          grid: { drawOnChartArea: false },
+          ticks: { color: tickColor() },
+        },
+      },
+      animation: { duration: 700 },
+    },
+    plugins: [EMPTY_STATE_PLUGIN],
+  });
+}
+
+/**
+ * Draw the Dst index chart with storm threshold reference lines.
+ * @param {Array<{dst:number, time:number}>} history
+ */
+export function drawDstChart(history = []) {
+  const canvas = document.getElementById('dst-chart');
+  if (!canvas) return;
+
+  destroyChart('dst');
+
+  const recent = history.slice(-72);
+  cacheData('dstHistory', recent);
+
+  const hasData = recent.some(sample => Number.isFinite(Number(sample.dst)));
+  const labels = recent.length > 0 ? recent.map((_, i) => `${i}h`) : createSequenceLabels(12, 'h');
+  const data = recent.length > 0 ? recent.map(d => Number(d.dst) || null) : createPlaceholderSeries(12);
+
+  chartInstances.dst = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
       datasets: [{
-        label: 'Solar Wind (km/s)',
+        label: 'Dst (nT)',
         data,
-        borderColor: colorVar('--color-primary', '#32B8C6'),
-        backgroundColor: 'rgba(33, 128, 141, 0.12)',
+        borderColor: '#42A5F5',
+        backgroundColor: 'rgba(66, 165, 245, 0.12)',
         fill: true,
-        tension: 0.35,
+        tension: 0.3,
         pointRadius: 0,
       }],
     },
@@ -143,13 +236,17 @@ export function drawRealSolarWindChart(history = []) {
         legend: { display: false },
         emptyStateMessage: {
           hasData,
-          message: 'Waiting for live solar wind data',
+          message: 'Waiting for Dst data',
+        },
+        tooltip: {
+          callbacks: {
+            label: context => `Dst ${Math.round(context.parsed.y)} nT`,
+          },
         },
       },
       scales: {
         x: { display: false },
         y: {
-          beginAtZero: false,
           grid: { color: gridColor() },
           ticks: { color: tickColor() },
         },
@@ -334,6 +431,7 @@ export function drawAqiChart(aqiValue) {
 export function drawSpaceCharts() {
   drawRealSolarWindChart(chartCache.solarWindHistory);
   drawRealKpChart(chartCache.kpHistory);
+  drawDstChart(chartCache.dstHistory);
   drawMagnitudeDistribution(chartCache.earthquakes);
   drawAqiChart(chartCache.aqiValue);
 }
@@ -516,6 +614,10 @@ export function drawCorrelationTimeline(storms = [], earthquakes = []) {
           display: true,
           labels: { color: tickColor() },
         },
+        emptyStateMessage: {
+          hasData: stormPoints.length + eqPoints.length > 0,
+          message: 'Waiting for storm and earthquake data',
+        },
         tooltip: {
           callbacks: {
             label: (ctx) => ctx.raw?.label || `Day ${Math.round(ctx.raw?.x || 0)}`,
@@ -538,6 +640,7 @@ export function drawCorrelationTimeline(storms = [], earthquakes = []) {
       },
       animation: { duration: 700 },
     },
+    plugins: [EMPTY_STATE_PLUGIN],
   });
 
   return { stormCount: storms.length, eqCount: earthquakes.length, correlationCount };

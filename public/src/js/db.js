@@ -1,11 +1,16 @@
 // ===== INDEXEDDB PERSISTENCE LAYER =====
-// Store historical storms and earthquakes for 90-day rolling window
+// Stores: 90-day rolling storms + earthquakes, hourly Dst samples, and typed
+// solar-terrestrial driver events (Dst storms, pressure pulses, proton events,
+// X-class flares) available to the research engine as alternative storm
+// definitions.
 
 const DB_NAME = 'tectonic-solar';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORES = {
   STORMS: 'storms',
   EARTHQUAKES: 'earthquakes',
+  DST: 'dst',
+  DRIVER_EVENTS: 'driverEvents',
 };
 
 let db = null;
@@ -38,7 +43,47 @@ export async function initDB() {
         const eqStore = database.createObjectStore(STORES.EARTHQUAKES, { keyPath: 'id', autoIncrement: true });
         eqStore.createIndex('date', 'date', { unique: false });
       }
+
+      // v2: hourly Dst samples for the Dst chart and storm detection
+      if (!database.objectStoreNames.contains(STORES.DST)) {
+        const dstStore = database.createObjectStore(STORES.DST, { keyPath: 'id', autoIncrement: true });
+        dstStore.createIndex('date', 'date', { unique: false });
+      }
+
+      // v2: typed solar-terrestrial driver events
+      if (!database.objectStoreNames.contains(STORES.DRIVER_EVENTS)) {
+        const eventStore = database.createObjectStore(STORES.DRIVER_EVENTS, { keyPath: 'id', autoIncrement: true });
+        eventStore.createIndex('date', 'date', { unique: false });
+        eventStore.createIndex('type', 'type', { unique: false });
+      }
     };
+  });
+}
+
+function addRecord(storeName, record) {
+  const tx = db.transaction([storeName], 'readwrite');
+  const store = tx.objectStore(storeName);
+  return new Promise((resolve, reject) => {
+    const request = store.add(record);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function getByDate(storeName, days) {
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  const tx = db.transaction([storeName], 'readonly');
+  const index = tx.objectStore(storeName).index('date');
+
+  return new Promise((resolve, reject) => {
+    const request = index.getAll(IDBKeyRange.lowerBound(cutoff));
+    request.onsuccess = () => {
+      resolve(request.result.map(record => ({
+        ...record,
+        date: new Date(record.date),
+      })));
+    };
+    request.onerror = () => reject(request.error);
   });
 }
 
@@ -49,13 +94,7 @@ export async function initDB() {
  */
 export async function addStorm(storm) {
   if (!db) await initDB();
-  const tx = db.transaction([STORES.STORMS], 'readwrite');
-  const store = tx.objectStore(STORES.STORMS);
-  return new Promise((resolve, reject) => {
-    const request = store.add({ ...storm, date: storm.date.getTime() });
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+  return addRecord(STORES.STORMS, { ...storm, date: storm.date.getTime() });
 }
 
 /**
@@ -65,13 +104,26 @@ export async function addStorm(storm) {
  */
 export async function addEarthquake(eq) {
   if (!db) await initDB();
-  const tx = db.transaction([STORES.EARTHQUAKES], 'readwrite');
-  const store = tx.objectStore(STORES.EARTHQUAKES);
-  return new Promise((resolve, reject) => {
-    const request = store.add({ ...eq, date: eq.date.getTime() });
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+  return addRecord(STORES.EARTHQUAKES, { ...eq, date: eq.date.getTime() });
+}
+
+/**
+ * Add an hourly Dst sample { date, dst }
+ * @returns {Promise<number>} - ID
+ */
+export async function addDstSample(sample) {
+  if (!db) await initDB();
+  return addRecord(STORES.DST, { ...sample, date: sample.date.getTime() });
+}
+
+/**
+ * Add a typed driver event { type, date, value, unit, source }
+ * type: 'dst-storm' | 'pressure-pulse' | 'proton-event' | 'x-flare'
+ * @returns {Promise<number>} - ID
+ */
+export async function addDriverEvent(event) {
+  if (!db) await initDB();
+  return addRecord(STORES.DRIVER_EVENTS, { ...event, date: event.date.getTime() });
 }
 
 /**
@@ -81,22 +133,7 @@ export async function addEarthquake(eq) {
  */
 export async function getStorms(days = 90) {
   if (!db) await initDB();
-  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-  const tx = db.transaction([STORES.STORMS], 'readonly');
-  const store = tx.objectStore(STORES.STORMS);
-  const index = store.index('date');
-
-  return new Promise((resolve, reject) => {
-    const request = index.getAll(IDBKeyRange.lowerBound(cutoff));
-    request.onsuccess = () => {
-      const storms = request.result.map(s => ({
-        ...s,
-        date: new Date(s.date)
-      }));
-      resolve(storms);
-    };
-    request.onerror = () => reject(request.error);
-  });
+  return getByDate(STORES.STORMS, days);
 }
 
 /**
@@ -106,26 +143,44 @@ export async function getStorms(days = 90) {
  */
 export async function getEarthquakes(days = 90) {
   if (!db) await initDB();
-  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-  const tx = db.transaction([STORES.EARTHQUAKES], 'readonly');
-  const store = tx.objectStore(STORES.EARTHQUAKES);
-  const index = store.index('date');
-
-  return new Promise((resolve, reject) => {
-    const request = index.getAll(IDBKeyRange.lowerBound(cutoff));
-    request.onsuccess = () => {
-      const earthquakes = request.result.map(eq => ({
-        ...eq,
-        date: new Date(eq.date)
-      }));
-      resolve(earthquakes);
-    };
-    request.onerror = () => reject(request.error);
-  });
+  return getByDate(STORES.EARTHQUAKES, days);
 }
 
 /**
- * Clear old records (> N days)
+ * Get hourly Dst samples from the last N days
+ * @returns {Promise<Array>}
+ */
+export async function getDstSamples(days = 90) {
+  if (!db) await initDB();
+  return getByDate(STORES.DST, days);
+}
+
+/**
+ * Get typed driver events from the last N days, optionally filtered by type
+ * @param {number} days - Days back
+ * @param {string} [type] - Driver event type filter
+ * @returns {Promise<Array>}
+ */
+export async function getDriverEvents(days = 90, type = null) {
+  if (!db) await initDB();
+  const events = await getByDate(STORES.DRIVER_EVENTS, days);
+  return type ? events.filter(event => event.type === type) : events;
+}
+
+function pruneStore(storeName, cutoff) {
+  const tx = db.transaction([storeName], 'readwrite');
+  const index = tx.objectStore(storeName).index('date');
+  index.openCursor(IDBKeyRange.upperBound(cutoff)).onsuccess = (event) => {
+    const cursor = event.target.result;
+    if (cursor) {
+      cursor.delete();
+      cursor.continue();
+    }
+  };
+}
+
+/**
+ * Clear old records (> N days) across all stores
  * @param {number} days - Keep only records from last N days
  * @returns {Promise<void>}
  */
@@ -133,29 +188,7 @@ export async function pruneOldRecords(days = 90) {
   if (!db) await initDB();
   const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
 
-  // Prune storms
-  const stormTx = db.transaction([STORES.STORMS], 'readwrite');
-  const stormStore = stormTx.objectStore(STORES.STORMS);
-  const stormIndex = stormStore.index('date');
-  stormIndex.openCursor(IDBKeyRange.upperBound(cutoff)).onsuccess = (event) => {
-    const cursor = event.target.result;
-    if (cursor) {
-      cursor.delete();
-      cursor.continue();
-    }
-  };
-
-  // Prune earthquakes
-  const eqTx = db.transaction([STORES.EARTHQUAKES], 'readwrite');
-  const eqStore = eqTx.objectStore(STORES.EARTHQUAKES);
-  const eqIndex = eqStore.index('date');
-  eqIndex.openCursor(IDBKeyRange.upperBound(cutoff)).onsuccess = (event) => {
-    const cursor = event.target.result;
-    if (cursor) {
-      cursor.delete();
-      cursor.continue();
-    }
-  };
+  Object.values(STORES).forEach((storeName) => pruneStore(storeName, cutoff));
 }
 
 /**
@@ -164,11 +197,10 @@ export async function pruneOldRecords(days = 90) {
  */
 export async function clearAll() {
   if (!db) await initDB();
-  const tx = db.transaction([STORES.STORMS, STORES.EARTHQUAKES], 'readwrite');
+  const tx = db.transaction(Object.values(STORES), 'readwrite');
 
   return new Promise((resolve, reject) => {
-    const stormReq = tx.objectStore(STORES.STORMS).clear();
-    const eqReq = tx.objectStore(STORES.EARTHQUAKES).clear();
+    Object.values(STORES).forEach((storeName) => tx.objectStore(storeName).clear());
 
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);

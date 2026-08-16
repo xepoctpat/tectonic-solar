@@ -32,7 +32,7 @@ function shouldSuppressAlert(key) {
  */
 export async function requestNotificationPermission() {
   if (!('Notification' in window)) {
-    alert('Your browser does not support notifications');
+    showInAppNotification('Notifications unavailable', 'This browser does not support desktop notifications.', 'warning');
     return false;
   }
 

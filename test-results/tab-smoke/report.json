@@ -1,24 +1,24 @@
 {
   "appUrl": "http://localhost:3000",
-  "generatedAt": "2026-04-02T16:51:30.541Z",
+  "generatedAt": "2026-08-16T08:30:31.501Z",
   "health": {
     "ok": true,
     "status": 200,
     "body": {
       "ok": true,
       "mode": "deployment-simulation",
-      "uptimeSeconds": 9055,
-      "durationMs": 171,
+      "uptimeSeconds": 2940,
+      "durationMs": 224,
       "checks": {
         "noaa": {
           "ok": true,
           "status": 200
         },
-        "openmeteo": {
+        "usgs": {
           "ok": true,
           "status": 200
         },
-        "usgs": {
+        "openmeteo": {
           "ok": true,
           "status": 200
         }
@@ -83,12 +83,12 @@
       },
       "probeRect": {
         "x": 45,
-        "y": 626.78125,
+        "y": 719.171875,
         "width": 756,
-        "height": 294.6875,
-        "top": 626.78125,
+        "height": 142,
+        "top": 719.171875,
         "right": 801,
-        "bottom": 921.46875,
+        "bottom": 861.171875,
         "left": 45
       }
     },
@@ -140,14 +140,14 @@
         "left": 0
       },
       "probeRect": {
-        "x": 1192.4375,
-        "y": 195.140625,
-        "width": 130,
-        "height": 22,
-        "top": 195.140625,
-        "right": 1322.4375,
-        "bottom": 217.140625,
-        "left": 1192.4375
+        "x": 1136.4375,
+        "y": 185.140625,
+        "width": 154,
+        "height": 42,
+        "top": 185.140625,
+        "right": 1290.4375,
+        "bottom": 227.140625,
+        "left": 1136.4375
       }
     },
     {
@@ -172,10 +172,10 @@
         "x": 893,
         "y": 338.875,
         "width": 498,
-        "height": 356.09375,
+        "height": 356,
         "top": 338.875,
         "right": 1391,
-        "bottom": 694.96875,
+        "bottom": 694.875,
         "left": 893
       }
     },
@@ -199,12 +199,12 @@
       },
       "probeRect": {
         "x": 43,
-        "y": 573.640625,
-        "width": 229.484375,
-        "height": 18,
-        "top": 573.640625,
-        "right": 272.484375,
-        "bottom": 591.640625,
+        "y": 568.84375,
+        "width": 261.484375,
+        "height": 38,
+        "top": 568.84375,
+        "right": 304.484375,
+        "bottom": 606.84375,
         "left": 43
       }
     },
@@ -228,12 +228,12 @@
       },
       "probeRect": {
         "x": 45,
-        "y": 384.28125,
+        "y": 383.28125,
         "width": 756,
-        "height": 20,
-        "top": 384.28125,
+        "height": 40,
+        "top": 383.28125,
         "right": 801,
-        "bottom": 404.28125,
+        "bottom": 423.28125,
         "left": 45
       }
     }

@@ -33,6 +33,7 @@ import {
   loadHistoricalUSGS,
   loadHistoricalStormArchive,
   runFullAnalysis,
+  STORM_DEFINITIONS,
 } from './prediction.js';
 import { checkResearchSidecarStatus, runBootstrapNullTest } from './researchCompute.js';
 
@@ -156,36 +157,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Initialize dark mode from localStorage
+  // Initialize dark mode: stored preference wins; otherwise follow the system.
   const savedDarkMode = localStorage.getItem('darkMode');
   if (savedDarkMode === 'true') {
     document.documentElement.classList.add('dark');
     if (darkModeToggle) darkModeToggle.textContent = '☀️';
+  } else if (savedDarkMode === null && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.classList.add('dark');
+    if (darkModeToggle) darkModeToggle.textContent = '☀️';
   }
 
-  // Refresh earthquake button
-  document.getElementById('btn-refresh-eq')?.addEventListener('click', () => refreshEarthquakeData(fetchRealEarthquakeData));
-  document.getElementById('btn-refresh-seismic')?.addEventListener('click', () => refreshEarthquakeData(fetchRealEarthquakeData));
+  // ---- Async button busy states ----
+  // Every manual refresh button disables + flags while its request runs, so
+  // double-clicks cannot stack concurrent fetches.
+  function withButtonBusy(buttonId, handler) {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+    button.addEventListener('click', async () => {
+      if (button.disabled) return;
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = '⏳ Working…';
+      try {
+        await handler();
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    });
+  }
+
+  withButtonBusy('btn-refresh-eq', () => refreshEarthquakeData(fetchRealEarthquakeData));
+  withButtonBusy('btn-refresh-seismic', () => refreshEarthquakeData(fetchRealEarthquakeData));
+  withButtonBusy('btn-refresh-space', refreshSpaceData);
+  withButtonBusy('btn-refresh-correlation', refreshCorrelationData);
+  withButtonBusy('btn-refresh-env', () => {
+    const select = document.getElementById('location-select');
+    if (select) return fetchEnvironmentData(select.value);
+  });
 
   // ---- Space weather ----
   drawSpaceCharts();
   fetchNOAASpaceWeather();
   initNotificationStatus();
 
-  document.getElementById('btn-refresh-space')?.addEventListener('click', refreshSpaceData);
   document.getElementById('btn-enable-notifications')?.addEventListener('click', requestNotificationPermission);
 
   // ---- Environment ----
   initLocationSelector();
 
-  document.getElementById('btn-refresh-env')?.addEventListener('click', () => {
-    const select = document.getElementById('location-select');
-    if (select) fetchEnvironmentData(select.value);
-  });
-
   // ---- Correlation ----
   updateCorrelationWindow();
-  document.getElementById('btn-refresh-correlation')?.addEventListener('click', refreshCorrelationData);
+  // Populate the correlation timeline + stats on first load instead of leaving
+  // a blank canvas until the user clicks Refresh. (Synchronous by design.)
+  try { refreshCorrelationData(); } catch (_) {}
 
   // ---- Prediction Engine ----
 
@@ -209,6 +234,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       const el = document.getElementById(id);
       if (el) el.disabled = disabled;
     });
+    const progress = document.getElementById('archive-progress');
+    if (progress && !disabled) {
+      progress.style.display = 'none';
+      progress.value = 0;
+    }
+  }
+
+  function setArchiveProgress(percent) {
+    const progress = document.getElementById('archive-progress');
+    if (!progress) return;
+    progress.style.display = 'block';
+    progress.value = Number.isFinite(percent) ? percent : 0;
   }
 
   let latestAnalysisResult = null;
@@ -410,13 +447,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (stormDefinitionEl) {
-      if (meta.stormArchiveLoaded) {
-        stormDefinitionEl.textContent = 'Kp≥5 with official NOAA archive; Dst comparison pending';
-      } else if (meta.stormArchivePartial) {
-        stormDefinitionEl.textContent = 'Kp≥5 with partial NOAA archive; Dst comparison pending';
-      } else {
-        stormDefinitionEl.textContent = 'Kp≥5 seed/live only; Dst comparison pending';
-      }
+      const activeDefinition = STORM_DEFINITIONS[meta.stormDefinition] || STORM_DEFINITIONS.kp;
+      const corpusNote = meta.stormDefinition === 'kp'
+        ? (meta.stormArchiveLoaded
+          ? 'Kp≥5 with official NOAA archive'
+          : meta.stormArchivePartial
+            ? 'Kp≥5 with partial NOAA archive'
+            : 'Kp≥5 seed/live only')
+        : `${activeDefinition.label} — live-accumulated events (${meta.stormCount})`;
+      stormDefinitionEl.textContent = corpusNote;
     }
 
     if (regionEl) {
@@ -467,6 +506,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function runBootstrapCalibration() {
     const button = document.getElementById('btn-run-bootstrap');
+    const activeDefinitionKey = document.getElementById('storm-definition-select')?.value || 'kp';
+
+    if (activeDefinitionKey !== 'kp') {
+      clearBootstrapResultUI(
+        'The permutation null is calibrated for the Kp ≥ 5 baseline corpus only. Switch the storm definition back to Kp to run it.',
+      );
+      return;
+    }
 
     if (!latestAnalysisResult) {
       await updatePredictionUI();
@@ -474,7 +521,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await refreshResearchSidecarStatus();
     if (!latestResearchSidecarStatus.online) {
-      clearBootstrapResultUI('Python sidecar is offline. Activate solar-env and start scripts/research_sidecar.py, then rerun the null test.');
+      clearBootstrapResultUI('Python sidecar offline — the bootstrap null test needs the optional local research sidecar running. See the developer handoff for launch steps.');
       if (latestAnalysisResult) {
         updateResearchWorkflowUI(latestAnalysisResult.meta, latestAnalysisResult.prediction, latestAnalysisResult.interpretation);
       }
@@ -526,10 +573,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   /** Render prediction results into the Correlation tab UI. */
   async function updatePredictionUI() {
     const statusEl = document.getElementById('data-load-status');
-    if (statusEl) statusEl.textContent = 'Running analysis…';
+    const runButton = document.getElementById('btn-run-analysis');
+    const definitionKey = document.getElementById('storm-definition-select')?.value || 'kp';
+    const definition = STORM_DEFINITIONS[definitionKey] || STORM_DEFINITIONS.kp;
+
+    if (runButton) {
+      runButton.disabled = true;
+      runButton.textContent = '⏳ Running…';
+    }
+    if (statusEl) statusEl.textContent = `Running analysis (${definition.label})…`;
     try {
       await refreshResearchSidecarStatus();
-      const analysis = await runFullAnalysis();
+      const analysis = await runFullAnalysis({ stormDefinition: definitionKey });
       const { scanResults, prediction, interpretation, meta } = analysis;
       latestAnalysisResult = analysis;
       latestBootstrapResult = null;
@@ -655,12 +710,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         applyToneClass(probNoteEl, interpretation?.tone ?? 'muted');
       }
 
-      if (statusEl) statusEl.textContent = `Last run: ${new Date().toLocaleTimeString()}`;
+      if (statusEl) {
+        statusEl.textContent = `Last run (${meta.stormDefinitionLabel ?? 'Kp ≥ 5'}): ${new Date().toLocaleTimeString()}`;
+      }
     } catch (err) {
       console.warn('Prediction analysis failed:', err);
       if (statusEl) statusEl.textContent = `Analysis error: ${err.message}`;
+    } finally {
+      if (runButton) {
+        runButton.disabled = false;
+        runButton.textContent = '▶ Run Analysis';
+      }
     }
   }
+
+  // Storm definition selector — reruns the lag scan against the chosen driver catalog
+  document.getElementById('storm-definition-select')?.addEventListener('change', () => {
+    updatePredictionUI();
+  });
 
   // Seed storm data and run initial analysis silently on first load
   seedHistoricalStorms().then(() => updatePredictionUI()).catch(() => {});
@@ -682,6 +749,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const stormResult = await loadHistoricalStormArchive({
         onProgress(progress) {
+          setArchiveProgress(progress.percent);
           if (!statusEl) return;
           statusEl.textContent =
             `Foundation step 1/2 — NOAA storm archive ${progress.percent}% ` +
@@ -769,6 +837,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const result = await loadHistoricalStormArchive({
         onProgress(progress) {
+          setArchiveProgress(progress.percent);
           if (!statusEl) return;
           statusEl.textContent =
             `Loading NOAA storm archive… ${progress.percent}% ` +

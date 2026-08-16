@@ -11,7 +11,8 @@
     "start:sim": "node server.js",
     "build:tectonics": "node scripts/build-pb2002-boundaries.mjs",
     "test:hypothesis-sim": "node scripts/hypothesis-sim.mjs",
-    "test:tabs": "node scripts/tab-smoke-test.mjs"
+    "test:tabs": "node scripts/tab-smoke-test.mjs",
+    "test:solar-metrics": "node scripts/solar-metrics-test.mjs"
   },
   "engines": {
     "node": ">=18"

@@ -5,7 +5,7 @@
 
 import { fetchWithRetry } from './utils.js';
 import { NOAA_APIS, USGS_APIS } from './config.js';
-import { addEarthquake, addStorm, getEarthquakes, getStorms } from './db.js';
+import { addEarthquake, addStorm, getDriverEvents, getEarthquakes, getStorms } from './db.js';
 import {
   scanAllLags,
   assessLagScan,
@@ -252,19 +252,67 @@ export async function loadHistoricalStormArchive(options = {}) {
 // Shared pure lag-analysis logic lives in `hypothesis-core.mjs` so the browser
 // path and deterministic simulation path use the same implementation.
 
+// ===== STORM DEFINITIONS =====
+// The hypothesis must survive every reasonable definition of the solar driver,
+// so the same lag engine can be pointed at different event catalogs.
+// 'kp' is the frozen baseline; the alternatives are exploratory comparisons.
+export const STORM_DEFINITIONS = {
+  kp: {
+    key: 'kp',
+    label: 'Kp ≥ 5 (baseline)',
+    description: 'Planetary 3-hour Kp index at or above 5 (NOAA G1 storm threshold). Frozen baseline definition.',
+    metric: 'Kp',
+  },
+  dst: {
+    key: 'dst',
+    label: 'Dst ≤ −50 nT',
+    description: 'Ring-current storm onsets at Dst ≤ −50 nT (moderate-storm threshold, Kyoto WDC via SWPC). Accumulates live from the Dst feed — historical archive backfill is not wired yet.',
+    metric: 'Dst',
+    driverType: 'dst-storm',
+  },
+  pressure: {
+    key: 'pressure',
+    label: 'Pressure pulse (P_dyn)',
+    description: 'Solar-wind dynamic pressure compressions: P_dyn ≥ 8 nPa or a ≥4 nPa jump within an hour (derived from DSCOVR/ACE plasma). Accumulates live — short history on first install.',
+    metric: 'P_dyn',
+    driverType: 'pressure-pulse',
+  },
+};
+
+async function loadStormCatalogForDefinition(definitionKey) {
+  const definition = STORM_DEFINITIONS[definitionKey] || STORM_DEFINITIONS.kp;
+  if (!definition.driverType) {
+    return getStorms(730);
+  }
+
+  const events = await getDriverEvents(730, definition.driverType);
+  // Map typed driver events onto the storm-record shape the engine consumes.
+  // Intensity sign is normalized so stronger events sort higher within a bucket.
+  return events.map(event => ({
+    date: event.date,
+    intensity: definition.driverType === 'dst-storm'
+      ? -Math.abs(Number(event.value) || 0)
+      : Math.abs(Number(event.value) || 0),
+    metric: event.metric,
+    source: event.source,
+  }));
+}
+
 // ===== FULL ANALYSIS RUNNER =====
 
 /**
  * Load all available data from IndexedDB (up to 2 years),
  * run the cross-lag scan, and compute the current prediction.
  *
- * Called when the Correlation tab is first opened or refreshed.
- *
+ * @param {{stormDefinition?: 'kp'|'dst'|'pressure'}} [options]
  * @returns {Promise<{scanResults, assessment, prediction, meta}>}
  */
-export async function runFullAnalysis() {
+export async function runFullAnalysis(options = {}) {
+  const { stormDefinition = 'kp' } = options;
+  const definition = STORM_DEFINITIONS[stormDefinition] || STORM_DEFINITIONS.kp;
+
   const [rawStorms, rawEarthquakes] = await Promise.all([
-    getStorms(730),
+    loadStormCatalogForDefinition(definition.key),
     getEarthquakes(730),
   ]);
 
@@ -276,6 +324,9 @@ export async function runFullAnalysis() {
   const prediction  = computePrediction(storms, earthquakes);
   const stormArchiveStatus = getStormArchiveStatus();
   const meta = {
+    stormDefinition: definition.key,
+    stormDefinitionLabel: definition.label,
+    stormDefinitionMetric: definition.metric,
     stormCount: storms.length,
     eqCount: earthquakes.length,
     rawStormCount: rawStorms.length,

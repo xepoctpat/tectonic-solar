@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- Chart.js CSS -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
 
   <!-- App Stylesheets -->
   <link rel="stylesheet" href="src/css/variables.css" />
@@ -42,13 +42,13 @@
 
   <!-- ===== NAVIGATION TABS ===== -->
   <nav class="tabs" role="tablist" aria-label="Application sections">
-    <button class="tab-btn active" data-tab="map"         role="tab" aria-selected="true"  aria-controls="map-tab">Map</button>
-    <button class="tab-btn"        data-tab="space"       role="tab" aria-selected="false" aria-controls="space-tab">Space Weather</button>
-    <button class="tab-btn"        data-tab="seismic"     role="tab" aria-selected="false" aria-controls="seismic-tab">Seismic</button>
-    <button class="tab-btn"        data-tab="env"         role="tab" aria-selected="false" aria-controls="env-tab">Environment</button>
-    <button class="tab-btn"        data-tab="correlation" role="tab" aria-selected="false" aria-controls="correlation-tab">Correlation</button>
-    <button class="tab-btn"        data-tab="research"    role="tab" aria-selected="false" aria-controls="research-tab">Research Lab</button>
-    <button class="tab-btn"        data-tab="settings"    role="tab" aria-selected="false" aria-controls="settings-tab">Settings</button>
+    <button id="tab-map" class="tab-btn active" data-tab="map"         role="tab" aria-selected="true"  aria-controls="map-tab">Map</button>
+    <button id="tab-space" class="tab-btn" data-tab="space"       role="tab" aria-selected="false" aria-controls="space-tab">Space Weather</button>
+    <button id="tab-seismic" class="tab-btn" data-tab="seismic"     role="tab" aria-selected="false" aria-controls="seismic-tab">Seismic</button>
+    <button id="tab-env" class="tab-btn" data-tab="env"         role="tab" aria-selected="false" aria-controls="env-tab">Environment</button>
+    <button id="tab-correlation" class="tab-btn" data-tab="correlation" role="tab" aria-selected="false" aria-controls="correlation-tab">Correlation</button>
+    <button id="tab-research" class="tab-btn" data-tab="research"    role="tab" aria-selected="false" aria-controls="research-tab">Research Lab</button>
+    <button id="tab-settings" class="tab-btn" data-tab="settings"    role="tab" aria-selected="false" aria-controls="settings-tab">Settings</button>
   </nav>
 
   <!-- ===== TOAST NOTIFICATION CONTAINER ===== -->
@@ -85,7 +85,7 @@
             <h3>Layers</h3>
             <label class="layer-option"><input type="checkbox" id="l-plate-regions" checked><span class="layer-copy"><span class="layer-title">Plate regions</span><span class="layer-note">PB2002 polygons with curated fills and stronger borders</span></span></label>
             <label class="layer-option"><input type="checkbox" id="l-earthquakes" checked><span class="layer-copy"><span class="layer-title">Earthquakes</span><span class="layer-note">USGS live markers with depth-coded borders</span></span></label>
-            <label class="layer-option"><input type="checkbox" id="l-vectors"><span class="layer-copy"><span class="layer-title">Motion arrows</span><span class="layer-note">Local partial artifact (6 plates) — still illustrative until a modern motion model is wired in</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-vectors"><span class="layer-copy"><span class="layer-title">Motion arrows</span><span class="layer-note">Computed for all 52 PB2002 plates from Bird (2003) Euler poles — Pacific reference frame</span></span></label>
             <label class="layer-option"><input type="checkbox" id="l-convergent"  checked><span class="layer-copy"><span class="layer-title">Convergent family</span><span class="layer-note">Subduction, oceanic convergence, and continental collision</span></span></label>
             <label class="layer-option"><input type="checkbox" id="l-divergent"   checked><span class="layer-copy"><span class="layer-title">Divergent family</span><span class="layer-note">Oceanic spreading ridges and continental rifts</span></span></label>
             <label class="layer-option"><input type="checkbox" id="l-transform"   checked><span class="layer-copy"><span class="layer-title">Transform family</span><span class="layer-note">Oceanic and continental strike-slip boundaries</span></span></label>
@@ -128,7 +128,7 @@
             <div class="info-box">
               <div class="info-item">
                 <span class="label">Last Update:</span>
-                <span class="value" id="map-update">Just now</span>
+                <span class="value" id="map-update">Loading…</span>
               </div>
               <div class="info-item">
                 <span class="label">EQ Source:</span>
@@ -240,11 +240,19 @@
               <span style="font-size:10px;color:var(--color-text-secondary);margin-left:4px">(– = active)</span></span>
           </div>
           <div class="metric">
+            <span class="label">Dynamic Pressure <span id="solar-wind-pdyn-band" style="font-weight:normal">—</span></span>
+            <span><span class="value" id="solar-wind-pdyn">—</span></span>
+          </div>
+          <div class="metric">
+            <span class="label">Electric Field E<sub>y</sub> <span id="solar-wind-ey-band" style="font-weight:normal">—</span></span>
+            <span><span class="value" id="solar-wind-ey">—</span></span>
+          </div>
+          <div class="metric">
             <span class="label">Last Update</span>
             <span class="value" id="space-last-update">Loading…</span>
           </div>
-          <canvas id="solar-wind-chart" width="300" height="100" aria-label="Solar wind speed history chart"></canvas>
-          <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">Last 60 min • 200–900 km/s scale</div>
+          <canvas id="solar-wind-chart" width="300" height="100" aria-label="Solar wind history chart"></canvas>
+          <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">Last ~2 h • click legend to toggle density / pressure • P<sub>dyn</sub> = ρv² (proton momentum flux on the magnetopause)</div>
         </div>
 
         <!-- Geomagnetic Activity -->
@@ -262,6 +270,65 @@
           </div>
           <canvas id="kp-chart" width="300" height="100" aria-label="Kp index 3-day history chart"></canvas>
           <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">3-day Kp history • Orange line = storm threshold (Kp 5)</div>
+
+          <div class="metric" style="margin-top:16px">
+            <span class="label">Dst Index <span id="dst-status" style="font-weight:normal">Loading…</span></span>
+            <span>
+              <span class="value" id="dst-value">—</span>
+              <span class="unit" id="dst-last-update" style="font-size:10px;color:var(--color-text-secondary)"></span>
+            </span>
+          </div>
+          <div id="dst-source" style="font-size:11px;color:var(--color-text-secondary);margin:4px 0 8px 0">
+            Checking NOAA/Kyoto Dst feed…
+          </div>
+          <canvas id="dst-chart" width="300" height="100" aria-label="Dst index hourly history chart"></canvas>
+          <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">Ring-current storm index • moderate ≤ −50 nT • intense ≤ −100 nT (Kyoto WDC via SWPC)</div>
+
+          <div class="metric" style="margin-top:16px">
+            <span class="label">Proton Flux ≥10 MeV <span id="proton-status" style="font-weight:normal">Loading…</span></span>
+            <span>
+              <span class="value" id="proton-flux">—</span>
+              <span class="unit">pfu</span>
+              <span class="unit" id="proton-last-update" style="font-size:10px;color:var(--color-text-secondary)"></span>
+            </span>
+          </div>
+          <div id="proton-source" style="font-size:11px;color:var(--color-text-secondary);margin:4px 0 0 0">
+            Checking NOAA GOES proton feed…
+          </div>
+          <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">Solar energetic particles • NOAA S1 radiation storm scale starts at 10 pfu</div>
+        </div>
+
+        <!-- Coupling Chain Monitor -->
+        <div class="data-card resizable-panel" data-resizable-panel data-panel-id="space-coupling-chain">
+          <h3>Coupling Chain Monitor</h3>
+          <p style="font-size:11px;color:var(--color-text-secondary);margin:0 0 12px 0">
+            The hypothesized mechanism: solar-wind pressure and fields act on Earth's magnetosphere and atmosphere before any (unproven) lithospheric response. Live status of each link:
+          </p>
+          <div id="coupling-chain" class="coupling-chain">
+            <div class="chain-stage" id="chain-solar-wind">
+              <div class="chain-title">☀️ Solar wind driver</div>
+              <div class="chain-value">Awaiting data…</div>
+              <div class="chain-note"></div>
+            </div>
+            <div class="chain-arrow" aria-hidden="true">↓</div>
+            <div class="chain-stage" id="chain-magnetosphere">
+              <div class="chain-title">🧲 Magnetosphere response</div>
+              <div class="chain-value">Awaiting data…</div>
+              <div class="chain-note"></div>
+            </div>
+            <div class="chain-arrow" aria-hidden="true">↓</div>
+            <div class="chain-stage" id="chain-ionosphere">
+              <div class="chain-title">🌡️ Ionosphere / atmosphere</div>
+              <div class="chain-value">Not monitored</div>
+              <div class="chain-note"></div>
+            </div>
+            <div class="chain-arrow" aria-hidden="true">↓</div>
+            <div class="chain-stage" id="chain-lithosphere">
+              <div class="chain-title">🌍 Lithosphere (hypothesis under test)</div>
+              <div class="chain-value">See Research Lab</div>
+              <div class="chain-note"></div>
+            </div>
+          </div>
         </div>
 
         </div>
@@ -347,8 +414,12 @@
         <!-- Live earthquake list (populated by seismic.js) -->
         <div class="data-card resizable-panel panel-fill" data-resizable-panel data-panel-id="seismic-list">
           <h3>Recent Earthquakes — M4.5+ (Past 24h) <small style="font-weight:normal;color:var(--color-text-secondary)">USGS Live Feed</small></h3>
-          <div class="earthquake-list" id="eq-list-container">
-            <p style="color:var(--color-text-secondary);font-size:var(--font-size-sm)">Loading earthquake data…</p>
+          <div class="earthquake-list" id="eq-list-container" aria-busy="true">
+            <div class="skeleton skeleton-text" style="width:86%"></div>
+            <div class="skeleton skeleton-text" style="width:70%"></div>
+            <div class="skeleton skeleton-text" style="width:92%"></div>
+            <div class="skeleton skeleton-text" style="width:58%"></div>
+            <div class="skeleton skeleton-text" style="width:78%"></div>
           </div>
         </div>
 
@@ -688,6 +759,7 @@
               </button>
             </div>
             <div id="data-load-status" style="margin-top:8px;font-size:var(--font-size-xs);color:var(--color-text-secondary)"></div>
+            <progress id="archive-progress" max="100" value="0" style="display:none;width:100%;height:6px;margin-top:6px" aria-label="Archive backfill progress"></progress>
           </div>
 
           <div class="timeline-container resizable-panel panel-fill" data-resizable-panel data-panel-id="research-workflow">
@@ -708,6 +780,20 @@
               <div class="analysis-item">
                 <div class="analysis-label">Storm definition</div>
                 <div class="analysis-value" id="research-storm-definition">Kp≥5 seed/live only</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Storm definition selector</div>
+                <div class="analysis-value">
+                  <select id="storm-definition-select" class="form-control" aria-label="Storm definition for lag analysis" style="min-width:200px">
+                    <option value="kp" selected>Kp ≥ 5 (baseline)</option>
+                    <option value="dst">Dst ≤ −50 nT</option>
+                    <option value="pressure">Pressure pulse (P_dyn)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Current drivers</div>
+                <div class="analysis-value" id="research-current-drivers">Awaiting space-weather data…</div>
               </div>
               <div class="analysis-item">
                 <div class="analysis-label">Region mode</div>
@@ -917,7 +1003,7 @@
             <li>Real weather + air quality via Open-Meteo (free)</li>
             <li>Browser &amp; in-app toast notifications</li>
             <li>27–28 day geomagnetic ↔ seismic correlation timeline</li>
-            <li>Cited PB2002 plate regions, subtype-styled tectonic boundaries &amp; a partial local vector artifact (currently 6 illustrative plates)</li>
+            <li>Cited PB2002 plate regions, subtype-styled tectonic boundaries &amp; computed plate-motion vectors for all 52 plates (Bird 2003 Euler poles, Pacific reference frame)</li>
             <li>Settings persistence via <code>localStorage</code></li>
           </ul>
 

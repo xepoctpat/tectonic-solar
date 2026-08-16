@@ -6,17 +6,32 @@ import {
   addHistoricalStorm,
   setSolarWindHistory,
   setKpHistory,
+  setDstHistory,
   solarWindHistory,
   kpHistory,
+  dstHistory,
   setConnectionStatus,
 } from './store.js';
 import { getKpStatus, detectFlares, setText, setStyle, fetchWithRetry } from './utils.js';
 import { sendNotification, showInAppNotification } from './notifications.js';
-import { drawRealSolarWindChart, drawRealKpChart } from './charts.js';
-import { addStorm } from './db.js';
+import { drawRealSolarWindChart, drawRealKpChart, drawDstChart } from './charts.js';
+import { addStorm, addDstSample, addDriverEvent } from './db.js';
 import { errorLogger } from './error-logger.js';
+import {
+  dynamicPressure,
+  electricFieldEy,
+  classifyPressure,
+  classifyEy,
+  classifyDst,
+  classifyProtons,
+  detectDstStorms,
+  detectPressurePulses,
+  detectProtonEvents,
+  PROTON_ENERGY_CHANNEL,
+} from './solarMetrics.mjs';
 
 const SPACE_WEATHER_STORAGE_KEY = 'space-earth-monitor-space-weather-last-good';
+const DRIVER_INGEST_KEY = 'space-earth-driver-ingest-v1';
 const FEED_STATE_COLORS = {
   live: '#4CAF50',
   degraded: '#FF9800',
@@ -34,6 +49,8 @@ function defaultFeedStatuses() {
     solarWind: buildFeedStatus('loading', 'live', 'Checking NOAA solar-wind feeds…'),
     kpIndex: buildFeedStatus('loading', 'live', 'Checking NOAA Kp feeds…'),
     xrayFlux: buildFeedStatus('loading', 'live', 'Checking NOAA X-ray feed…'),
+    dst: buildFeedStatus('loading', 'live', 'Checking NOAA/Kyoto Dst feed…'),
+    protonFlux: buildFeedStatus('loading', 'live', 'Checking NOAA GOES proton feed…'),
   };
 }
 
@@ -104,6 +121,32 @@ function formatCachedMessage(label, timestamp) {
 function parseNumber(value) {
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+// Merge 1-minute mag + plasma streams by time_tag, computing the derived
+// coupling metrics per matched sample. Keeps the last 240 samples (~4 h).
+export function buildCompositeSolarWindHistory(magData = [], plasmaData = []) {
+  const plasmaByTime = new Map(plasmaData.map(point => [point.time_tag, point]));
+
+  const merged = [];
+  magData.forEach((magPoint) => {
+    const plasma = plasmaByTime.get(magPoint.time_tag);
+    const speed = parseNumber(plasma?.speed);
+    const density = parseNumber(plasma?.density);
+    const bt = parseNumber(magPoint.bt);
+    const bz = parseNumber(magPoint.bz_gsm);
+    merged.push({
+      time: magPoint.time_tag,
+      speed,
+      density,
+      bt,
+      bz,
+      pdyn: dynamicPressure(density, speed),
+      ey: electricFieldEy(speed, bz),
+    });
+  });
+
+  return merged.filter(sample => Number.isFinite(sample.speed) || Number.isFinite(sample.bt)).slice(-240);
 }
 
 function setMetricText(id, value, formatter, fallback = '—') {
@@ -186,8 +229,11 @@ function persistSpaceWeatherSnapshot() {
       solarWind: spaceWeatherCache.solarWind,
       kpIndex: spaceWeatherCache.kpIndex,
       xrayFlux: Array.isArray(spaceWeatherCache.xrayFlux) ? spaceWeatherCache.xrayFlux : [],
+      dst: spaceWeatherCache.dst,
+      protonFlux: spaceWeatherCache.protonFlux,
       solarWindHistory,
       kpHistory,
+      dstHistory,
     };
 
     localStorage.setItem(SPACE_WEATHER_STORAGE_KEY, JSON.stringify(nextSnapshot));
@@ -239,6 +285,101 @@ function restoreCachedXray(snapshot) {
   const latestFlareTime = snapshot.xrayFlux.at(-1)?.time || snapshot.savedAt;
   setFeedStatus('xrayFlux', 'stale', 'cache', formatCachedMessage('GOES flare data', latestFlareTime), latestFlareTime);
   return true;
+}
+
+function restoreCachedDst(snapshot) {
+  if (!snapshot?.dst && !Array.isArray(snapshot?.dstHistory)) {
+    return false;
+  }
+
+  if (snapshot.dst) {
+    spaceWeatherCache.dst = snapshot.dst;
+  }
+  setDstHistory(Array.isArray(snapshot.dstHistory) ? snapshot.dstHistory : []);
+
+  const timestamp = snapshot.dst?.timestamp || snapshot.savedAt;
+  setFeedStatus('dst', 'stale', 'cache', formatCachedMessage('Dst data', timestamp), timestamp);
+  return Boolean(snapshot.dst) || (Array.isArray(snapshot.dstHistory) && snapshot.dstHistory.length > 0);
+}
+
+function restoreCachedProtons(snapshot) {
+  if (!snapshot?.protonFlux) return false;
+
+  spaceWeatherCache.protonFlux = snapshot.protonFlux;
+  const timestamp = snapshot.protonFlux.timestamp || snapshot.savedAt;
+  setFeedStatus('protonFlux', 'stale', 'cache', formatCachedMessage('GOES proton data', timestamp), timestamp);
+  return true;
+}
+
+// ---- Typed driver-event ingestion ----
+// Each detector fires on every poll; localStorage high-water marks keep the
+// IndexedDB driverEvents store free of duplicates without server-side storage.
+
+function readIngestState() {
+  try {
+    const raw = localStorage.getItem(DRIVER_INGEST_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return {
+      dstSample: parsed.dstSample ?? 0,
+      dstStorm: parsed.dstStorm ?? 0,
+      proton: parsed.proton ?? 0,
+      pulse: parsed.pulse ?? 0,
+      xflare: parsed.xflare ?? 0,
+    };
+  } catch {
+    return { dstSample: 0, dstStorm: 0, proton: 0, pulse: 0, xflare: 0 };
+  }
+}
+
+function writeIngestState(state) {
+  try {
+    localStorage.setItem(DRIVER_INGEST_KEY, JSON.stringify(state));
+  } catch {
+    // Non-fatal: worst case is duplicate driver events on next poll.
+  }
+}
+
+async function ingestDriverEvents(events, type, markerKey) {
+  const ingestState = readIngestState();
+  const fresh = events.filter(event => event.date.getTime() > ingestState[markerKey]);
+  if (fresh.length === 0) return 0;
+
+  let added = 0;
+  for (const event of fresh) {
+    try {
+      await addDriverEvent({
+        type,
+        date: event.date,
+        value: event.minDst ?? event.peakPdynNPa ?? event.peakFluxPfu ?? event.flux ?? null,
+        unit: event.metric === 'dst' ? 'nT' : event.metric === 'pdyn' ? 'nPa' : event.metric === 'protons' ? 'pfu' : 'W/m2',
+        source: event.source || 'NOAA SWPC',
+        metric: event.metric || null,
+      });
+      added += 1;
+      ingestState[markerKey] = Math.max(ingestState[markerKey], event.date.getTime());
+    } catch (error) {
+      console.warn(`Failed to store ${type} driver event:`, error);
+    }
+  }
+  writeIngestState(ingestState);
+  return added;
+}
+
+async function ingestDstSamples(records) {
+  const ingestState = readIngestState();
+  const fresh = records.filter(record => record.time > ingestState.dstSample);
+  if (fresh.length === 0) return;
+
+  for (const record of fresh) {
+    try {
+      await addDstSample({ date: new Date(record.time), dst: record.dst });
+      ingestState.dstSample = Math.max(ingestState.dstSample, record.time);
+    } catch (error) {
+      console.warn('Failed to store Dst sample:', error);
+      break;
+    }
+  }
+  writeIngestState(ingestState);
 }
 
 async function fetchJsonFeed(url, { description, minimumItems = 1 } = {}) {
@@ -325,12 +466,14 @@ export async function fetchNOAASpaceWeather() {
   setFeedStatus('solarWind', 'loading', 'live', 'Checking NOAA solar-wind feeds…');
   setFeedStatus('kpIndex', 'loading', 'live', 'Checking NOAA Kp feeds…');
   setFeedStatus('xrayFlux', 'loading', 'live', 'Checking NOAA X-ray feed…');
+  setFeedStatus('dst', 'loading', 'live', 'Checking NOAA/Kyoto Dst feed…');
+  setFeedStatus('protonFlux', 'loading', 'live', 'Checking NOAA GOES proton feed…');
   updateSpaceWeatherDisplay();
 
   const cachedSnapshot = readCachedSpaceWeatherSnapshot();
 
   try {
-    const [magResult, plasmaResult, kpResult, kpHistoryResult, xrayResult] = await Promise.all([
+    const [magResult, plasmaResult, kpResult, kpHistoryResult, xrayResult, dstResult, protonResult] = await Promise.all([
       fetchJsonFeed(NOAA_APIS.solarWindMag, {
         description: 'NOAA magnetometer data unavailable',
         minimumItems: 1,
@@ -351,32 +494,47 @@ export async function fetchNOAASpaceWeather() {
         description: 'NOAA GOES X-ray data unavailable',
         minimumItems: 1,
       }),
+      fetchJsonFeed(NOAA_APIS.dst, {
+        description: 'NOAA/Kyoto Dst index unavailable',
+        minimumItems: 1,
+      }),
+      fetchJsonFeed(NOAA_APIS.protonFlux, {
+        description: 'NOAA GOES proton flux unavailable',
+        minimumItems: 1,
+      }),
     ]);
 
-    // ---- Solar wind (composite card: magnetometer + plasma) ----
+    // ---- Solar wind (composite card: magnetometer + plasma + derived coupling) ----
     const magData = Array.isArray(magResult.data) ? magResult.data : [];
     const plasmaData = Array.isArray(plasmaResult.data) ? plasmaResult.data : [];
     const latestMag = magData.length > 0 ? magData[magData.length - 1] : null;
     const latestPlasma = plasmaData.length > 0 ? plasmaData[plasmaData.length - 1] : null;
 
+    // Merge 1-minute mag + plasma streams by time_tag so derived metrics use
+    // matched samples; unmatched samples still carry whichever side exists.
+    const compositeHistory = buildCompositeSolarWindHistory(magData, plasmaData);
+
     if (latestMag || latestPlasma) {
+      const speed = parseNumber(latestPlasma?.speed);
+      const density = parseNumber(latestPlasma?.density);
+      const bt = parseNumber(latestMag?.bt);
+      const bz = parseNumber(latestMag?.bz_gsm);
+      const pdyn = dynamicPressure(density, speed);
+      const ey = electricFieldEy(speed, bz);
+
       spaceWeatherCache.solarWind = {
-        speed: parseNumber(latestPlasma?.speed),
-        density: parseNumber(latestPlasma?.density),
-        bt: parseNumber(latestMag?.bt),
-        bz: parseNumber(latestMag?.bz_gsm),
+        speed,
+        density,
+        bt,
+        bz,
+        pdyn,
+        pdynBand: classifyPressure(pdyn).band,
+        ey,
+        eyBand: classifyEy(ey).band,
         timestamp: latestPlasma?.time_tag || latestMag?.time_tag || new Date().toISOString(),
       };
 
-      const speedHistory = plasmaData
-        .slice(-60)
-        .map(point => ({
-          speed: parseNumber(point.speed),
-          time: point.time_tag,
-        }))
-        .filter(point => Number.isFinite(point.speed));
-
-      setSolarWindHistory(speedHistory);
+      setSolarWindHistory(compositeHistory);
 
       const solarWindUpdatedAt = latestPlasma?.time_tag || latestMag?.time_tag;
       if (latestMag && latestPlasma) {
@@ -386,7 +544,7 @@ export async function fetchNOAASpaceWeather() {
           'solarWind',
           'degraded',
           'live',
-          'Magnetometer live; plasma unavailable — speed/density hidden',
+          'Magnetometer live (Bt/Bz); NOAA plasma feed unavailable upstream — speed/density/pressure hidden',
           solarWindUpdatedAt,
         );
       } else {
@@ -397,6 +555,13 @@ export async function fetchNOAASpaceWeather() {
           'Plasma live; magnetometer unavailable — Bt/Bz hidden',
           solarWindUpdatedAt,
         );
+      }
+
+      // Pressure pulses (derived driver events) need at least an hour of samples.
+      if (compositeHistory.length >= 30) {
+        const pulses = detectPressurePulses(compositeHistory.slice(-1440));
+        ingestDriverEvents(pulses, 'pressure-pulse', 'pulse').catch(err =>
+          console.warn('Pressure-pulse ingestion failed:', err));
       }
     } else if (!restoreCachedSolarWind(cachedSnapshot)) {
       spaceWeatherCache.solarWind = null;
@@ -459,9 +624,76 @@ export async function fetchNOAASpaceWeather() {
       spaceWeatherCache.xrayFlux = detectFlares(xrayData);
       const xrayUpdatedAt = xrayData[xrayData.length - 1]?.time_tag || 0;
       setFeedStatus('xrayFlux', 'live', 'live', 'Live GOES X-ray flux', xrayUpdatedAt);
+
+      const xFlares = (spaceWeatherCache.xrayFlux || [])
+        .filter(flare => flare.class === 'X')
+        .map(flare => ({
+          date: new Date(flare.time),
+          flux: flare.flux,
+          metric: 'xray',
+          source: 'NOAA SWPC GOES X-ray (derived flare log)',
+        }));
+      ingestDriverEvents(xFlares, 'x-flare', 'xflare').catch(err =>
+        console.warn('X-flare ingestion failed:', err));
     } else if (!restoreCachedXray(cachedSnapshot)) {
       spaceWeatherCache.xrayFlux = null;
       setFeedStatus('xrayFlux', 'unavailable', 'live', 'GOES X-ray feed unavailable — no cached data');
+    }
+
+    // ---- Dst index (Kyoto via SWPC) ----
+    const dstRows = Array.isArray(dstResult.data) ? dstResult.data : [];
+    const dstRecords = dstRows
+      .map(row => ({ time: Date.parse(row.time_tag), dst: parseNumber(row.dst) }))
+      .filter(record => Number.isFinite(record.time) && Number.isFinite(record.dst))
+      .sort((a, b) => a.time - b.time);
+
+    if (dstRecords.length > 0) {
+      const latestDst = dstRecords[dstRecords.length - 1];
+      spaceWeatherCache.dst = {
+        value: latestDst.dst,
+        band: classifyDst(latestDst.dst).band,
+        label: classifyDst(latestDst.dst).label,
+        timestamp: latestDst.time,
+      };
+      setDstHistory(dstRecords.map(record => ({ dst: record.dst, time: record.time })));
+      setFeedStatus('dst', 'live', 'live', 'Live NOAA/Kyoto Dst (hourly)', latestDst.time);
+
+      ingestDstSamples(dstRecords).catch(err => console.warn('Dst ingestion failed:', err));
+      const dstStorms = detectDstStorms(dstRecords);
+      ingestDriverEvents(dstStorms, 'dst-storm', 'dstStorm').catch(err =>
+        console.warn('Dst-storm ingestion failed:', err));
+    } else if (!restoreCachedDst(cachedSnapshot)) {
+      spaceWeatherCache.dst = null;
+      setDstHistory([]);
+      setFeedStatus('dst', 'unavailable', 'live', 'NOAA/Kyoto Dst feed unavailable — no cached data');
+    }
+
+    // ---- GOES integral proton flux (>=10 MeV channel) ----
+    const protonRows = Array.isArray(protonResult.data) ? protonResult.data : [];
+    const protonRecords = protonRows
+      .filter(row => !row.energy || row.energy === PROTON_ENERGY_CHANNEL)
+      .map(row => ({ time: Date.parse(row.time_tag), flux: parseNumber(row.flux), energy: row.energy }))
+      .filter(record => Number.isFinite(record.time) && Number.isFinite(record.flux))
+      .sort((a, b) => a.time - b.time);
+
+    if (protonRecords.length > 0) {
+      const latestProton = protonRecords[protonRecords.length - 1];
+      const classification = classifyProtons(latestProton.flux);
+      spaceWeatherCache.protonFlux = {
+        value: latestProton.flux,
+        scale: classification.scale,
+        label: classification.label,
+        band: classification.band,
+        timestamp: latestProton.time,
+      };
+      setFeedStatus('protonFlux', 'live', 'live', `Live GOES protons (${PROTON_ENERGY_CHANNEL})`, latestProton.time);
+
+      const protonEvents = detectProtonEvents(protonRecords);
+      ingestDriverEvents(protonEvents, 'proton-event', 'proton').catch(err =>
+        console.warn('Proton-event ingestion failed:', err));
+    } else if (!restoreCachedProtons(cachedSnapshot)) {
+      spaceWeatherCache.protonFlux = null;
+      setFeedStatus('protonFlux', 'unavailable', 'live', 'GOES proton feed unavailable — no cached data');
     }
 
     const feedTimestamps = Object.values(spaceWeatherCache.feedStatus)
@@ -498,6 +730,17 @@ export async function fetchNOAASpaceWeather() {
       setFeedStatus('xrayFlux', 'unavailable', 'live', 'GOES X-ray feed unavailable — no cached data');
     }
 
+    if (!restoreCachedDst(cachedSnapshot)) {
+      spaceWeatherCache.dst = null;
+      setDstHistory([]);
+      setFeedStatus('dst', 'unavailable', 'live', 'NOAA/Kyoto Dst feed unavailable — no cached data');
+    }
+
+    if (!restoreCachedProtons(cachedSnapshot)) {
+      spaceWeatherCache.protonFlux = null;
+      setFeedStatus('protonFlux', 'unavailable', 'live', 'GOES proton feed unavailable — no cached data');
+    }
+
     const feedTimestamps = Object.values(spaceWeatherCache.feedStatus)
       .map(status => toTimestampMs(status.updatedAt))
       .filter(Boolean);
@@ -528,11 +771,20 @@ export function updateSpaceWeatherDisplay() {
     setMetricText('solar-wind-density', sw.density, value => value.toFixed(1));
     setMetricText('solar-wind-bt', sw.bt, value => value.toFixed(1));
     setMetricText('solar-wind-bz', sw.bz, value => value.toFixed(1));
+    setMetricText('solar-wind-pdyn', sw.pdyn, value => `${value.toFixed(1)} nPa`);
+    setMetricText('solar-wind-ey', sw.ey, value => `${value.toFixed(1)} mV/m`);
 
     const bzColor = Number.isFinite(sw.bz)
       ? (sw.bz < -5 ? '#F44336' : sw.bz < 0 ? '#FF9800' : '#4CAF50')
       : 'var(--color-text-secondary)';
     setStyle('solar-wind-bz', 'color', bzColor);
+
+    const pressure = classifyPressure(sw.pdyn);
+    setText('solar-wind-pdyn-band', pressure.label);
+    setStyle('solar-wind-pdyn-band', 'color', pressure.band === 'strong' ? '#F44336' : pressure.band === 'elevated' ? '#FF9800' : '#4CAF50');
+    const eyClass = classifyEy(sw.ey);
+    setText('solar-wind-ey-band', eyClass.label);
+    setStyle('solar-wind-ey-band', 'color', eyClass.band === 'strong' ? '#F44336' : eyClass.band === 'moderate' ? '#FF9800' : '#4CAF50');
 
     const prefix = solarWindStatus.state === 'stale' ? 'Cached ' : '';
     setText('space-last-update', `${prefix}${formatClockTime(sw.timestamp)}`);
@@ -541,8 +793,49 @@ export function updateSpaceWeatherDisplay() {
     setText('solar-wind-density', '—');
     setText('solar-wind-bt', '—');
     setText('solar-wind-bz', '—');
+    setText('solar-wind-pdyn', '—');
+    setText('solar-wind-ey', '—');
+    setText('solar-wind-pdyn-band', '—');
+    setText('solar-wind-ey-band', '—');
     setStyle('solar-wind-bz', 'color', 'var(--color-text-secondary)');
+    setStyle('solar-wind-pdyn-band', 'color', 'var(--color-text-secondary)');
+    setStyle('solar-wind-ey-band', 'color', 'var(--color-text-secondary)');
     setText('space-last-update', solarWindStatus.state === 'loading' ? 'Loading…' : 'Unavailable');
+  }
+
+  // ---- Dst card ----
+  const dst = spaceWeatherCache.dst;
+  const dstStatus = spaceWeatherCache.feedStatus.dst;
+  renderFeedMessage('dst-source', dstStatus);
+  if (dst) {
+    setMetricText('dst-value', dst.value, value => `${Math.round(value)} nT`);
+    setText('dst-status', dst.label);
+    const dstColor = dst.band === 'intense' ? '#F44336' : dst.band === 'moderate' ? '#FF9800' : dst.band === 'unsettled' ? '#FFC107' : '#4CAF50';
+    setStyle('dst-status', 'color', dstColor);
+    const dstPrefix = dstStatus.state === 'stale' ? 'Cached ' : '';
+    setText('dst-last-update', `${dstPrefix}${formatClockTime(dst.timestamp)}`);
+  } else {
+    setText('dst-value', '—');
+    setText('dst-status', dstStatus.state === 'loading' ? 'Loading…' : 'Unavailable');
+    setStyle('dst-status', 'color', feedColor(dstStatus.state));
+    setText('dst-last-update', '');
+  }
+
+  // ---- Proton card ----
+  const protons = spaceWeatherCache.protonFlux;
+  const protonStatus = spaceWeatherCache.feedStatus.protonFlux;
+  renderFeedMessage('proton-source', protonStatus);
+  if (protons) {
+    setMetricText('proton-flux', protons.value, value => value.toFixed(2));
+    setText('proton-status', protons.label);
+    setStyle('proton-status', 'color', protons.band === 'event' ? '#F44336' : '#4CAF50');
+    const protonPrefix = protonStatus.state === 'stale' ? 'Cached ' : '';
+    setText('proton-last-update', `${protonPrefix}${formatClockTime(protons.timestamp)}`);
+  } else {
+    setText('proton-flux', '—');
+    setText('proton-status', protonStatus.state === 'loading' ? 'Loading…' : 'Unavailable');
+    setStyle('proton-status', 'color', feedColor(protonStatus.state));
+    setText('proton-last-update', '');
   }
 
   if (kp) {
@@ -582,8 +875,109 @@ export function updateSpaceWeatherDisplay() {
   }
 
   renderSpaceWeatherSummary();
+  renderCouplingChain();
   drawRealSolarWindChart(solarWindHistory);
   drawRealKpChart(kpHistory);
+  drawDstChart(dstHistory);
+}
+
+// ===== SOLAR-TERRESTRIAL COUPLING CHAIN MONITOR =====
+// Renders the hypothesized mechanism chain with the live status of every
+// monitored stage. Stages without a public feed are labeled honestly rather
+// than approximated.
+const CHAIN_STAGE_COLORS = {
+  quiet: '#4CAF50',
+  elevated: '#FF9800',
+  strong: '#F44336',
+  event: '#F44336',
+  intense: '#F44336',
+  moderate: '#FF9800',
+  unsettled: '#FFC107',
+  loading: 'var(--color-text-secondary)',
+  unmonitored: 'var(--color-text-secondary)',
+};
+
+function chainStageColor(band) {
+  return CHAIN_STAGE_COLORS[band] || CHAIN_STAGE_COLORS.loading;
+}
+
+export function renderCouplingChain() {
+  const container = document.getElementById('coupling-chain');
+  if (!container) return;
+
+  ensureFeedStatuses();
+  const sw = spaceWeatherCache.solarWind;
+  const kp = spaceWeatherCache.kpIndex;
+  const dst = spaceWeatherCache.dst;
+  const protons = spaceWeatherCache.protonFlux;
+
+  const driverLines = [];
+  if (sw?.speed != null) driverLines.push(`Speed ${Math.round(sw.speed)} km/s`);
+  if (sw?.density != null) driverLines.push(`Density ${sw.density.toFixed(1)} cm⁻³`);
+  if (sw?.bt != null) driverLines.push(`Bt ${sw.bt.toFixed(1)} nT`);
+  if (sw?.bz != null) driverLines.push(`Bz ${sw.bz.toFixed(1)} nT`);
+  if (sw?.pdyn != null) driverLines.push(`P_dyn ${sw.pdyn.toFixed(1)} nPa (${classifyPressure(sw.pdyn).label.toLowerCase()})`);
+  if (sw?.ey != null) driverLines.push(`E_y ${sw.ey.toFixed(1)} mV/m (${classifyEy(sw.ey).label.toLowerCase()})`);
+  const pressureBand = sw?.pdyn != null ? classifyPressure(sw.pdyn).band : 'loading';
+  const eyBand = sw?.ey != null ? classifyEy(sw.ey).band : 'loading';
+  const driverBand = pressureBand === 'strong' || eyBand === 'strong' ? 'strong'
+    : pressureBand === 'elevated' || eyBand === 'moderate' ? 'elevated' : 'quiet';
+
+  const magnetosphereLines = [];
+  let magnetosphereBand = 'quiet';
+  if (kp?.value != null) {
+    magnetosphereLines.push(`Kp ${kp.value.toFixed(1)} (${kp.status})`);
+    if (kp.value >= 7) magnetosphereBand = 'strong';
+    else if (kp.value >= 5) magnetosphereBand = 'elevated';
+  }
+  if (dst?.value != null) {
+    const dstClass = classifyDst(dst.value);
+    magnetosphereLines.push(`Dst ${Math.round(dst.value)} nT (${dstClass.label.toLowerCase()})`);
+    if (dstClass.band === 'intense') magnetosphereBand = 'intense';
+    else if (dstClass.band === 'moderate' && magnetosphereBand !== 'intense') magnetosphereBand = 'moderate';
+  }
+  if (protons?.value != null) {
+    magnetosphereLines.push(`Protons ${protons.value.toFixed(1)} pfu (${protons.label.toLowerCase()})`);
+    if (protons.band === 'event' && (magnetosphereBand === 'quiet' || magnetosphereBand === 'elevated')) {
+      magnetosphereBand = 'strong';
+    }
+  }
+
+  const renderStage = (id, title, lines, band, note, emptyLabel = 'Awaiting data…') => {
+    const stage = document.getElementById(id);
+    if (!stage) return;
+    const valueElement = stage.querySelector('.chain-value');
+    const noteElement = stage.querySelector('.chain-note');
+    if (valueElement) {
+      valueElement.textContent = lines.length > 0 ? lines.join(' · ') : emptyLabel;
+      valueElement.style.color = chainStageColor(lines.length > 0 ? band : 'loading');
+    }
+    if (noteElement) noteElement.textContent = note || '';
+    stage.dataset.band = lines.length > 0 ? band : 'loading';
+  };
+
+  renderStage('chain-solar-wind', 'Solar wind driver', driverLines, driverBand,
+    'DSCOVR/ACE/IMAP — pressure P_dyn = ρv², reconnection driver E_y = −v·Bz. If fields are missing, the NOAA plasma feed is degraded upstream.');
+  renderStage('chain-magnetosphere', 'Magnetosphere response', magnetosphereLines, magnetosphereBand,
+    'NOAA SWPC Kp · Kyoto Dst · GOES protons');
+  renderStage('chain-ionosphere', 'Ionosphere / atmosphere', [], 'unmonitored',
+    'No public real-time feed wired in — this link is not monitored by this app',
+    'Not monitored');
+  renderStage('chain-lithosphere', 'Lithosphere response (hypothesis under test)', [], 'quiet',
+    'USGS M4.5+ seismicity — tested via the Research Lab lag scan',
+    'See Research Lab');
+
+  // Compact readout on the Research Lab tab so the current regime is visible
+  // next to the lag-scan interpretation.
+  const researchDrivers = document.getElementById('research-current-drivers');
+  if (researchDrivers) {
+    const pressureLine = driverLines.find(line => line.startsWith('P_dyn'));
+    researchDrivers.textContent = [
+      driverLines.length > 0 ? `SW: ${driverLines[0]}${pressureLine ? ` · ${pressureLine}` : ''}` : null,
+      magnetosphereLines.length > 0 ? `Geo: ${magnetosphereLines.slice(0, 2).join(' · ')}` : null,
+      protons?.band === 'event' ? `SEP event active (${protons.label})` : null,
+    ].filter(Boolean).join(' ‖ ') || 'Awaiting space-weather data…';
+  }
 }
 
 // ===== SPACE WEATHER ALERTS =====
@@ -636,15 +1030,12 @@ export function checkSpaceWeatherAlerts() {
 /**
  * Refresh space weather by re-fetching from NOAA.
  * Called when the user clicks the "Refresh" button on the Space Weather tab.
+ * Toasts only when something needs attention; a clean update is its own feedback.
  */
 export async function refreshSpaceData() {
-  showInAppNotification('Space Weather', 'Fetching latest NOAA data…', 'info');
-
   try {
     const summary = await fetchNOAASpaceWeather();
-    if (summary.overallState === 'live') {
-      showInAppNotification('Space Weather', 'NOAA feeds updated successfully.', 'success');
-    } else {
+    if (summary.overallState !== 'live') {
       showInAppNotification('Space Weather', summary.text, 'warning');
     }
   } catch (error) {

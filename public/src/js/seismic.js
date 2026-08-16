@@ -101,6 +101,7 @@ export function updateSeismicDisplay(earthquakes) {
 
     // Clear existing content
     container.innerHTML = '';
+    container.setAttribute('aria-busy', 'false');
 
     if (recent.length === 0) {
       const emptyMsg = document.createElement('p');

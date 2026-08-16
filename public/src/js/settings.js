@@ -39,6 +39,14 @@ export function syncSettingsForm() {
   if (kpEl) kpEl.value = alertSettings.kpThreshold;
   if (flareEl) flareEl.value = alertSettings.solarFlareClass;
   if (enabledEl) enabledEl.checked = alertSettings.enabled;
+
+  // Mirror the active thresholds on the Space Weather notifications card.
+  const eqDisplay = document.getElementById('notif-eq-display');
+  const kpDisplay = document.getElementById('notif-kp-display');
+  const flareDisplay = document.getElementById('notif-flare-display');
+  if (eqDisplay) eqDisplay.textContent = `M${Number(alertSettings.earthquakeMagnitude).toFixed(1)}+`;
+  if (kpDisplay) kpDisplay.textContent = `Kp≥${Number(alertSettings.kpThreshold).toFixed(0)}`;
+  if (flareDisplay) flareDisplay.textContent = `${alertSettings.solarFlareClass}-class+`;
 }
 
 /** Read settings form and save to store + localStorage. */

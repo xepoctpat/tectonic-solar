@@ -60,18 +60,27 @@ export function normalizeStormCatalog(storms = []) {
 
   storms.forEach(storm => {
     const time = new Date(storm?.date).getTime();
+    // Kp storms carry `kp`; alternative driver definitions (Dst storms, pressure
+    // pulses, proton events) carry `intensity` instead. Either way a numeric
+    // intensity is only used to pick the strongest event inside a 3-hour bucket.
     const kp = Number(storm?.kp);
+    const intensity = Number(storm?.intensity);
+    const bucketIntensity = Number.isFinite(kp)
+      ? kp
+      : Number.isFinite(intensity)
+        ? intensity
+        : null;
 
-    if (!Number.isFinite(time) || !Number.isFinite(kp)) {
+    if (!Number.isFinite(time) || bucketIntensity === null) {
       return;
     }
 
     const bucketStart = Math.floor(time / THREE_HOUR_MS) * THREE_HOUR_MS;
     const existing = buckets.get(bucketStart);
-    if (!existing || kp > existing.kp) {
+    if (!existing || bucketIntensity > existing.intensity) {
       buckets.set(bucketStart, {
         ...storm,
-        kp,
+        intensity: bucketIntensity,
         date: new Date(bucketStart),
       });
     }
