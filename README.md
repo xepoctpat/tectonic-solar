@@ -28,6 +28,7 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 | Proton Flux | NOAA GOES-Primary | 6-hour JSON |
 | Historical earthquake search | USGS ComCat | Validated proxy via `/api/usgs/comcat` |
 | Historical geomagnetic indices | NOAA/NCEI SWPC `dayind` archive | Validated proxy via `/api/noaa/dayind?date=YYYY-MM-DD` |
+| Historical hourly Dst | Kyoto WDC (provisional) | Parsed proxy via `/api/noaa/dst-archive?month=YYYY-MM` |
 | Weather | Open-Meteo | Free API, no key |
 | Air Quality (PM2.5, AQI) | Open-Meteo Air Quality | Free API, no key |
 | Global tectonic plate regions + boundaries | Bird PB2002 (2003) | Local GeoJSON artifacts at `public/data/tectonics/pb2002-plates.geojson` and `public/data/tectonics/pb2002-boundaries.geojson` |
@@ -43,10 +44,10 @@ The tectonic map layers are intentionally **not** live third-party browser depen
 |---|---|
 | **Map** | Interactive Leaflet map — the primary 2D research view for live USGS earthquakes, cited PB2002 plate regions, subtype-styled tectonic boundary families (including explicit subduction symbology), computed plate-motion vectors for all 52 PB2002 plates (Euler-pole derived, Pacific reference frame), a magnitude filter slider, clearer plate-study controls, and multiple basemaps; any future 3D globe should remain optional and isolated from the default map path |
 | **Space Weather** | Live NOAA solar wind with derived coupling metrics (dynamic pressure, E_y), Kp index chart, hourly Dst index with storm bands, ≥10 MeV proton flux with NOAA S-scale status, GOES X-ray flare log, a Coupling Chain Monitor (solar wind → magnetosphere → atmosphere → lithosphere), and a resizable split workspace |
-| **Seismic** | Dynamic USGS earthquake list (newest first, time-ago), statistics (M5+/M6+ counts, largest), magnitude distribution chart (Chart.js horizontal bars with magnitude color-coding), and a resizable split workspace |
+| **Seismic** | Dynamic USGS earthquake list (newest first, time-ago), statistics (M5+/M6+ counts, largest), magnitude + depth distribution charts, and a resizable split workspace |
 | **Environment** | Real-time weather (temp, feels-like, humidity, pressure, wind, condition) and air quality (PM2.5, PM10, CO, NO₂, European AQI) via Open-Meteo free API, AQI gauge doughnut chart, and a resizable split workspace |
 | **Correlation** | Quick correlation readout: research background, current 27–28 day window status, descriptive probability card, 30-day storms-vs-seismic timeline, and summary stats |
-| **Research Lab** | Historical USGS ComCat loading, NOAA storm-archive foundation loading, selectable storm definitions (Kp ≥ 5 baseline, Dst ≤ −50 nT, pressure pulses), deterministic bootstrap null calibration through a local Python sidecar, 0–60 day lag scan, live coupling-driver readout, workflow-state reporting, and explicit browser-versus-Python research boundaries |
+| **Research Lab** | Historical USGS ComCat + NOAA storm + Kyoto Dst archive loading; selectable storm definitions (Kp ≥ 5 baseline, Dst ≤ −50 nT, pressure pulses); regional stratification (Global / Circum-Pacific via PB2002 tagging); multiple-comparison-aware bootstrap null calibration through a local Python sidecar; 0–60 day lag scan; Gutenberg–Richter b-value; JSON run-artifact and CSV export; live coupling-driver readout |
 | **Settings** | Configurable alert thresholds, dark mode toggle (☀️/🌙), notifications, localStorage persistence, and a resizable split workspace |
 
 ### Sprint 1-4 Enhancements (MVP Redesign)

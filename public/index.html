@@ -440,6 +440,10 @@
             <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:6px">MAGNITUDE DISTRIBUTION</div>
             <canvas id="magnitude-chart" width="250" height="130" aria-label="Magnitude distribution chart"></canvas>
           </div>
+          <div style="margin-top:12px">
+            <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:6px">DEPTH DISTRIBUTION</div>
+            <canvas id="depth-chart" width="250" height="130" aria-label="Earthquake depth distribution chart"></canvas>
+          </div>
         </div>
 
         <!-- Regional probability (static informational) -->
@@ -724,6 +728,8 @@
           <p class="tab-subtitle">Archive loading, null calibration, lag-scan diagnostics, and the browser-to-Python research boundary.</p>
         </div>
         <button id="btn-run-analysis" class="btn btn-primary">▶ Run Analysis</button>
+        <button id="btn-export-run" class="btn btn-secondary" title="Download the full run artifact: catalogs, scan, interpretation, bootstrap result, and provenance">⬇ Export Run (JSON)</button>
+        <button id="btn-export-csv" class="btn btn-secondary" title="Download storms, earthquakes, and the lag scan as CSV">⬇ Export CSV</button>
       </div>
 
       <div class="tab-workspace split-layout" data-split-layout data-split-id="research" data-default-split="54" data-min-left-px="360" data-min-right-px="360">
@@ -740,6 +746,7 @@
             <div style="display:flex;flex-direction:column;gap:8px;font-size:var(--font-size-sm)">
               <div>Historical USGS M5+: <strong id="data-eq-status">Not loaded</strong></div>
               <div>Historical NOAA storms: <strong id="data-storm-archive-status">Not loaded</strong></div>
+              <div>Historical Kyoto Dst: <strong id="data-dst-archive-status">Not loaded</strong></div>
               <div>Storm seed (SC25 fallback): <strong id="data-storm-status">Not loaded</strong></div>
               <div>Corpus span: <strong id="data-span">—</strong></div>
               <div>Foundation readiness: <strong id="data-foundation-state">Seed/live only</strong></div>
@@ -756,6 +763,9 @@
               </button>
               <button id="btn-load-storm-archive" class="btn btn-secondary" style="font-size:var(--font-size-sm)">
                 ⬇ Load 2-Year Storm Archive
+              </button>
+              <button id="btn-load-dst-archive" class="btn btn-secondary" style="font-size:var(--font-size-sm)">
+                ⬇ Load 2-Year Dst Archive
               </button>
             </div>
             <div id="data-load-status" style="margin-top:8px;font-size:var(--font-size-xs);color:var(--color-text-secondary)"></div>
@@ -798,6 +808,15 @@
               <div class="analysis-item">
                 <div class="analysis-label">Region mode</div>
                 <div class="analysis-value" id="research-region-status">Global only</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Region selector</div>
+                <div class="analysis-value">
+                  <select id="region-select" class="form-control" aria-label="Regional stratification for lag analysis" style="min-width:200px">
+                    <option value="global" selected>Global (no stratification)</option>
+                    <option value="ring-of-fire">Circum-Pacific (Ring of Fire)</option>
+                  </select>
+                </div>
               </div>
               <div class="analysis-item">
                 <div class="analysis-label">Null calibration</div>
@@ -910,6 +929,42 @@
             </div>
             <div class="analysis-note tone-muted" id="lag-evidence-note">
               The probability card is descriptive only until enough live/historical evidence accumulates.
+            </div>
+          </div>
+
+          <div class="timeline-container resizable-panel" data-resizable-panel data-panel-id="research-bvalue-panel">
+            <h3>Seismology Statistics (b-value)</h3>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-bottom:8px">
+              Gutenberg–Richter b-value of the current earthquake corpus via the local Python sidecar
+              (Aki 1965 maximum likelihood, δb = b/√N). Uses the same region filter and storm-definition
+              corpus as the lag scan above.
+            </p>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+              <button id="btn-run-bvalue" class="btn btn-primary" style="font-size:var(--font-size-sm)">
+                σ Compute b-value
+              </button>
+              <div class="analysis-badge tone-muted" id="bvalue-status">Not run</div>
+            </div>
+            <div class="analysis-grid" aria-label="b-value results">
+              <div class="analysis-item">
+                <div class="analysis-label">b-value</div>
+                <div class="analysis-value" id="bvalue-value">—</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Uncertainty δb</div>
+                <div class="analysis-value" id="bvalue-error">—</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">Events ≥ Mc</div>
+                <div class="analysis-value" id="bvalue-count">—</div>
+              </div>
+              <div class="analysis-item">
+                <div class="analysis-label">a-value</div>
+                <div class="analysis-value" id="bvalue-a">—</div>
+              </div>
+            </div>
+            <div class="analysis-note tone-muted" id="bvalue-note">
+              Typical global b ≈ 1; regional departures are seismologically meaningful, not hypothesis evidence.
             </div>
           </div>
 

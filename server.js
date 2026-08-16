@@ -307,6 +307,44 @@ app.post('/api/research/bootstrap', researchJsonParser, async (req, res) => {
   }
 });
 
+app.post('/api/research/bvalue', researchJsonParser, async (req, res) => {
+  let earthquakes;
+
+  try {
+    earthquakes = validateResearchEarthquakes(req.body?.earthquakes);
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error?.message || 'Invalid research payload' });
+    return;
+  }
+
+  const completeness = parseBoundedNumber(req.body?.completeness, { min: 0, max: 10, fallback: 5 });
+
+  try {
+    const upstream = await fetchResearchSidecar('/bvalue', {
+      method: 'POST',
+      body: JSON.stringify({ earthquakes, completeness }),
+    });
+
+    if (!upstream.ok) {
+      res.status(upstream.status >= 400 && upstream.status < 500 ? upstream.status : 503).json({
+        ok: false,
+        error: upstream.json?.error || 'Python b-value computation failed',
+        message: upstream.json?.message || upstream.text || 'The local Python research sidecar did not complete the b-value request.',
+      });
+      return;
+    }
+
+    res.status(200).json(upstream.json || { ok: true });
+  } catch (error) {
+    const isTimeout = error?.name === 'AbortError';
+    res.status(503).json({
+      ok: false,
+      error: isTimeout ? 'Python b-value computation timed out' : 'Python research sidecar unavailable',
+      message: 'Activate solar-env and run python scripts/research_sidecar.py before requesting b-value analysis.',
+    });
+  }
+});
+
 app.use(express.json({ limit: '16kb' }));
 
 async function fetchWithTimeout(url) {
@@ -463,6 +501,159 @@ app.get('/api/noaa/dayind', (req, res) => {
   }
 
   proxyRequest(res, buildDayindArchiveUrl(date), { maxRetries: 1 });
+});
+
+// Kyoto WDC monthly provisional Dst. The monthly index page embeds the full
+// month of hourly Dst in a <pre class="data"> block in a fixed-width table;
+// negative values may be glued together ("-313-390"), so parsing consumes
+// one signed integer at a time. Server-side parse keeps one implementation.
+//
+// Quirk: wdc.kugi.kyoto-u.ac.jp returns 404 to HTTP/1.1 requests (only h2
+// responses exist), and its TLS ALPN extension is malformed enough that
+// Node's OpenSSL rejects the handshake outright. Node's fetch cannot do h2,
+// so this host is fetched via curl (whose TLS stack tolerates the quirk),
+// with the Node http2 client as an in-process fallback.
+const KYOTO_DST_ORIGIN = 'https://wdc.kugi.kyoto-u.ac.jp';
+const http2 = require('node:http2');
+const { execFile } = require('node:child_process');
+
+function fetchKyotoHttp2(pathname) {
+  return new Promise((resolve, reject) => {
+    const session = http2.connect(KYOTO_DST_ORIGIN);
+    session.setTimeout(REQUEST_TIMEOUT_MS, () => {
+      session.destroy(new Error('Kyoto WDC request timed out'));
+    });
+
+    const request = session.request({
+      ':method': 'GET',
+      ':path': pathname,
+      'user-agent': 'tectonic-solar-local-proxy/1.0',
+      accept: 'text/html,*/*',
+    });
+    request.setEncoding('utf8');
+
+    let body = '';
+    request.on('data', chunk => { body += chunk; });
+    request.on('end', () => {
+      const status = request.responseHeaders?.[':status'] ?? 0;
+      session.close();
+      resolve({ ok: status >= 200 && status < 300, status, body });
+    });
+    request.on('error', (error) => {
+      session.destroy();
+      reject(error);
+    });
+    session.on('error', (error) => reject(error));
+    request.end();
+  });
+}
+
+function fetchKyotoViaCurl(pathname) {
+  return new Promise((resolve) => {
+    execFile('curl', ['-s', '--max-time', '20', `${KYOTO_DST_ORIGIN}${pathname}`], { timeout: 25_000 }, (error, stdout) => {
+      if (error || !stdout) {
+        resolve({ ok: false, status: 0, body: '' });
+        return;
+      }
+      resolve({ ok: stdout.includes('<pre class="data">'), status: stdout.includes('<pre class="data">') ? 200 : 404, body: stdout });
+    });
+  });
+}
+
+async function fetchKyotoMonthlyPage(pathname) {
+  try {
+    const viaHttp2 = await fetchKyotoHttp2(pathname);
+    if (viaHttp2.ok) return viaHttp2;
+  } catch { /* fall through to curl */ }
+
+  return fetchKyotoViaCurl(pathname);
+}
+
+function parseKyotoDstHtml(html, yearMonth) {
+  const match = /<pre class="data">([\s\S]*?)<\/pre>/i.exec(html || '');
+  if (!match) return null;
+
+  const year = Number(yearMonth.slice(0, 4));
+  const month = Number(yearMonth.slice(5, 7));
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return null;
+
+  const records = [];
+  for (const rawLine of match[1].split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!/^\d{1,2}\s/.test(line)) continue;
+
+    const dayMatch = /^(\d{1,2})\s+(.*)$/.exec(line);
+    if (!dayMatch) continue;
+    const day = Number(dayMatch[1]);
+
+    const values = [];
+    let rest = dayMatch[2].trim();
+    while (values.length < 24 && rest.length > 0) {
+      const valueMatch = /^(-?\d{1,4})/.exec(rest);
+      if (!valueMatch) break;
+      const value = Number(valueMatch[1]);
+      if (!Number.isInteger(value)) break;
+      // Kyoto uses large negatives as missing-data markers (e.g. -9999).
+      values.push(value <= -9999 ? null : value);
+      rest = rest.slice(valueMatch[1].length).replace(/^\s+/, '');
+    }
+
+    if (values.length !== 24) continue;
+    values.forEach((dst, hourIndex) => {
+      if (dst === null) return;
+      const date = new Date(Date.UTC(year, month - 1, day, hourIndex));
+      if (Number.isNaN(date.getTime())) return;
+      records.push({ time: date.toISOString(), dst });
+    });
+  }
+
+  return records.length > 0 ? records : null;
+}
+
+app.get('/api/noaa/dst-archive', async (req, res) => {
+  const month = parseDateOnly(req.query.month ? `${req.query.month}-01` : null);
+
+  if (!month) {
+    res.status(400).json({ ok: false, error: 'Missing or invalid month query param (expected YYYY-MM)' });
+    return;
+  }
+
+  const monthDate = new Date(`${month}T00:00:00Z`);
+  const now = new Date();
+  if (monthDate < new Date('1995-01-01T00:00:00Z') || monthDate > now) {
+    res.status(400).json({ ok: false, error: 'month must be between 1995-01 and the current month' });
+    return;
+  }
+
+  const yearMonth = month.slice(0, 7);
+
+  try {
+    // The monthly .for.request link is form-gated; the monthly index page
+    // itself embeds the same table, so fetch and parse that (over HTTP/2).
+    const indexUrl = `${KYOTO_DST_ORIGIN}/dst_provisional/${yearMonth}/index.html`;
+    const upstream = await fetchKyotoMonthlyPage(`/dst_provisional/${yearMonth}/index.html`);
+    if (!upstream.ok) {
+      res.status(502).json({ ok: false, error: `Kyoto WDC returned HTTP ${upstream.status}` });
+      return;
+    }
+
+    const records = parseKyotoDstHtml(upstream.body, yearMonth);
+    if (!records) {
+      res.status(502).json({ ok: false, error: 'Kyoto WDC page did not contain a parseable Dst table' });
+      return;
+    }
+
+    res.status(200).json({
+      ok: true,
+      month: yearMonth,
+      source: 'WDC for Geomagnetism, Kyoto (provisional Dst)',
+      sourceUrl: indexUrl,
+      count: records.length,
+      records,
+    });
+  } catch (error) {
+    res.status(502).json({ ok: false, error: 'Kyoto WDC Dst archive unavailable' });
+  }
 });
 
 app.get('/api/usgs/eq-4.5-day', (_req, res) => proxyRequest(res, UPSTREAM.usgs.m45Day));

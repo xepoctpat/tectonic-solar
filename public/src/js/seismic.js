@@ -2,7 +2,7 @@
 import { alertSettings } from './store.js';
 import { sendNotification, showInAppNotification } from './notifications.js';
 import { setText } from './utils.js';
-import { drawMagnitudeDistribution } from './charts.js';
+import { drawMagnitudeDistribution, drawDepthHistogram } from './charts.js';
 import { addEarthquake } from './db.js';
 
 const seenEarthquakeAlertKeys = new Set();
@@ -155,6 +155,7 @@ export function updateSeismicDisplay(earthquakes) {
 
   // ---- Update magnitude distribution chart ----
   drawMagnitudeDistribution(earthquakes);
+  drawDepthHistogram(earthquakes);
 }
 
 /** Refresh earthquake data and show an in-app notification. */

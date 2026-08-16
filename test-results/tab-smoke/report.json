@@ -1,24 +1,24 @@
 {
   "appUrl": "http://localhost:3000",
-  "generatedAt": "2026-08-16T08:30:31.501Z",
+  "generatedAt": "2026-08-16T09:20:56.247Z",
   "health": {
     "ok": true,
     "status": 200,
     "body": {
       "ok": true,
       "mode": "deployment-simulation",
-      "uptimeSeconds": 2940,
-      "durationMs": 224,
+      "uptimeSeconds": 266,
+      "durationMs": 252,
       "checks": {
         "noaa": {
           "ok": true,
           "status": 200
         },
-        "usgs": {
+        "openmeteo": {
           "ok": true,
           "status": 200
         },
-        "openmeteo": {
+        "usgs": {
           "ok": true,
           "status": 200
         }
@@ -199,12 +199,12 @@
       },
       "probeRect": {
         "x": 43,
-        "y": 568.84375,
+        "y": 594.84375,
         "width": 261.484375,
         "height": 38,
-        "top": 568.84375,
+        "top": 594.84375,
         "right": 304.484375,
-        "bottom": 606.84375,
+        "bottom": 632.84375,
         "left": 43
       }
     },

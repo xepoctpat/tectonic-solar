@@ -26,16 +26,26 @@ import { drawSpaceCharts, drawLagScanChart, redrawCachedCharts } from './charts.
 import { loadSettings, syncSettingsForm, saveAlertSettings, toggleAlerts, resetSettings } from './settings.js';
 import { requestNotificationPermission, initNotificationStatus, showInAppNotification } from './notifications.js';
 import { REFRESH_INTERVALS } from './config.js';
+import { setText } from './utils.js';
 import { setDataModeChangeListener } from './store.js';
 import { initDB } from './db.js';
 import {
   seedHistoricalStorms,
   loadHistoricalUSGS,
   loadHistoricalStormArchive,
+  loadHistoricalDstArchive,
   runFullAnalysis,
   STORM_DEFINITIONS,
 } from './prediction.js';
-import { checkResearchSidecarStatus, runBootstrapNullTest } from './researchCompute.js';
+import { checkResearchSidecarStatus, runBootstrapNullTest, runBValueTest } from './researchCompute.js';
+import {
+  buildAnalysisRunArtifact,
+  downloadJson,
+  downloadCsvString,
+  stormsCsv,
+  earthquakesCsv,
+  lagScanCsv,
+} from './export.mjs';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // ---- Register Service Worker (PWA) ----
@@ -230,7 +240,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function setArchiveButtonsDisabled(disabled) {
-    ['btn-load-foundation', 'btn-load-historical', 'btn-load-storm-archive'].forEach(id => {
+    ['btn-load-foundation', 'btn-load-historical', 'btn-load-storm-archive', 'btn-load-dst-archive'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.disabled = disabled;
     });
@@ -459,7 +469,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (regionEl) {
-      regionEl.textContent = 'Global only — regional stratification is not wired in yet';
+      regionEl.textContent = meta.regionAvailable === false
+        ? 'Stratification unavailable — PB2002 plate polygons failed to load'
+        : `${meta.regionLabel} — ${meta.eqCount.toLocaleString()} of ${meta.rawEqCount.toLocaleString()} earthquakes`;
     }
 
     if (nullEl) {
@@ -576,15 +588,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const runButton = document.getElementById('btn-run-analysis');
     const definitionKey = document.getElementById('storm-definition-select')?.value || 'kp';
     const definition = STORM_DEFINITIONS[definitionKey] || STORM_DEFINITIONS.kp;
+    const regionKey = document.getElementById('region-select')?.value || 'global';
 
     if (runButton) {
       runButton.disabled = true;
       runButton.textContent = '⏳ Running…';
     }
-    if (statusEl) statusEl.textContent = `Running analysis (${definition.label})…`;
+    if (statusEl) statusEl.textContent = `Running analysis (${definition.label}${regionKey !== 'global' ? `, ${regionKey}` : ''})…`;
     try {
       await refreshResearchSidecarStatus();
-      const analysis = await runFullAnalysis({ stormDefinition: definitionKey });
+      const analysis = await runFullAnalysis({ stormDefinition: definitionKey, region: regionKey });
       const { scanResults, prediction, interpretation, meta } = analysis;
       latestAnalysisResult = analysis;
       latestBootstrapResult = null;
@@ -675,19 +688,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       const detailEl = document.getElementById('pred-detail');
       const probNoteEl = document.getElementById('pred-probability-note');
 
-      if (probEl && prediction.probability !== null) {
-        const pct = Math.round(prediction.probability * 100);
-        probEl.textContent = `${pct}%`;
-        probEl.style.color = toneColor(interpretation?.tone);
-      }
-      if (labelEl) {
-        labelEl.textContent = buildPredictionLabel(interpretation, prediction);
-      }
-      if (confEl) {
-        const confColors = { high: '#4CAF50', medium: '#FFC107', low: '#FF9800', insufficient: '#9E9E9E' };
-        if (interpretation?.powerLevel === 'thin') {
-          confEl.textContent = `${prediction.confidence} (underpowered)`;
-          confEl.style.color = '#9E9E9E';
+      if (!prediction) {
+        // Region stratification unavailable: no honest numbers to show.
+        if (probEl) probEl.textContent = '—';
+        if (labelEl) labelEl.textContent = 'Stratification unavailable';
+        if (confEl) confEl.textContent = '—';
+        if (detailEl) detailEl.textContent = 'The PB2002 plate polygons failed to load, so the regional corpus cannot be built.';
+        if (probNoteEl) {
+          probNoteEl.textContent = 'No analysis is shown rather than falling back silently to the global corpus.';
+          applyToneClass(probNoteEl, 'warn');
+        }
+      } else {
+        if (probEl && prediction.probability !== null) {
+          const pct = Math.round(prediction.probability * 100);
+          probEl.textContent = `${pct}%`;
+          probEl.style.color = toneColor(interpretation?.tone);
+        }
+        if (labelEl) {
+          labelEl.textContent = buildPredictionLabel(interpretation, prediction);
+        }
+        if (confEl) {
+          const confColors = { high: '#4CAF50', medium: '#FFC107', low: '#FF9800', insufficient: '#9E9E9E' };
+          if (interpretation?.powerLevel === 'thin') {
+            confEl.textContent = `${prediction.confidence} (underpowered)`;
+            confEl.style.color = '#9E9E9E';
         } else if (interpretation?.powerLevel === 'basic') {
           confEl.textContent = `${prediction.confidence} (exploratory)`;
           confEl.style.color = '#FF9800';
@@ -709,9 +733,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           ?? 'The percentage card is descriptive only until the lag scan and corpus quality say otherwise.';
         applyToneClass(probNoteEl, interpretation?.tone ?? 'muted');
       }
+      }
 
       if (statusEl) {
-        statusEl.textContent = `Last run (${meta.stormDefinitionLabel ?? 'Kp ≥ 5'}): ${new Date().toLocaleTimeString()}`;
+        const regionSuffix = meta.region && meta.region !== 'global' ? ` · ${meta.regionLabel}` : '';
+        statusEl.textContent = `Last run (${meta.stormDefinitionLabel ?? 'Kp ≥ 5'}${regionSuffix}): ${new Date().toLocaleTimeString()}`;
       }
     } catch (err) {
       console.warn('Prediction analysis failed:', err);
@@ -727,6 +753,101 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Storm definition selector — reruns the lag scan against the chosen driver catalog
   document.getElementById('storm-definition-select')?.addEventListener('change', () => {
     updatePredictionUI();
+  });
+
+  // Region selector — reruns the lag scan on the stratified earthquake catalog
+  document.getElementById('region-select')?.addEventListener('change', () => {
+    updatePredictionUI();
+  });
+
+  // ---- b-value computation (Python sidecar, same corpus as the lag scan) ----
+  document.getElementById('btn-run-bvalue')?.addEventListener('click', async () => {
+    const button = document.getElementById('btn-run-bvalue');
+    const statusEl = document.getElementById('bvalue-status');
+    const noteEl = document.getElementById('bvalue-note');
+
+    if (!latestAnalysisResult) await updatePredictionUI();
+    if (!latestAnalysisResult?.catalogs) {
+      if (statusEl) statusEl.textContent = 'No corpus available';
+      return;
+    }
+
+    await refreshResearchSidecarStatus();
+    if (!latestResearchSidecarStatus.online) {
+      if (statusEl) statusEl.textContent = 'Python sidecar offline';
+      if (noteEl) noteEl.textContent = 'The b-value computation needs the optional local research sidecar running.';
+      return;
+    }
+
+    if (button) button.disabled = true;
+    if (statusEl) statusEl.textContent = 'Computing…';
+
+    try {
+      const result = await runBValueTest({
+        earthquakes: latestAnalysisResult.catalogs.earthquakes,
+        completeness: 5.0,
+      });
+
+      const regionSuffix = latestAnalysisResult.meta.region && latestAnalysisResult.meta.region !== 'global'
+        ? ` (${latestAnalysisResult.meta.regionLabel})` : '';
+
+      if (result.supportLevel === 'underpowered') {
+        setText('bvalue-value', '—');
+        setText('bvalue-error', '—');
+        setText('bvalue-a', '—');
+        setText('bvalue-count', String(result.count));
+        if (statusEl) { statusEl.textContent = 'Underpowered'; applyToneClass(statusEl, 'warn'); }
+        if (noteEl) noteEl.textContent = result.note || 'Not enough events above the completeness magnitude.';
+        return;
+      }
+
+      setText('bvalue-value', `${result.bValue.toFixed(3)}${regionSuffix}`);
+      setText('bvalue-error', `± ${result.bError.toFixed(3)}`);
+      setText('bvalue-count', String(result.count));
+      setText('bvalue-a', result.aValue.toFixed(2));
+      if (statusEl) { statusEl.textContent = 'Complete'; applyToneClass(statusEl, 'good'); }
+      if (noteEl) {
+        noteEl.textContent = `Aki (1965) MLE at completeness M${result.completeness.toFixed(1)}; ${result.note}`;
+      }
+    } catch (error) {
+      console.warn('b-value computation failed:', error);
+      if (statusEl) { statusEl.textContent = 'Failed'; applyToneClass(statusEl, 'warn'); }
+      if (noteEl) noteEl.textContent = error?.message || 'b-value computation failed.';
+    } finally {
+      if (button) button.disabled = false;
+    }
+  });
+
+  // ---- Export buttons (reproducible run artifacts) ----
+  document.getElementById('btn-export-run')?.addEventListener('click', async () => {
+    if (!latestAnalysisResult) await updatePredictionUI();
+    if (!latestAnalysisResult) {
+      showInAppNotification('Export', 'No analysis result available to export yet.', 'warning');
+      return;
+    }
+    const artifact = buildAnalysisRunArtifact(latestAnalysisResult, latestBootstrapResult, {
+      exportedBy: 'Space-Earth Monitor Research Lab',
+    });
+    if (!artifact) {
+      showInAppNotification('Export', 'Analysis result is incomplete; nothing to export.', 'warning');
+      return;
+    }
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    downloadJson(artifact, `tectonic-solar-run-${stamp}.json`);
+    showInAppNotification('Export', 'Run artifact downloaded (catalogs, scan, interpretation, provenance).', 'success');
+  });
+
+  document.getElementById('btn-export-csv')?.addEventListener('click', async () => {
+    if (!latestAnalysisResult) await updatePredictionUI();
+    if (!latestAnalysisResult?.catalogs) {
+      showInAppNotification('Export', 'No catalogs available to export yet.', 'warning');
+      return;
+    }
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    downloadCsvString(stormsCsv(latestAnalysisResult.catalogs.storms), `storms-${stamp}.csv`);
+    setTimeout(() => downloadCsvString(earthquakesCsv(latestAnalysisResult.catalogs.earthquakes), `earthquakes-${stamp}.csv`), 350);
+    setTimeout(() => downloadCsvString(lagScanCsv(latestAnalysisResult.scanResults), `lag-scan-${stamp}.csv`), 700);
+    showInAppNotification('Export', 'Three CSVs downloading: storms, earthquakes, lag scan.', 'success');
   });
 
   // Seed storm data and run initial analysis silently on first load
@@ -822,6 +943,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (err) {
       console.warn('Historical USGS load failed:', err);
       if (statusEl) statusEl.textContent = `⚠ Load failed: ${err.message}. Check network connection.`;
+    } finally {
+      setArchiveButtonsDisabled(false);
+    }
+  });
+
+  // "Load 2-Year Dst Archive" button
+  document.getElementById('btn-load-dst-archive')?.addEventListener('click', async () => {
+    const statusEl = document.getElementById('data-load-status');
+    const dstStatusEl = document.getElementById('data-dst-archive-status');
+    setArchiveButtonsDisabled(true);
+    if (statusEl) statusEl.textContent = 'Fetching monthly hourly Dst from Kyoto WDC (2 years)…';
+
+    try {
+      const result = await loadHistoricalDstArchive({
+        onProgress(progress) {
+          setArchiveProgress(progress.percent);
+          if (!statusEl) return;
+          statusEl.textContent =
+            `Loading Kyoto Dst archive… ${progress.percent}% ` +
+            `(${progress.processedMonths}/${progress.totalMonths} months, ${progress.samples.toLocaleString()} hourly samples` +
+            `${progress.failedMonths ? `, ${progress.failedMonths} month failures` : ''}).`;
+        },
+      });
+
+      if (result.loaded) {
+        if (statusEl) {
+          statusEl.textContent = result.partial
+            ? `⚠ Partially loaded Dst archive (${result.failedMonths} months failed; Kyoto WDC is intermittently unavailable). ${result.storms} Dst storm events derived. Re-running analysis…`
+            : `✓ Loaded ${result.samples.toLocaleString()} hourly Dst samples from Kyoto WDC; ${result.storms} Dst storm events derived. Re-running analysis…`;
+        }
+        await updatePredictionUI();
+      } else if (statusEl) {
+        statusEl.textContent = 'Dst archive already loaded. Re-running analysis…';
+        await updatePredictionUI();
+      }
+    } catch (err) {
+      console.warn('Dst archive load failed:', err);
+      if (statusEl) statusEl.textContent = `⚠ Dst archive load failed: ${err.message}. Kyoto WDC is intermittently unavailable; retry later.`;
     } finally {
       setArchiveButtonsDisabled(false);
     }

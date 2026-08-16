@@ -125,12 +125,17 @@ export function normalizeEarthquakeCatalog(earthquakes = []) {
  *
  * For each lag L:
  *   window  = earthquakes within ±3 days of (storm_date + L)
- *   control = earthquakes within ±3 days of (storm_date + L + 14)
+ *   control = average of earthquakes within ±3 days of (storm_date + L − 14)
+ *             and (storm_date + L + 14)
  *   ratio   = window / control
  *
- * A ratio significantly > 1 at a specific lag is the hypothesis signal.
- * This event-rate approach avoids the selection bias inherent in
- * Pearson r on matched pairs.
+ * The control is two-sided (mirrored at L−14 and L+14, averaged) so it cannot
+ * sit exclusively on the next solar-rotation window — with the old one-sided
+ * L+14 control, storms recurring every ~27 days made lag-L controls
+ * systematically absorb the next storm's post-storm seismicity, biasing
+ * ratios near the hypothesis band downward (and adjacent lags upward).
+ * Averaging keeps the control density on the same scale as before.
+ * Keep semantics identical to scripts/research_stats.py.
  *
  * @param {Array<{kp:number, date:Date}>} storms
  * @param {Array<{mag:number, date:Date}>} earthquakes
@@ -146,12 +151,16 @@ export function scanAllLags(storms, earthquakes, maxLag = 60) {
 
     storms.forEach(storm => {
       const lagCenter = storm.date.getTime() + lag * DAY_MS;
-      const ctrlCenter = storm.date.getTime() + (lag + 14) * DAY_MS;
+      const controlBefore = lagCenter - 14 * DAY_MS;
+      const controlAfter = lagCenter + 14 * DAY_MS;
 
       earthquakes.forEach(eq => {
         const t = eq.date.getTime();
         if (Math.abs(t - lagCenter) <= WINDOW_HALF_SPAN_MS) windowCount++;
-        if (Math.abs(t - ctrlCenter) <= WINDOW_HALF_SPAN_MS) controlCount++;
+        // Average of the two mirrored control windows keeps the control
+        // density on the same scale as the old single 6-day window.
+        if (Math.abs(t - controlBefore) <= WINDOW_HALF_SPAN_MS) controlCount += 0.5;
+        if (Math.abs(t - controlAfter) <= WINDOW_HALF_SPAN_MS) controlCount += 0.5;
       });
     });
 

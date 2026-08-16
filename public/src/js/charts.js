@@ -92,6 +92,7 @@ export function redrawCachedCharts() {
   drawRealKpChart(chartCache.kpHistory);
   drawDstChart(chartCache.dstHistory);
   drawMagnitudeDistribution(chartCache.earthquakes);
+  drawDepthHistogram(chartCache.depthEarthquakes);
   drawAqiChart(chartCache.aqiValue);
 
   if (chartCache.lagData.length > 0) {
@@ -428,6 +429,71 @@ export function drawAqiChart(aqiValue) {
 }
 
 /** Draw initial placeholder charts. */
+/**
+ * Draw earthquake depth distribution histogram.
+ * Bins follow the standard shallow/intermediate/deep zonation.
+ * @param {Array<{depth:number}>} earthquakes
+ */
+export function drawDepthHistogram(earthquakes = []) {
+  const canvas = document.getElementById('depth-chart');
+  if (!canvas) return;
+
+  destroyChart('depth');
+  cacheData('depthEarthquakes', earthquakes);
+
+  const bins = [
+    { label: '0–35 km (shallow)', min: 0, max: 35 },
+    { label: '35–70 km', min: 35, max: 70 },
+    { label: '70–150 km', min: 70, max: 150 },
+    { label: '150–300 km', min: 150, max: 300 },
+    { label: '300+ km (deep)', min: 300, max: Infinity },
+  ];
+
+  const counts = bins.map(bin => earthquakes.filter(eq => {
+    const depth = Number(eq.depth);
+    return Number.isFinite(depth) && depth >= bin.min && depth < bin.max;
+  }).length);
+  const hasData = counts.some(count => count > 0);
+
+  chartInstances.depth = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: bins.map(bin => bin.label),
+      datasets: [{
+        label: 'Earthquakes',
+        data: counts,
+        backgroundColor: ['#F44336', '#FF9800', '#FFC107', '#42A5F5', '#7E57C2'],
+        borderWidth: 0,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        emptyStateMessage: {
+          hasData,
+          message: 'No depth data loaded yet',
+        },
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: { color: gridColor() },
+          ticks: { color: tickColor() },
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: tickColor(), font: { size: 10 } },
+        },
+      },
+      animation: { duration: 700 },
+    },
+    plugins: [EMPTY_STATE_PLUGIN],
+  });
+}
+
 export function drawSpaceCharts() {
   drawRealSolarWindChart(chartCache.solarWindHistory);
   drawRealKpChart(chartCache.kpHistory);

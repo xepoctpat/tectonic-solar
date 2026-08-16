@@ -151,13 +151,15 @@ const scenarios = [
   },
 ];
 
-console.log('Hypothesis simulation benchmark');
-console.log('Checks that the lag scanner stays near-null under independence, detects an implanted 27-day signal, and does not mislabel an off-target lag as the hypothesis.');
-console.log('---');
+// Seed sweep: each scenario's structural expectation must hold across a block
+// of seeds, not just its showcase seed. A single-seed pass is luck; a sweep
+// pass is the regression gate.
+const SEED_SWEEP_OFFSETS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const SWEEP_TOLERANCE = 1; // at most one failing seed per scenario block
 
-const results = scenarios.map(scenario => {
+function runScenario(scenario, seed) {
   const { storms, earthquakes } = buildScenario({
-    seed: scenario.seed,
+    seed,
     signalLagDays: scenario.signalLagDays,
     label: scenario.name,
   });
@@ -174,6 +176,7 @@ const results = scenarios.map(scenario => {
 
   return {
     scenario: scenario.name,
+    seed,
     storms,
     earthquakes,
     scanResults,
@@ -183,7 +186,67 @@ const results = scenarios.map(scenario => {
     passed: scenario.expected({ assessment, prediction, interpretation }),
     topLags: topLagSummary(scanResults),
   };
+}
+
+console.log('Hypothesis simulation benchmark');
+console.log('Checks that the lag scanner stays near-null under independence, detects an implanted 27-day signal, and does not mislabel an off-target lag as the hypothesis.');
+console.log('---');
+
+const results = scenarios.map(scenario => runScenario(scenario, scenario.seed));
+
+// ---- Seed sweep ----
+const sweepResults = [];
+for (const scenario of scenarios) {
+  for (const offset of SEED_SWEEP_OFFSETS) {
+    sweepResults.push(runScenario(scenario, scenario.seed + offset * 101));
+  }
+}
+const sweepFailures = {};
+sweepResults.forEach(result => {
+  if (!result.passed) {
+    sweepFailures[result.scenario] = (sweepFailures[result.scenario] || 0) + 1;
+  }
 });
+const sweepSummary = Object.entries(sweepFailures).map(([name, count]) => `${name}: ${count}/${SEED_SWEEP_OFFSETS.length} seeds`);
+const sweepPassed = Object.values(sweepFailures).every(count => count <= SWEEP_TOLERANCE);
+
+// ---- Optional sidecar scenarios (skipped when the sidecar is offline) ----
+async function runSidecarScenarios() {
+  const base = 'http://127.0.0.1:3000';
+  const serialize = (storms, earthquakes) => ({
+    storms: storms.map(s => ({ date: s.date.getTime(), kp: s.kp })),
+    earthquakes: earthquakes.map(e => ({ date: e.date.getTime(), mag: e.mag })),
+  });
+
+  const outcomes = [];
+  for (const scenario of scenarios.slice(0, 2)) {
+    const result = results.find(r => r.scenario === scenario.name);
+    try {
+      const response = await fetch(`${base}/api/research/bootstrap`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...serialize(result.storms, result.earthquakes),
+          permutations: 300,
+          maxLag: 60,
+          targetMinLag: 25,
+          targetMaxLag: 30,
+          randomSeed: 7,
+        }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      const p = payload.summary?.empiricalPValue;
+      if (!Number.isFinite(p)) throw new Error('missing empiricalPValue');
+      const expectLowP = scenario.name.startsWith('Positive');
+      const sidecarPassed = expectLowP ? p <= 0.1 : p > 0.1;
+      outcomes.push({ scenario: scenario.name, p, passed: sidecarPassed, ran: true });
+    } catch (error) {
+      outcomes.push({ scenario: scenario.name, p: null, passed: null, ran: false, reason: error.message });
+    }
+  }
+  return outcomes;
+}
 
 console.table(results.map(result => ({
   scenario: result.scenario,
@@ -210,6 +273,32 @@ if (failed.length > 0) {
     );
   });
   process.exit(1);
+}
+
+console.log('---');
+console.log(`Seed sweep (${SEED_SWEEP_OFFSETS.length} extra seeds per scenario, tolerance ${SWEEP_TOLERANCE}): ${sweepPassed ? 'PASS' : 'FAIL'}${sweepSummary.length ? ` — ${sweepSummary.join('; ')}` : ' — all seeds passed'}`);
+
+if (!sweepPassed) {
+  console.error('Seed sweep tolerance exceeded. The engine is seed-sensitive, which is a regression.');
+  process.exit(1);
+}
+
+const sidecarOutcomes = await runSidecarScenarios();
+const sidecarRan = sidecarOutcomes.some(outcome => outcome.ran);
+console.log('---');
+if (sidecarRan) {
+  const sidecarFailed = sidecarOutcomes.filter(outcome => outcome.ran && !outcome.passed);
+  sidecarOutcomes.forEach(outcome => {
+    console.log(
+      `Sidecar ${outcome.scenario}: ${outcome.ran ? `p=${outcome.p?.toFixed(3)} ${outcome.passed ? 'PASS' : 'FAIL'}` : `skipped (${outcome.reason})`}`,
+    );
+  });
+  if (sidecarFailed.length > 0) {
+    console.error('Sidecar null-calibration scenarios failed.');
+    process.exit(1);
+  }
+} else {
+  console.log('Sidecar scenarios skipped (server or Python sidecar not running).');
 }
 
 console.log('---');

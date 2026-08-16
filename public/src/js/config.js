@@ -39,6 +39,10 @@ export const NOAA_APIS = {
     `/noaa/dayind?date=${encodeURIComponent(date)}`,
     buildNoaaHistoricalDayIndexUrl(date),
   ),
+  // Monthly hourly Dst archive (Kyoto WDC provisional, parsed proxy-side)
+  historicalDstArchive: IS_PROXY_MODE
+    ? (month) => `${LOCAL_PROXY_BASE}/noaa/dst-archive?month=${encodeURIComponent(month)}`
+    : null,
 };
 
 // Legacy alias kept for backward compatibility
@@ -102,6 +106,7 @@ export const OPEN_METEO_APIS = {
 export const RESEARCH_APIS = {
   status: IS_PROXY_MODE ? resolveApiUrl('/research/status', null) : null,
   bootstrap: IS_PROXY_MODE ? resolveApiUrl('/research/bootstrap', null) : null,
+  bvalue: IS_PROXY_MODE ? resolveApiUrl('/research/bvalue', null) : null,
 };
 
 // ===== DEFAULT ALERT SETTINGS =====

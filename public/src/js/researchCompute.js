@@ -105,3 +105,29 @@ export async function runBootstrapNullTest({
 
   return data;
 }
+
+export async function runBValueTest({ earthquakes, completeness = 5.0 } = {}) {
+  if (!RESEARCH_APIS.bvalue) {
+    throw new Error('Node proxy mode is required for b-value analysis.');
+  }
+
+  const payload = {
+    earthquakes: (earthquakes || []).map(serializeEarthquake).filter(Boolean),
+    completeness,
+  };
+
+  const response = await fetchWithRetry(RESEARCH_APIS.bvalue, 1, 1000, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+  if (!response.ok || data.ok === false) {
+    throw new Error(data.error || data.message || `b-value computation failed (HTTP ${response.status})`);
+  }
+
+  return data;
+}

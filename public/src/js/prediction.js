@@ -5,7 +5,7 @@
 
 import { fetchWithRetry } from './utils.js';
 import { NOAA_APIS, USGS_APIS } from './config.js';
-import { addEarthquake, addStorm, getDriverEvents, getEarthquakes, getStorms } from './db.js';
+import { addEarthquake, addStorm, addDstSample, addDriverEvent, getDriverEvents, getEarthquakes, getStorms, getDstSamples } from './db.js';
 import {
   scanAllLags,
   assessLagScan,
@@ -15,6 +15,8 @@ import {
   normalizeEarthquakeCatalog,
 } from './hypothesis-core.mjs';
 import { enumerateUtcDateRange, parseDayindStorms, toIsoDateOnly } from './stormArchive.mjs';
+import { detectDstStorms } from './solarMetrics.mjs';
+import { ensurePlateIndex, filterEarthquakesByRegion, REGION_GROUPS } from './regionTag.mjs';
 
 export {
   scanAllLags,
@@ -48,8 +50,10 @@ export const STORM_SEED = [
 const HISTORICAL_LOADED_KEY = 'historical-usgs-loaded-v1';
 const STORM_SEED_LOADED_KEY  = 'storm-seed-loaded-v1';
 const STORM_ARCHIVE_LOADED_KEY = 'historical-storm-archive-loaded-v1';
+const DST_ARCHIVE_LOADED_KEY = 'historical-dst-archive-loaded-v1';
 const STORM_ARCHIVE_LOOKBACK_DAYS = 730;
 const STORM_ARCHIVE_THRESHOLD = 5.0;
+const DST_ARCHIVE_LOOKBACK_MONTHS = 24;
 
 function getStormArchiveStatus() {
   const raw = localStorage.getItem(STORM_ARCHIVE_LOADED_KEY);
@@ -249,6 +253,141 @@ export async function loadHistoricalStormArchive(options = {}) {
   };
 }
 
+// ===== HISTORICAL DST ARCHIVE (Kyoto WDC provisional) =====
+
+function getDstArchiveStatus() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(DST_ARCHIVE_LOADED_KEY) || 'null');
+    return {
+      monthsDone: Array.isArray(parsed?.monthsDone) ? parsed.monthsDone : [],
+      complete: parsed?.complete === true,
+    };
+  } catch {
+    return { monthsDone: [], complete: false };
+  }
+}
+
+function enumerateBackfillMonths(count) {
+  const months = [];
+  const now = new Date();
+  // Start with the last full month; the current month is covered live by the
+  // hourly Dst feed.
+  let cursor = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  for (let index = 0; index < count; index += 1) {
+    cursor = new Date(cursor.getTime() - 1);
+    cursor = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 1));
+    months.push(`${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, '0')}`);
+  }
+  return months.reverse();
+}
+
+/**
+ * One-time backfill of monthly hourly Dst from Kyoto WDC (proxied and parsed
+ * server-side). Stores hourly samples plus derived dst-storm driver events so
+ * the Dst storm definition gets a multi-year corpus like the Kp baseline.
+ *
+ * @param {{ months?: number, onProgress?: Function }} [options]
+ */
+export async function loadHistoricalDstArchive(options = {}) {
+  const { months = DST_ARCHIVE_LOOKBACK_MONTHS, onProgress } = options;
+
+  if (!NOAA_APIS.historicalDstArchive) {
+    throw new Error('Dst archive backfill requires the local Node proxy (proxy mode)');
+  }
+
+  const status = getDstArchiveStatus();
+  const allMonths = enumerateBackfillMonths(months);
+  const remaining = allMonths.filter(month => !status.monthsDone.includes(month));
+
+  if (remaining.length === 0) {
+    return { loaded: false, reason: 'already-loaded', monthsDone: status.monthsDone.length };
+  }
+
+  const existingDstStormKeys = new Set(
+    (await getDriverEvents(3000, 'dst-storm'))
+      .map(event => Math.floor(event.date.getTime() / (3 * 3600 * 1000))),
+  );
+
+  let processed = 0;
+  let failedMonths = 0;
+  let sampleCount = 0;
+  let stormCount = 0;
+  const completedMonths = [...status.monthsDone];
+
+  for (const month of remaining) {
+    try {
+      const response = await fetchWithRetry(NOAA_APIS.historicalDstArchive(month), 1, 500);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      const records = Array.isArray(payload?.records) ? payload.records : [];
+
+      for (const record of records) {
+        const time = Date.parse(record.time);
+        if (!Number.isFinite(time) || !Number.isFinite(Number(record.dst))) continue;
+        try {
+          await addDstSample({ date: new Date(time), dst: Number(record.dst) });
+          sampleCount += 1;
+        } catch (_) { /* duplicate — skip */ }
+      }
+
+      // Derive Dst storm events from this month's samples (hourly records).
+      const monthRecords = records
+        .map(record => ({ time: Date.parse(record.time), dst: Number(record.dst) }))
+        .filter(record => Number.isFinite(record.time) && Number.isFinite(record.dst))
+        .sort((a, b) => a.time - b.time);
+      const storms = detectDstStorms(monthRecords);
+      for (const storm of storms) {
+        const bucket = Math.floor(storm.date.getTime() / (3 * 3600 * 1000));
+        if (existingDstStormKeys.has(bucket)) continue;
+        try {
+          await addDriverEvent({
+            type: 'dst-storm',
+            date: storm.date,
+            value: storm.minDst,
+            unit: 'nT',
+            source: 'Kyoto WDC provisional Dst (archive)',
+            metric: 'dst',
+          });
+          existingDstStormKeys.add(bucket);
+          stormCount += 1;
+        } catch (_) { /* duplicate — skip */ }
+      }
+
+      completedMonths.push(month);
+    } catch (_error) {
+      failedMonths += 1;
+    } finally {
+      processed += 1;
+      if (typeof onProgress === 'function') {
+        onProgress({
+          processedMonths: processed,
+          totalMonths: remaining.length,
+          percent: Math.round((processed / remaining.length) * 100),
+          currentMonth: month,
+          samples: sampleCount,
+          storms: stormCount,
+          failedMonths,
+        });
+      }
+    }
+  }
+
+  localStorage.setItem(DST_ARCHIVE_LOADED_KEY, JSON.stringify({
+    complete: failedMonths === 0,
+    monthsDone: completedMonths,
+    loadedAt: Date.now(),
+  }));
+
+  return {
+    loaded: true,
+    partial: failedMonths > 0,
+    months: processed,
+    failedMonths,
+    samples: sampleCount,
+    storms: stormCount,
+  };
+}
+
 // Shared pure lag-analysis logic lives in `hypothesis-core.mjs` so the browser
 // path and deterministic simulation path use the same implementation.
 
@@ -266,7 +405,7 @@ export const STORM_DEFINITIONS = {
   dst: {
     key: 'dst',
     label: 'Dst ≤ −50 nT',
-    description: 'Ring-current storm onsets at Dst ≤ −50 nT (moderate-storm threshold, Kyoto WDC via SWPC). Accumulates live from the Dst feed — historical archive backfill is not wired yet.',
+    description: 'Ring-current storm onsets at Dst ≤ −50 nT (moderate-storm threshold, Kyoto WDC via SWPC). Live-accumulated; multi-year corpus via the Kyoto Dst archive backfill button (Kyoto WDC is intermittently unavailable — retry if months fail).',
     metric: 'Dst',
     driverType: 'dst-storm',
   },
@@ -304,29 +443,45 @@ async function loadStormCatalogForDefinition(definitionKey) {
  * Load all available data from IndexedDB (up to 2 years),
  * run the cross-lag scan, and compute the current prediction.
  *
- * @param {{stormDefinition?: 'kp'|'dst'|'pressure'}} [options]
+ * @param {{stormDefinition?: 'kp'|'dst'|'pressure', region?: string}} [options]
  * @returns {Promise<{scanResults, assessment, prediction, meta}>}
  */
 export async function runFullAnalysis(options = {}) {
-  const { stormDefinition = 'kp' } = options;
+  const { stormDefinition = 'kp', region = 'global' } = options;
   const definition = STORM_DEFINITIONS[stormDefinition] || STORM_DEFINITIONS.kp;
+  const regionGroup = REGION_GROUPS[region] || REGION_GROUPS.global;
 
   const [rawStorms, rawEarthquakes] = await Promise.all([
     loadStormCatalogForDefinition(definition.key),
     getEarthquakes(730),
   ]);
 
-  const storms = normalizeStormCatalog(rawStorms);
-  const earthquakes = normalizeEarthquakeCatalog(rawEarthquakes);
+  // Regional stratification tags each quake against PB2002 polygons at
+  // analysis time. null means the plate index could not be loaded — report
+  // 'unavailable' rather than silently running the global corpus.
+  const plateIndex = regionGroup.plates ? await ensurePlateIndex() : null;
+  const regionAvailable = regionGroup.plates ? plateIndex !== null : true;
+  const scopedEarthquakes = regionAvailable
+    ? filterEarthquakesByRegion(plateIndex, rawEarthquakes, regionGroup.key)
+    : rawEarthquakes;
 
-  const scanResults = scanAllLags(storms, earthquakes, 60);
-  const assessment  = assessLagScan(scanResults);
-  const prediction  = computePrediction(storms, earthquakes);
+  const storms = normalizeStormCatalog(rawStorms);
+  const earthquakes = regionAvailable
+    ? normalizeEarthquakeCatalog(scopedEarthquakes)
+    : [];
+
+  const scanResults = regionAvailable ? scanAllLags(storms, earthquakes, 60) : [];
+  const assessment  = regionAvailable ? assessLagScan(scanResults) : null;
+  const prediction  = regionAvailable ? computePrediction(storms, earthquakes) : null;
   const stormArchiveStatus = getStormArchiveStatus();
   const meta = {
     stormDefinition: definition.key,
     stormDefinitionLabel: definition.label,
     stormDefinitionMetric: definition.metric,
+    region: regionGroup.key,
+    regionLabel: regionGroup.label,
+    regionAvailable,
+    regionNote: regionGroup.note,
     stormCount: storms.length,
     eqCount: earthquakes.length,
     rawStormCount: rawStorms.length,
@@ -337,7 +492,9 @@ export async function runFullAnalysis(options = {}) {
     stormArchivePartial: stormArchiveStatus.partial,
     stormSeedLoaded: Boolean(localStorage.getItem(STORM_SEED_LOADED_KEY)),
   };
-  const interpretation = interpretHypothesisEvidence(scanResults, prediction, meta);
+  const interpretation = regionAvailable
+    ? interpretHypothesisEvidence(scanResults, prediction, meta)
+    : null;
 
   return {
     scanResults,

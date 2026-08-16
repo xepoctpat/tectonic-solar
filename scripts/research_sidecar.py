@@ -3,7 +3,7 @@ from __future__ import annotations
 from flask import Flask, jsonify, request
 import numpy as np
 
-from research_stats import compute_bootstrap_null
+from research_stats import compute_bootstrap_null, compute_b_value
 
 HOST = '127.0.0.1'
 PORT = 5051
@@ -22,7 +22,7 @@ def health() -> tuple:
         'port': PORT,
         'numpy': np.__version__,
         'maxBodyBytes': MAX_BODY_BYTES,
-        'capabilities': ['bootstrap-null'],
+        'capabilities': ['bootstrap-null', 'bvalue'],
     }), 200
 
 
@@ -51,6 +51,34 @@ def bootstrap_null() -> tuple:
         return jsonify({
             'ok': False,
             'error': 'bootstrap-null failed',
+            'message': str(exc),
+        }), 500
+
+    return jsonify({
+        'ok': True,
+        **result,
+    }), 200
+
+
+@app.post('/bvalue')
+def bvalue() -> tuple:
+    payload = request.get_json(silent=True) or {}
+
+    try:
+        result = compute_b_value(
+            payload.get('earthquakes'),
+            completeness=float(payload.get('completeness', 5.0)),
+        )
+    except ValueError as exc:
+        return jsonify({
+            'ok': False,
+            'error': str(exc),
+        }), 400
+    except Exception as exc:  # pragma: no cover - defensive server boundary
+        app.logger.exception('bvalue failed')
+        return jsonify({
+            'ok': False,
+            'error': 'bvalue failed',
             'message': str(exc),
         }), 500
 
