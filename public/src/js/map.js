@@ -762,12 +762,50 @@ function addSubductionTeeth(coords, color = TECTONIC_INTERACTION_STYLES.SUB.colo
 }
 
 // ===== PLATE MOTION VECTORS =====
+const VECTOR_REFERENCE_FRAME_SPEED = 0.5; // mm/yr; at or below this the plate is effectively the frame origin
+
+function buildVectorPopup(properties, speedMmYr, azimuthDeg) {
+  const popup = document.createElement('div');
+  popup.style.cssText = 'color:#000;font-family:Arial;min-width:230px';
+
+  const title = document.createElement('h3');
+  title.style.cssText = 'margin:0 0 8px 0';
+  title.textContent = `${properties.displayName || properties.plateCode} motion`;
+  popup.appendChild(title);
+
+  const pole = properties.eulerPole || {};
+  const rows = [
+    ['Velocity', speedMmYr > VECTOR_REFERENCE_FRAME_SPEED
+      ? `${speedMmYr.toFixed(1)} mm/yr toward ${azimuthDeg.toFixed(0)}°`
+      : '0 mm/yr — this plate defines the reference frame'],
+    ['Reference frame', properties.referenceFrame || 'Pacific-plate reference frame (PB2002)'],
+    ['Euler pole', Number.isFinite(pole.latDeg)
+      ? `${pole.latDeg.toFixed(1)}°, ${pole.lonDeg.toFixed(1)}° @ ${pole.omegaDegPerMyr}°/Myr`
+      : 'n/a'],
+    ['Pole source', pole.sourceReference || 'Bird (2003)'],
+    ['Model', `${properties.sourceModel || 'PB2002'} · ${properties.citationShort || 'Bird (2003)'}${properties.citationDoi ? ` (doi:${properties.citationDoi})` : ''}`],
+  ];
+
+  rows.forEach(([label, value]) => {
+    const p = document.createElement('p');
+    p.style.margin = '5px 0';
+    const strong = document.createElement('strong');
+    strong.textContent = `${label}: `;
+    p.appendChild(strong);
+    p.appendChild(document.createTextNode(value));
+    popup.appendChild(p);
+  });
+
+  return popup;
+}
+
 export function addPlateMotionVectors(plateDataset, vectorDataset) {
   if (!Array.isArray(vectorDataset?.features)) return;
 
   vectorDataset.features.forEach((feature) => {
     const properties = feature?.properties || {};
-    const anchor = resolveVectorAnchor(feature, plateDataset);
+    // Computed artifacts carry their own sample-point geometry; the plate centroid is only a fallback.
+    const anchor = fallbackAnchorFromVectorFeature(feature) || resolveVectorAnchor(feature, plateDataset);
     if (!anchor) return;
 
     const speedMmYr = Number.parseFloat(properties.speedMmYr);
@@ -775,12 +813,28 @@ export function addPlateMotionVectors(plateDataset, vectorDataset) {
     if (!Number.isFinite(speedMmYr) || !Number.isFinite(azimuthDeg)) return;
 
     const plateStyle = plateStyleFromCode(properties.plateCode, true);
-    const distance = Math.min(7.2, Math.max(2.4, speedMmYr / 22));
+    const popup = buildVectorPopup(properties, speedMmYr, azimuthDeg);
+
+    if (speedMmYr <= VECTOR_REFERENCE_FRAME_SPEED) {
+      if (properties.isPrimary === false) return;
+      const referenceMarker = L.marker(anchor, {
+        icon: L.divIcon({
+          className: 'plate-label',
+          html: `<div class="plate-vector-label" style="--plate-vector-border:${plateStyle.borderColor};--plate-vector-fill:${plateStyle.fillColor}"><strong>${properties.plateCode || '??'}</strong><span>reference frame</span></div>`,
+          iconAnchor: [14, 32],
+        }),
+      }).addTo(map);
+      referenceMarker.bindPopup(popup);
+      tectonicOverlays.push(referenceMarker);
+      return;
+    }
+
+    const distance = Math.min(8, Math.max(2.2, 1.6 + Math.sqrt(speedMmYr) * 0.62));
     const angleRad = (azimuthDeg * Math.PI) / 180;
     const endLat = anchor[0] + distance * Math.sin(angleRad);
     const endLon = anchor[1] + distance * Math.cos(angleRad);
     const lineCoords = [anchor, [endLat, endLon]];
-    const tooltipText = `${properties.displayName || properties.plateCode} (${properties.plateCode || '??'}) — ${speedMmYr.toFixed(0)} mm/yr toward ${azimuthDeg.toFixed(0)}° · ${properties.note || 'illustrative vector'}`;
+    const tooltipText = `${properties.displayName || properties.plateCode} (${properties.plateCode || '??'}) — ${speedMmYr.toFixed(0)} mm/yr toward ${azimuthDeg.toFixed(0)}° · ${properties.referenceFrame || 'PB2002'} · ${properties.citationShort || 'Bird (2003)'}`;
 
     const casing = L.polyline(lineCoords, {
       color: 'rgba(255,255,255,0.84)',
@@ -804,6 +858,7 @@ export function addPlateMotionVectors(plateDataset, vectorDataset) {
       direction: 'top',
       opacity: 0.95,
     });
+    arrow.bindPopup(popup);
 
     const arrowHead = L.marker([endLat, endLon], {
       icon: L.divIcon({
@@ -815,6 +870,10 @@ export function addPlateMotionVectors(plateDataset, vectorDataset) {
       interactive: false,
     }).addTo(map);
 
+    tectonicOverlays.push(casing, arrow, arrowHead);
+
+    if (properties.isPrimary === false) return;
+
     const label = L.marker(anchor, {
       icon: L.divIcon({
         className: 'plate-label',
@@ -824,7 +883,7 @@ export function addPlateMotionVectors(plateDataset, vectorDataset) {
       interactive: false,
     }).addTo(map);
 
-    tectonicOverlays.push(casing, arrow, arrowHead, label);
+    tectonicOverlays.push(label);
   });
 }
 

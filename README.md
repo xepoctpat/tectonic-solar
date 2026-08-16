@@ -20,7 +20,7 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 | Data | Source | Feed |
 |---|---|---|
 | Earthquakes M4.5+ | USGS Earthquake Hazards | GeoJSON real-time (1-min lag) |
-| Solar Wind speed/density | NOAA DSCOVR/ACE Plasma | 1-min JSON feed |
+| Solar Wind speed/density | NOAA DSCOVR/ACE/IMAP Plasma | 1-min JSON feed (upstream plasma JSON currently retired during the IMAP transition — app degrades honestly; magnetometer remains live) |
 | Solar Wind Bt/Bz | NOAA DSCOVR/ACE Mag | 1-min JSON feed |
 | Kp Geomagnetic Index | NOAA SWPC | Real-time + 3-day history |
 | X-ray Flux / Solar Flares | NOAA GOES-Primary | 7-day JSON |
@@ -41,12 +41,12 @@ The tectonic map layers are intentionally **not** live third-party browser depen
 
 | Tab | What it does |
 |---|---|
-| **Map** | Interactive Leaflet map — the primary 2D research view for live USGS earthquakes, cited PB2002 plate regions, subtype-styled tectonic boundary families (including explicit subduction symbology), a partial local motion-vector artifact keyed to real plate codes, a magnitude filter slider, clearer plate-study controls, and multiple basemaps; any future 3D globe should remain optional and isolated from the default map path |
-| **Space Weather** | Live NOAA solar wind (Chart.js animated line chart), Kp index (colour-coded bar chart), 3-day history with storm threshold, GOES X-ray flare log, and a resizable split workspace for quick side-by-side reading |
+| **Map** | Interactive Leaflet map — the primary 2D research view for live USGS earthquakes, cited PB2002 plate regions, subtype-styled tectonic boundary families (including explicit subduction symbology), computed plate-motion vectors for all 52 PB2002 plates (Euler-pole derived, Pacific reference frame), a magnitude filter slider, clearer plate-study controls, and multiple basemaps; any future 3D globe should remain optional and isolated from the default map path |
+| **Space Weather** | Live NOAA solar wind with derived coupling metrics (dynamic pressure, E_y), Kp index chart, hourly Dst index with storm bands, ≥10 MeV proton flux with NOAA S-scale status, GOES X-ray flare log, a Coupling Chain Monitor (solar wind → magnetosphere → atmosphere → lithosphere), and a resizable split workspace |
 | **Seismic** | Dynamic USGS earthquake list (newest first, time-ago), statistics (M5+/M6+ counts, largest), magnitude distribution chart (Chart.js horizontal bars with magnitude color-coding), and a resizable split workspace |
 | **Environment** | Real-time weather (temp, feels-like, humidity, pressure, wind, condition) and air quality (PM2.5, PM10, CO, NO₂, European AQI) via Open-Meteo free API, AQI gauge doughnut chart, and a resizable split workspace |
 | **Correlation** | Quick correlation readout: research background, current 27–28 day window status, descriptive probability card, 30-day storms-vs-seismic timeline, and summary stats |
-| **Research Lab** | Historical USGS ComCat loading, NOAA storm-archive foundation loading, deterministic bootstrap null calibration through a local Python sidecar, 0–60 day lag scan, workflow-state reporting, and explicit browser-versus-Python research boundaries |
+| **Research Lab** | Historical USGS ComCat loading, NOAA storm-archive foundation loading, selectable storm definitions (Kp ≥ 5 baseline, Dst ≤ −50 nT, pressure pulses), deterministic bootstrap null calibration through a local Python sidecar, 0–60 day lag scan, live coupling-driver readout, workflow-state reporting, and explicit browser-versus-Python research boundaries |
 | **Settings** | Configurable alert thresholds, dark mode toggle (☀️/🌙), notifications, localStorage persistence, and a resizable split workspace |
 
 ### Sprint 1-4 Enhancements (MVP Redesign)
@@ -384,7 +384,7 @@ This project intentionally keeps the research surface area wide **without** loos
 
 - **Service Worker**: Static asset list is manual (update `sw.js` if new CDN libs added)
 - **Tectonic layer**: PB2002 is a cited present-day plate model (regions + boundaries), not a live plate-motion service or a time-varying tectonic reconstruction
-- **Motion vectors**: the current arrow layer is now loaded from a local partial artifact keyed to PB2002 plate codes, but it still only covers 6 plates and remains illustrative rather than authoritative
+- **Motion vectors**: computed for all 52 PB2002 plates from Bird (2003) Table 1 Euler poles in the Pacific-plate reference frame (the Pacific plate itself is zero by definition); absolute hotspot-frame motion would need an additional cited source
 - **Dark Mode & Leaflet**: Leaflet map tiles don't respond to dark mode toggle (Leaflet layer limitation)
 - **IndexedDB Data Volume**: Pruning uses synchronous cursor traversal (acceptable up to ~1M records)
 - **Correlation**: Default lag window 21–35 days (27–28 day mid-point) — adjustable via JavaScript but no UI slider yet

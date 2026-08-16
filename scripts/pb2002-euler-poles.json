@@ -1,0 +1,496 @@
+{
+  "metadata": {
+    "name": "Peter Bird PB2002 Table 1 - plate identifiers, areas, and Euler poles",
+    "citation": "Bird, P. (2003). An updated digital model of plate boundaries. Geochemistry Geophysics Geosystems, 4(3), 1027. doi:10.1029/2001GC000252",
+    "sourceUrl": "http://peterbird.name/publications/2003_PB2002/2001GC000252.pdf",
+    "sourceLocation": "Table 1, page 6 of the published PDF",
+    "transcription": "Values transcribed programmatically from the published PDF text layer (pdftotext -raw). The PDF minus sign is an unmapped glyph; it was read as U+FFFD and interpreted as negative.",
+    "referenceFrame": "All poles are expressed in the Pacific-plate reference frame. Rotation about each pole is counterclockwise when seen from outside the Earth.",
+    "columns": {
+      "code": "Two-letter plate identifier",
+      "name": "Plate name",
+      "areaSteradian": "Plate area in steradians",
+      "latDeg": "Euler pole latitude, degrees north",
+      "lonDeg": "Euler pole longitude, degrees east",
+      "omegaDegPerMyr": "Rotation rate, degrees per million years (counterclockwise positive)",
+      "reference": "Source publication of the pole estimate"
+    },
+    "validation": [
+      "Pacific (PA) pole is 0/0/0, the identity of the Pacific reference frame.",
+      "Nazca (NZ) pole 55.578/-90.096/1.3599 and North America (NA) pole 48.709/-78.167/0.7486 match the published NUVEL-1A values (DeMets et al. 1994) verbatim.",
+      "Cocos (CO) pole 36.823/-108.629/1.9975 matches NUVEL-1A Cocos-Pacific.",
+      "All 52 rows parse with latitudes within +-90, longitudes within +-180, and rates within [0, 60] deg/Myr; no duplicate codes."
+    ],
+    "note": "Euler vectors are stated with high precision to avoid round-off error in differencing, but accuracy is much less (footnote a of Table 1)."
+  },
+  "plates": [
+    {
+      "code": "AF",
+      "name": "Africa",
+      "areaSteradian": 1.44065,
+      "latDeg": 59.16,
+      "lonDeg": -73.174,
+      "omegaDegPerMyr": 0.927,
+      "reference": "DeMets et al. [1994]"
+    },
+    {
+      "code": "AM",
+      "name": "Amur",
+      "areaSteradian": 0.13066,
+      "latDeg": 57.645,
+      "lonDeg": -83.736,
+      "omegaDegPerMyr": 0.9309,
+      "reference": "Heki et al. [1999]"
+    },
+    {
+      "code": "AN",
+      "name": "Antarctica",
+      "areaSteradian": 1.43268,
+      "latDeg": 64.315,
+      "lonDeg": -83.984,
+      "omegaDegPerMyr": 0.8695,
+      "reference": "DeMets et al. [1994]"
+    },
+    {
+      "code": "AP",
+      "name": "Altiplano",
+      "areaSteradian": 0.0205,
+      "latDeg": 33.639,
+      "lonDeg": -81.177,
+      "omegaDegPerMyr": 0.916,
+      "reference": "Lamb [2000]"
+    },
+    {
+      "code": "AR",
+      "name": "Arabia",
+      "areaSteradian": 0.12082,
+      "latDeg": 59.658,
+      "lonDeg": -33.193,
+      "omegaDegPerMyr": 1.1616,
+      "reference": "DeMets et al. [1994]"
+    },
+    {
+      "code": "AS",
+      "name": "Aegean Sea",
+      "areaSteradian": 0.00793,
+      "latDeg": 74.275,
+      "lonDeg": -87.237,
+      "omegaDegPerMyr": 0.6497,
+      "reference": "McClusky et al. [2000]"
+    },
+    {
+      "code": "AT",
+      "name": "Anatolia",
+      "areaSteradian": 0.01418,
+      "latDeg": 56.283,
+      "lonDeg": 8.932,
+      "omegaDegPerMyr": 1.64,
+      "reference": "McClusky et al. [2000]"
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "areaSteradian": 1.13294,
+      "latDeg": 60.08,
+      "lonDeg": 1.742,
+      "omegaDegPerMyr": 1.0744,
+      "reference": "DeMets et al. [1994]"
+    },
+    {
+      "code": "BH",
+      "name": "Birds Head",
+      "areaSteradian": 0.01295,
+      "latDeg": 12.559,
+      "lonDeg": 87.957,
+      "omegaDegPerMyr": 0.3029,
+      "reference": "this paper"
+    },
+    {
+      "code": "BR",
+      "name": "Balmoral Reef",
+      "areaSteradian": 0.00481,
+      "latDeg": 45.9,
+      "lonDeg": -111,
+      "omegaDegPerMyr": 0.2,
+      "reference": "this paper"
+    },
+    {
+      "code": "BS",
+      "name": "Banda Sea",
+      "areaSteradian": 0.01715,
+      "latDeg": 16.007,
+      "lonDeg": 122.442,
+      "omegaDegPerMyr": 2.125,
+      "reference": "Rangin et al. [1999]"
+    },
+    {
+      "code": "BU",
+      "name": "Burma",
+      "areaSteradian": 0.0127,
+      "latDeg": 8.894,
+      "lonDeg": -75.511,
+      "omegaDegPerMyr": 2.667,
+      "reference": "Circum-Pacific Map Project [1986]"
+    },
+    {
+      "code": "CA",
+      "name": "Caribbean",
+      "areaSteradian": 0.07304,
+      "latDeg": 54.313,
+      "lonDeg": -79.431,
+      "omegaDegPerMyr": 0.904,
+      "reference": "Weber et al. [2001]"
+    },
+    {
+      "code": "CL",
+      "name": "Caroline",
+      "areaSteradian": 0.03765,
+      "latDeg": 10.13,
+      "lonDeg": -45.57,
+      "omegaDegPerMyr": 0.309,
+      "reference": "Seno et al. [1993]"
+    },
+    {
+      "code": "CO",
+      "name": "Cocos",
+      "areaSteradian": 0.07223,
+      "latDeg": 36.823,
+      "lonDeg": -108.629,
+      "omegaDegPerMyr": 1.9975,
+      "reference": "DeMets et al. [1994]"
+    },
+    {
+      "code": "CR",
+      "name": "Conway Reef",
+      "areaSteradian": 0.00356,
+      "latDeg": -12.628,
+      "lonDeg": 175.127,
+      "omegaDegPerMyr": 3.605,
+      "reference": "this paper"
+    },
+    {
+      "code": "EA",
+      "name": "Easter",
+      "areaSteradian": 0.00411,
+      "latDeg": 28.3,
+      "lonDeg": 66.4,
+      "omegaDegPerMyr": 11.4,
+      "reference": "Engeln and Stein [1984]"
+    },
+    {
+      "code": "EU",
+      "name": "Eurasia",
+      "areaSteradian": 1.1963,
+      "latDeg": 61.066,
+      "lonDeg": -85.819,
+      "omegaDegPerMyr": 0.8591,
+      "reference": "DeMets et al. [1994]"
+    },
+    {
+      "code": "FT",
+      "name": "Futuna",
+      "areaSteradian": 0.00079,
+      "latDeg": -10.158,
+      "lonDeg": -178.305,
+      "omegaDegPerMyr": 4.848,
+      "reference": "this paper"
+    },
+    {
+      "code": "GP",
+      "name": "Galapagos",
+      "areaSteradian": 0.00036,
+      "latDeg": 9.399,
+      "lonDeg": 79.69,
+      "omegaDegPerMyr": 5.275,
+      "reference": "Lonsdale [1988]"
+    },
+    {
+      "code": "IN",
+      "name": "India",
+      "areaSteradian": 0.30637,
+      "latDeg": 60.494,
+      "lonDeg": -30.403,
+      "omegaDegPerMyr": 1.1034,
+      "reference": "DeMets et al. [1994]"
+    },
+    {
+      "code": "JF",
+      "name": "Juan de Fuca",
+      "areaSteradian": 0.00632,
+      "latDeg": 35,
+      "lonDeg": 26,
+      "omegaDegPerMyr": 0.5068,
+      "reference": "Wilson [1988]"
+    },
+    {
+      "code": "JZ",
+      "name": "Juan Fernandez",
+      "areaSteradian": 0.00241,
+      "latDeg": 35.91,
+      "lonDeg": 70.166,
+      "omegaDegPerMyr": 22.52,
+      "reference": "Anderson-Fontana et al. [1986]"
+    },
+    {
+      "code": "KE",
+      "name": "Kermadec",
+      "areaSteradian": 0.01245,
+      "latDeg": 47.521,
+      "lonDeg": -3.115,
+      "omegaDegPerMyr": 2.831,
+      "reference": "this paper"
+    },
+    {
+      "code": "MA",
+      "name": "Mariana",
+      "areaSteradian": 0.01037,
+      "latDeg": 43.777,
+      "lonDeg": 149.205,
+      "omegaDegPerMyr": 1.278,
+      "reference": "this paper"
+    },
+    {
+      "code": "MN",
+      "name": "Manus",
+      "areaSteradian": 0.0002,
+      "latDeg": -3.037,
+      "lonDeg": 150.456,
+      "omegaDegPerMyr": 51.3,
+      "reference": "Martinez and Taylor [1996]"
+    },
+    {
+      "code": "MO",
+      "name": "Maoke",
+      "areaSteradian": 0.00284,
+      "latDeg": 59.589,
+      "lonDeg": 78.88,
+      "omegaDegPerMyr": 0.8927,
+      "reference": "this paper"
+    },
+    {
+      "code": "MS",
+      "name": "Molucca Sea",
+      "areaSteradian": 0.0103,
+      "latDeg": 11.103,
+      "lonDeg": -56.746,
+      "omegaDegPerMyr": 4.07,
+      "reference": "Rangin et al. [1999]"
+    },
+    {
+      "code": "NA",
+      "name": "North America",
+      "areaSteradian": 1.36559,
+      "latDeg": 48.709,
+      "lonDeg": -78.167,
+      "omegaDegPerMyr": 0.7486,
+      "reference": "DeMets et al. [1994]"
+    },
+    {
+      "code": "NB",
+      "name": "North Bismarck",
+      "areaSteradian": 0.00956,
+      "latDeg": -4,
+      "lonDeg": 139,
+      "omegaDegPerMyr": 0.33,
+      "reference": "Tregoning et al. [1998]"
+    },
+    {
+      "code": "ND",
+      "name": "North Andes",
+      "areaSteradian": 0.02394,
+      "latDeg": 58.664,
+      "lonDeg": -89.003,
+      "omegaDegPerMyr": 0.7009,
+      "reference": "Trenkamp et al. [1996]"
+    },
+    {
+      "code": "NH",
+      "name": "New Hebrides",
+      "areaSteradian": 0.01585,
+      "latDeg": 13,
+      "lonDeg": -12,
+      "omegaDegPerMyr": 2.7,
+      "reference": "this paper"
+    },
+    {
+      "code": "NI",
+      "name": "Niuafo'ou",
+      "areaSteradian": 0.00306,
+      "latDeg": 6.868,
+      "lonDeg": -168.868,
+      "omegaDegPerMyr": 3.255,
+      "reference": "Zellmer and Taylor [2001]"
+    },
+    {
+      "code": "NZ",
+      "name": "Nazca",
+      "areaSteradian": 0.39669,
+      "latDeg": 55.578,
+      "lonDeg": -90.096,
+      "omegaDegPerMyr": 1.3599,
+      "reference": "DeMets et al. [1994]"
+    },
+    {
+      "code": "OK",
+      "name": "Okhotsk",
+      "areaSteradian": 0.07482,
+      "latDeg": 55.421,
+      "lonDeg": -82.859,
+      "omegaDegPerMyr": 0.845,
+      "reference": "Cook et al. [1986]"
+    },
+    {
+      "code": "ON",
+      "name": "Okinawa",
+      "areaSteradian": 0.00802,
+      "latDeg": 48.351,
+      "lonDeg": 142.415,
+      "omegaDegPerMyr": 2.853,
+      "reference": "this paper"
+    },
+    {
+      "code": "PA",
+      "name": "Pacific",
+      "areaSteradian": 2.57685,
+      "latDeg": 0,
+      "lonDeg": 0,
+      "omegaDegPerMyr": 0,
+      "reference": "(abritrary choice of reference frame)"
+    },
+    {
+      "code": "PM",
+      "name": "Panama",
+      "areaSteradian": 0.00674,
+      "latDeg": 54.058,
+      "lonDeg": -90.247,
+      "omegaDegPerMyr": 0.9069,
+      "reference": "Kellogg et al. [1995]"
+    },
+    {
+      "code": "PS",
+      "name": "Philippine Sea",
+      "areaSteradian": 0.13409,
+      "latDeg": -1.2,
+      "lonDeg": -45.8,
+      "omegaDegPerMyr": 1,
+      "reference": "Seno et al. [1993]; Kato et al. [1998]"
+    },
+    {
+      "code": "RI",
+      "name": "Rivera",
+      "areaSteradian": 0.00249,
+      "latDeg": 26.7,
+      "lonDeg": -105.2,
+      "omegaDegPerMyr": 4.6923,
+      "reference": "DeMets and Traylen [2000]"
+    },
+    {
+      "code": "SA",
+      "name": "South America",
+      "areaSteradian": 1.03045,
+      "latDeg": 54.999,
+      "lonDeg": -85.752,
+      "omegaDegPerMyr": 0.6365,
+      "reference": "DeMets et al. [1994]"
+    },
+    {
+      "code": "SB",
+      "name": "South Bismarck",
+      "areaSteradian": 0.00762,
+      "latDeg": 10.61,
+      "lonDeg": -32.99,
+      "omegaDegPerMyr": 8.44,
+      "reference": "Tregoning et al. [1999]"
+    },
+    {
+      "code": "SC",
+      "name": "Scotia",
+      "areaSteradian": 0.0419,
+      "latDeg": 48.625,
+      "lonDeg": -81.454,
+      "omegaDegPerMyr": 0.6516,
+      "reference": "Pelayo and Wiens [1989]"
+    },
+    {
+      "code": "SL",
+      "name": "Shetland",
+      "areaSteradian": 0.00178,
+      "latDeg": 63.121,
+      "lonDeg": -97.084,
+      "omegaDegPerMyr": 0.8558,
+      "reference": "(hypothetical; see text)"
+    },
+    {
+      "code": "SO",
+      "name": "Somalia",
+      "areaSteradian": 0.47192,
+      "latDeg": 58.789,
+      "lonDeg": -81.637,
+      "omegaDegPerMyr": 0.9783,
+      "reference": "Chu and Gordon [1999]"
+    },
+    {
+      "code": "SS",
+      "name": "Solomon Sea",
+      "areaSteradian": 0.00317,
+      "latDeg": 19.529,
+      "lonDeg": 135.017,
+      "omegaDegPerMyr": 1.478,
+      "reference": "this paper"
+    },
+    {
+      "code": "SU",
+      "name": "Sunda",
+      "areaSteradian": 0.21967,
+      "latDeg": 55.442,
+      "lonDeg": -72.955,
+      "omegaDegPerMyr": 1.103,
+      "reference": "Rangin et al. [1999]"
+    },
+    {
+      "code": "SW",
+      "name": "Sandwich",
+      "areaSteradian": 0.00454,
+      "latDeg": -19.019,
+      "lonDeg": -39.64,
+      "omegaDegPerMyr": 1.84,
+      "reference": "Pelayo and Wiens [1989]"
+    },
+    {
+      "code": "TI",
+      "name": "Timor",
+      "areaSteradian": 0.0087,
+      "latDeg": 19.524,
+      "lonDeg": 112.175,
+      "omegaDegPerMyr": 1.514,
+      "reference": "this paper"
+    },
+    {
+      "code": "TO",
+      "name": "Tonga",
+      "areaSteradian": 0.00625,
+      "latDeg": 28.807,
+      "lonDeg": 2.263,
+      "omegaDegPerMyr": 9.3,
+      "reference": "Zellmer and Taylor [2001]"
+    },
+    {
+      "code": "WL",
+      "name": "Woodlark",
+      "areaSteradian": 0.01116,
+      "latDeg": 22.134,
+      "lonDeg": 132.33,
+      "omegaDegPerMyr": 1.546,
+      "reference": "Tregoning et al. [1998]"
+    },
+    {
+      "code": "YA",
+      "name": "Yangtze",
+      "areaSteradian": 0.05425,
+      "latDeg": 69.067,
+      "lonDeg": -97.718,
+      "omegaDegPerMyr": 0.9983,
+      "reference": "Heki et al. [1999]"
+    }
+  ]
+}

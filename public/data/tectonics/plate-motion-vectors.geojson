@@ -1,0 +1,4303 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "name": "Peter Bird PB2002 computed plate motion vectors",
+    "status": "computed",
+    "citation": "Bird, P. (2003). An updated digital model of plate boundaries. Geochemistry Geophysics Geosystems, 4(3), 1027. doi:10.1029/2001GC000252.",
+    "citationDoi": "10.1029/2001GC000252",
+    "sourceModel": "PB2002",
+    "poleSource": "scripts/pb2002-euler-poles.json (transcribed from Table 1, page 6 of the published PDF)",
+    "sourceUrls": {
+      "landing": "http://peterbird.name/publications/2003_PB2002/2003_PB2002.htm",
+      "ftp": "http://peterbird.name/oldFTP/PB2002/",
+      "steps": "http://peterbird.name/oldFTP/PB2002/PB2002_steps.dat.txt",
+      "plates": "http://peterbird.name/oldFTP/PB2002/PB2002_plates.dig.txt",
+      "readme": "http://peterbird.name/oldFTP/PB2002/2001GC000252_readme.txt"
+    },
+    "generatedAt": "2026-08-16T07:38:19.033Z",
+    "generatedBy": "scripts/build-pb2002-boundaries.mjs",
+    "plateCount": 52,
+    "featureCount": 137,
+    "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1); the Pacific plate itself has zero velocity by definition",
+    "velocityModel": "v = omega x r on a sphere of radius 6371.0088 km; km/Myr is numerically equal to mm/yr",
+    "notes": [
+      "Each feature is a sample point inside a PB2002 plate polygon with the linear velocity computed from that plate Euler pole.",
+      "Major plates carry multiple sample points so their velocity gradients are visible; small plates carry fewer.",
+      "All poles and boundary geometry come from the same PB2002 model, so plates and motions are internally consistent.",
+      "Euler vectors are stated with high precision to avoid round-off, but their true accuracy is lower (Table 1, footnote a)."
+    ],
+    "poleMetadata": {
+      "name": "Peter Bird PB2002 Table 1 - plate identifiers, areas, and Euler poles",
+      "citation": "Bird, P. (2003). An updated digital model of plate boundaries. Geochemistry Geophysics Geosystems, 4(3), 1027. doi:10.1029/2001GC000252",
+      "sourceUrl": "http://peterbird.name/publications/2003_PB2002/2001GC000252.pdf",
+      "sourceLocation": "Table 1, page 6 of the published PDF",
+      "transcription": "Values transcribed programmatically from the published PDF text layer (pdftotext -raw). The PDF minus sign is an unmapped glyph; it was read as U+FFFD and interpreted as negative.",
+      "referenceFrame": "All poles are expressed in the Pacific-plate reference frame. Rotation about each pole is counterclockwise when seen from outside the Earth.",
+      "columns": {
+        "code": "Two-letter plate identifier",
+        "name": "Plate name",
+        "areaSteradian": "Plate area in steradians",
+        "latDeg": "Euler pole latitude, degrees north",
+        "lonDeg": "Euler pole longitude, degrees east",
+        "omegaDegPerMyr": "Rotation rate, degrees per million years (counterclockwise positive)",
+        "reference": "Source publication of the pole estimate"
+      },
+      "validation": [
+        "Pacific (PA) pole is 0/0/0, the identity of the Pacific reference frame.",
+        "Nazca (NZ) pole 55.578/-90.096/1.3599 and North America (NA) pole 48.709/-78.167/0.7486 match the published NUVEL-1A values (DeMets et al. 1994) verbatim.",
+        "Cocos (CO) pole 36.823/-108.629/1.9975 matches NUVEL-1A Cocos-Pacific.",
+        "All 52 rows parse with latitudes within +-90, longitudes within +-180, and rates within [0, 60] deg/Myr; no duplicate codes."
+      ],
+      "note": "Euler vectors are stated with high precision to avoid round-off error in differencing, but accuracy is much less (footnote a of Table 1)."
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-af-1",
+        "plateCode": "AF",
+        "displayName": "African Plate",
+        "speedMmYr": 102.64,
+        "azimuthDeg": 60,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 59.16,
+          "lonDeg": -73.174,
+          "omegaDegPerMyr": 0.927,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.928,
+          -2.072
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-af-2",
+        "plateCode": "AF",
+        "displayName": "African Plate",
+        "speedMmYr": 84.76,
+        "azimuthDeg": 51.5,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 59.16,
+          "lonDeg": -73.174,
+          "omegaDegPerMyr": 0.927,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.734,
+          -39.141
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-af-3",
+        "plateCode": "AF",
+        "displayName": "African Plate",
+        "speedMmYr": 95.48,
+        "azimuthDeg": 57.4,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 59.16,
+          "lonDeg": -73.174,
+          "omegaDegPerMyr": 0.927,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          29.734,
+          -18.194
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-af-4",
+        "plateCode": "AF",
+        "displayName": "African Plate",
+        "speedMmYr": 100.01,
+        "azimuthDeg": 60.9,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 59.16,
+          "lonDeg": -73.174,
+          "omegaDegPerMyr": 0.927,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -6.266,
+          2.754
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-af-5",
+        "plateCode": "AF",
+        "displayName": "African Plate",
+        "speedMmYr": 87.76,
+        "azimuthDeg": 63,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 59.16,
+          "lonDeg": -73.174,
+          "omegaDegPerMyr": 0.927,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -24.266,
+          13.228
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-af-6",
+        "plateCode": "AF",
+        "displayName": "African Plate",
+        "speedMmYr": 68.43,
+        "azimuthDeg": 66.6,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 59.16,
+          "lonDeg": -73.174,
+          "omegaDegPerMyr": 0.927,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -42.266,
+          23.701
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-af-7",
+        "plateCode": "AF",
+        "displayName": "African Plate",
+        "speedMmYr": 100.06,
+        "azimuthDeg": 59,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 59.16,
+          "lonDeg": -73.174,
+          "omegaDegPerMyr": 0.927,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          29.734,
+          23.701
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-af-8",
+        "plateCode": "AF",
+        "displayName": "African Plate",
+        "speedMmYr": 95.02,
+        "azimuthDeg": 57.2,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 59.16,
+          "lonDeg": -73.174,
+          "omegaDegPerMyr": 0.927,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          29.734,
+          34.175
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-am-1",
+        "plateCode": "AM",
+        "displayName": "Amur Plate",
+        "speedMmYr": 99.08,
+        "azimuthDeg": 105.6,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 57.645,
+          "lonDeg": -83.736,
+          "omegaDegPerMyr": 0.9309,
+          "sourceReference": "Heki et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          125.072,
+          46.47
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-am-2",
+        "plateCode": "AM",
+        "displayName": "Amur Plate",
+        "speedMmYr": 92.5,
+        "azimuthDeg": 113.5,
+        "isPrimary": false,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 57.645,
+          "lonDeg": -83.736,
+          "omegaDegPerMyr": 0.9309,
+          "sourceReference": "Heki et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.071,
+          53.996
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-an-1",
+        "plateCode": "AN",
+        "displayName": "Antarctic Plate",
+        "speedMmYr": 76.87,
+        "azimuthDeg": 116.8,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 64.315,
+          "lonDeg": -83.984,
+          "omegaDegPerMyr": 0.8695,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -139.728,
+          -55.663
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-an-2",
+        "plateCode": "AN",
+        "displayName": "Antarctic Plate",
+        "speedMmYr": 79.5,
+        "azimuthDeg": 68.4,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 64.315,
+          "lonDeg": -83.984,
+          "omegaDegPerMyr": 0.8695,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -39.728,
+          -55.663
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-an-3",
+        "plateCode": "AN",
+        "displayName": "Antarctic Plate",
+        "speedMmYr": 72.84,
+        "azimuthDeg": 57.5,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 64.315,
+          "lonDeg": -83.984,
+          "omegaDegPerMyr": 0.8695,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -14.728,
+          -55.663
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-an-4",
+        "plateCode": "AN",
+        "displayName": "Antarctic Plate",
+        "speedMmYr": 34.41,
+        "azimuthDeg": 58.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 64.315,
+          "lonDeg": -83.984,
+          "omegaDegPerMyr": 0.8695,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -289.728,
+          -48.663
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-an-5",
+        "plateCode": "AN",
+        "displayName": "Antarctic Plate",
+        "speedMmYr": 88.95,
+        "azimuthDeg": 92.7,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 64.315,
+          "lonDeg": -83.984,
+          "omegaDegPerMyr": 0.8695,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.728,
+          -48.663
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-an-6",
+        "plateCode": "AN",
+        "displayName": "Antarctic Plate",
+        "speedMmYr": 43.95,
+        "azimuthDeg": 65.5,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 64.315,
+          "lonDeg": -83.984,
+          "omegaDegPerMyr": 0.8695,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -289.728,
+          -41.663
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-an-7",
+        "plateCode": "AN",
+        "displayName": "Antarctic Plate",
+        "speedMmYr": 92.9,
+        "azimuthDeg": 92.6,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 64.315,
+          "lonDeg": -83.984,
+          "omegaDegPerMyr": 0.8695,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.728,
+          -41.663
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-an-8",
+        "plateCode": "AN",
+        "displayName": "Antarctic Plate",
+        "speedMmYr": 62.36,
+        "azimuthDeg": 73,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 64.315,
+          "lonDeg": -83.984,
+          "omegaDegPerMyr": 0.8695,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -289.728,
+          -27.663
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ap-1",
+        "plateCode": "AP",
+        "displayName": "Altiplano Plate",
+        "speedMmYr": 80.49,
+        "azimuthDeg": 77.6,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 33.639,
+          "lonDeg": -81.177,
+          "omegaDegPerMyr": 0.916,
+          "sourceReference": "Lamb [2000]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -69.4,
+          -17.344
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ar-1",
+        "plateCode": "AR",
+        "displayName": "Arabian Plate",
+        "speedMmYr": 116.63,
+        "azimuthDeg": 56.6,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 59.658,
+          "lonDeg": -33.193,
+          "omegaDegPerMyr": 1.1616,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          46.763,
+          23.865
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ar-2",
+        "plateCode": "AR",
+        "displayName": "Arabian Plate",
+        "speedMmYr": 125.85,
+        "azimuthDeg": 58.8,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 59.658,
+          "lonDeg": -33.193,
+          "omegaDegPerMyr": 1.1616,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          56.757,
+          15.077
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ar-3",
+        "plateCode": "AR",
+        "displayName": "Arabian Plate",
+        "speedMmYr": 122.16,
+        "azimuthDeg": 57.7,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 59.658,
+          "lonDeg": -33.193,
+          "omegaDegPerMyr": 1.1616,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          56.757,
+          22.077
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-as-1",
+        "plateCode": "AS",
+        "displayName": "Aegean Sea Plate",
+        "speedMmYr": 62.69,
+        "azimuthDeg": 73.2,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 74.275,
+          "lonDeg": -87.237,
+          "omegaDegPerMyr": 0.6497,
+          "sourceReference": "McClusky et al. [2000]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          25.044,
+          36.978
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-at-1",
+        "plateCode": "AT",
+        "displayName": "Anatolia Plate",
+        "speedMmYr": 74.34,
+        "azimuthDeg": 56.4,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 56.283,
+          "lonDeg": 8.932,
+          "omegaDegPerMyr": 1.64,
+          "sourceReference": "McClusky et al. [2000]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          32.918,
+          38.235
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-au-1",
+        "plateCode": "AU",
+        "displayName": "Australian Plate",
+        "speedMmYr": 91.07,
+        "azimuthDeg": 56.6,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.08,
+          "lonDeg": 1.742,
+          "omegaDegPerMyr": 1.0744,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          124.578,
+          -28.134
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-au-2",
+        "plateCode": "AU",
+        "displayName": "Australian Plate",
+        "speedMmYr": 43.19,
+        "azimuthDeg": 54.7,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.08,
+          "lonDeg": 1.742,
+          "omegaDegPerMyr": 1.0744,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          156.972,
+          -44.853
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-au-3",
+        "plateCode": "AU",
+        "displayName": "Australian Plate",
+        "speedMmYr": 54.97,
+        "azimuthDeg": 63,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.08,
+          "lonDeg": 1.742,
+          "omegaDegPerMyr": 1.0744,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          156.972,
+          -37.629
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-au-4",
+        "plateCode": "AU",
+        "displayName": "Australian Plate",
+        "speedMmYr": 66.76,
+        "azimuthDeg": 68,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.08,
+          "lonDeg": 1.742,
+          "omegaDegPerMyr": 1.0744,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          156.972,
+          -30.405
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-au-5",
+        "plateCode": "AU",
+        "displayName": "Australian Plate",
+        "speedMmYr": 107.88,
+        "azimuthDeg": 57.2,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.08,
+          "lonDeg": 1.742,
+          "omegaDegPerMyr": 1.0744,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          102.875,
+          -23.181
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-au-6",
+        "plateCode": "AU",
+        "displayName": "Australian Plate",
+        "speedMmYr": 118.1,
+        "azimuthDeg": 60.3,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.08,
+          "lonDeg": 1.742,
+          "omegaDegPerMyr": 1.0744,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          81.236,
+          -15.957
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-au-7",
+        "plateCode": "AU",
+        "displayName": "Australian Plate",
+        "speedMmYr": 83.26,
+        "azimuthDeg": 87.8,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.08,
+          "lonDeg": 1.742,
+          "omegaDegPerMyr": 1.0744,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          178.611,
+          -15.957
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-au-8",
+        "plateCode": "AU",
+        "displayName": "Australian Plate",
+        "speedMmYr": 119.43,
+        "azimuthDeg": 60.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.08,
+          "lonDeg": 1.742,
+          "omegaDegPerMyr": 1.0744,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          92.056,
+          -1.508
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-bh-1",
+        "plateCode": "BH",
+        "displayName": "Birds Head Plate",
+        "speedMmYr": 24.15,
+        "azimuthDeg": 18.9,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 12.559,
+          "lonDeg": 87.957,
+          "omegaDegPerMyr": 0.3029,
+          "sourceReference": "this paper"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          131.987,
+          -1.24
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-br-1",
+        "plateCode": "BR",
+        "displayName": "Balmoral Reef Plate",
+        "speedMmYr": 22.24,
+        "azimuthDeg": 131.8,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 45.9,
+          "lonDeg": -111,
+          "omegaDegPerMyr": 0.2,
+          "sourceReference": "this paper"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.874,
+          -15.058
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-bs-1",
+        "plateCode": "BS",
+        "displayName": "Banda Sea Plate",
+        "speedMmYr": 85.23,
+        "azimuthDeg": 81.2,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 16.007,
+          "lonDeg": 122.442,
+          "omegaDegPerMyr": 2.125,
+          "sourceReference": "Rangin et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          125.717,
+          -4.887
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-bu-1",
+        "plateCode": "BU",
+        "displayName": "Burma Plate",
+        "speedMmYr": 105.15,
+        "azimuthDeg": 59.4,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 8.894,
+          "lonDeg": -75.511,
+          "omegaDegPerMyr": 2.667,
+          "sourceReference": "Circum-Pacific Map Project [1986]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          93.972,
+          9.038
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ca-1",
+        "plateCode": "CA",
+        "displayName": "Caribbean Plate",
+        "speedMmYr": 64.24,
+        "azimuthDeg": 84.3,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 54.313,
+          "lonDeg": -79.431,
+          "omegaDegPerMyr": 0.904,
+          "sourceReference": "Weber et al. [2001]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -73.132,
+          14.895
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ca-2",
+        "plateCode": "CA",
+        "displayName": "Caribbean Plate",
+        "speedMmYr": 67.83,
+        "azimuthDeg": 96,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 54.313,
+          "lonDeg": -79.431,
+          "omegaDegPerMyr": 0.904,
+          "sourceReference": "Weber et al. [2001]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -86.398,
+          12.231
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ca-3",
+        "plateCode": "CA",
+        "displayName": "Caribbean Plate",
+        "speedMmYr": 71.02,
+        "azimuthDeg": 73.6,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 54.313,
+          "lonDeg": -79.431,
+          "omegaDegPerMyr": 0.904,
+          "sourceReference": "Weber et al. [2001]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -59.398,
+          12.231
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-cl-1",
+        "plateCode": "CL",
+        "displayName": "Caroline Plate",
+        "speedMmYr": 8.68,
+        "azimuthDeg": 114.5,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 10.13,
+          "lonDeg": -45.57,
+          "omegaDegPerMyr": 0.309,
+          "sourceReference": "Seno et al. [1993]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.546,
+          3.169
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-co-1",
+        "plateCode": "CO",
+        "displayName": "Cocos Plate",
+        "speedMmYr": 114.82,
+        "azimuthDeg": 68.1,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 36.823,
+          "lonDeg": -108.629,
+          "omegaDegPerMyr": 1.9975,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.718,
+          8.375
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-co-2",
+        "plateCode": "CO",
+        "displayName": "Cocos Plate",
+        "speedMmYr": 142.93,
+        "azimuthDeg": 57.6,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 36.823,
+          "lonDeg": -108.629,
+          "omegaDegPerMyr": 1.9975,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -83.086,
+          4.332
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-cr-1",
+        "plateCode": "CR",
+        "displayName": "Conway Reef Plate",
+        "speedMmYr": 46.09,
+        "azimuthDeg": 93.2,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": -12.628,
+          "lonDeg": 175.127,
+          "omegaDegPerMyr": 3.605,
+          "sourceReference": "this paper"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          174.752,
+          -19.221
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ea-1",
+        "plateCode": "EA",
+        "displayName": "Easter Plate",
+        "speedMmYr": 82.62,
+        "azimuthDeg": 85.5,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 28.3,
+          "lonDeg": 66.4,
+          "omegaDegPerMyr": 11.4,
+          "sourceReference": "Engeln and Stein [1984]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -113.934,
+          -24.575
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-eu-1",
+        "plateCode": "EU",
+        "displayName": "Eurasian Plate",
+        "speedMmYr": 80.67,
+        "azimuthDeg": 69.6,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 61.066,
+          "lonDeg": -85.819,
+          "omegaDegPerMyr": 0.8591,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          56.628,
+          57.762
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-eu-2",
+        "plateCode": "EU",
+        "displayName": "Eurasian Plate",
+        "speedMmYr": 69.79,
+        "azimuthDeg": 50.2,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 61.066,
+          "lonDeg": -85.819,
+          "omegaDegPerMyr": 0.8591,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -10.608,
+          42.558
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-eu-3",
+        "plateCode": "EU",
+        "displayName": "Eurasian Plate",
+        "speedMmYr": 62.67,
+        "azimuthDeg": 44.5,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 61.066,
+          "lonDeg": -85.819,
+          "omegaDegPerMyr": 0.8591,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -10.608,
+          50.603
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-eu-4",
+        "plateCode": "EU",
+        "displayName": "Eurasian Plate",
+        "speedMmYr": 55.8,
+        "azimuthDeg": 36.8,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 61.066,
+          "lonDeg": -85.819,
+          "omegaDegPerMyr": 0.8591,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -10.608,
+          58.648
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-eu-5",
+        "plateCode": "EU",
+        "displayName": "Eurasian Plate",
+        "speedMmYr": 81.31,
+        "azimuthDeg": 105.4,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 61.066,
+          "lonDeg": -85.819,
+          "omegaDegPerMyr": 0.8591,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.083,
+          58.648
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-eu-6",
+        "plateCode": "EU",
+        "displayName": "Eurasian Plate",
+        "speedMmYr": 75.46,
+        "azimuthDeg": 86.8,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 61.066,
+          "lonDeg": -85.819,
+          "omegaDegPerMyr": 0.8591,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          88.91,
+          66.693
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-eu-7",
+        "plateCode": "EU",
+        "displayName": "Eurasian Plate",
+        "speedMmYr": 66.35,
+        "azimuthDeg": 97.9,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 61.066,
+          "lonDeg": -85.819,
+          "omegaDegPerMyr": 0.8591,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          105.497,
+          74.738
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-eu-8",
+        "plateCode": "EU",
+        "displayName": "Eurasian Plate",
+        "speedMmYr": 56.2,
+        "azimuthDeg": 99.3,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 61.066,
+          "lonDeg": -85.819,
+          "omegaDegPerMyr": 0.8591,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          105.497,
+          82.783
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ft-1",
+        "plateCode": "FT",
+        "displayName": "Futuna Plate",
+        "speedMmYr": 45.38,
+        "azimuthDeg": 84.9,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": -10.158,
+          "lonDeg": -178.305,
+          "omegaDegPerMyr": 4.848,
+          "sourceReference": "this paper"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -177.867,
+          -14.968
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-gp-1",
+        "plateCode": "GP",
+        "displayName": "Galapagos Plate",
+        "speedMmYr": 115.44,
+        "azimuthDeg": 83.1,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 9.399,
+          "lonDeg": 79.69,
+          "omegaDegPerMyr": 5.275,
+          "sourceReference": "Lonsdale [1988]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.683,
+          1.869
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-in-1",
+        "plateCode": "IN",
+        "displayName": "Indian Plate",
+        "speedMmYr": 122.54,
+        "azimuthDeg": 62,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.494,
+          "lonDeg": -30.403,
+          "omegaDegPerMyr": 1.1034,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.539,
+          13.17
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-in-2",
+        "plateCode": "IN",
+        "displayName": "Indian Plate",
+        "speedMmYr": 117.58,
+        "azimuthDeg": 63.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.494,
+          "lonDeg": -30.403,
+          "omegaDegPerMyr": 1.1034,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          87.765,
+          -3.539
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-in-3",
+        "plateCode": "IN",
+        "displayName": "Indian Plate",
+        "speedMmYr": 120.7,
+        "azimuthDeg": 63.8,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.494,
+          "lonDeg": -30.403,
+          "omegaDegPerMyr": 1.1034,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          87.765,
+          3.461
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-in-4",
+        "plateCode": "IN",
+        "displayName": "Indian Plate",
+        "speedMmYr": 121.34,
+        "azimuthDeg": 60.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.494,
+          "lonDeg": -30.403,
+          "omegaDegPerMyr": 1.1034,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          60.765,
+          10.461
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-in-5",
+        "plateCode": "IN",
+        "displayName": "Indian Plate",
+        "speedMmYr": 122.39,
+        "azimuthDeg": 64.2,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.494,
+          "lonDeg": -30.403,
+          "omegaDegPerMyr": 1.1034,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          87.765,
+          10.461
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-in-6",
+        "plateCode": "IN",
+        "displayName": "Indian Plate",
+        "speedMmYr": 118.75,
+        "azimuthDeg": 59.4,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.494,
+          "lonDeg": -30.403,
+          "omegaDegPerMyr": 1.1034,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          60.765,
+          17.461
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-in-7",
+        "plateCode": "IN",
+        "displayName": "Indian Plate",
+        "speedMmYr": 122.6,
+        "azimuthDeg": 64.2,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.494,
+          "lonDeg": -30.403,
+          "omegaDegPerMyr": 1.1034,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          87.765,
+          17.461
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-in-8",
+        "plateCode": "IN",
+        "displayName": "Indian Plate",
+        "speedMmYr": 121.33,
+        "azimuthDeg": 64,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 60.494,
+          "lonDeg": -30.403,
+          "omegaDegPerMyr": 1.1034,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          87.765,
+          24.461
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-jf-1",
+        "plateCode": "JF",
+        "displayName": "Juan de Fuca Plate",
+        "speedMmYr": 56.05,
+        "azimuthDeg": 111.5,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 35,
+          "lonDeg": 26,
+          "omegaDegPerMyr": 0.5068,
+          "sourceReference": "Wilson [1988]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -127.612,
+          45.55
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-jz-1",
+        "plateCode": "JZ",
+        "displayName": "Juan Fernandez Plate",
+        "speedMmYr": 118.34,
+        "azimuthDeg": 71.2,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 35.91,
+          "lonDeg": 70.166,
+          "omegaDegPerMyr": 22.52,
+          "sourceReference": "Anderson-Fontana et al. [1986]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -110.912,
+          -33.351
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ke-1",
+        "plateCode": "KE",
+        "displayName": "Kermadec Plate",
+        "speedMmYr": 78.65,
+        "azimuthDeg": 99.5,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 47.521,
+          "lonDeg": -3.115,
+          "omegaDegPerMyr": 2.831,
+          "sourceReference": "this paper"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -179.605,
+          -33.297
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ma-1",
+        "plateCode": "MA",
+        "displayName": "Mariana Plate",
+        "speedMmYr": 62.38,
+        "azimuthDeg": 96.2,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 43.777,
+          "lonDeg": 149.205,
+          "omegaDegPerMyr": 1.278,
+          "sourceReference": "this paper"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          145.429,
+          17.935
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-mn-1",
+        "plateCode": "MN",
+        "displayName": "Manus Plate",
+        "speedMmYr": 48.99,
+        "azimuthDeg": 85,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": -3.037,
+          "lonDeg": 150.456,
+          "omegaDegPerMyr": 51.3,
+          "sourceReference": "Martinez and Taylor [1996]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          150.499,
+          -3.527
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-mo-1",
+        "plateCode": "MO",
+        "displayName": "Molucca Sea Plate",
+        "speedMmYr": 97.12,
+        "azimuthDeg": 63.6,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 59.589,
+          "lonDeg": 78.88,
+          "omegaDegPerMyr": 0.8927,
+          "sourceReference": "this paper"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.147,
+          -3.423
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ms-1",
+        "plateCode": "MS",
+        "displayName": "Molucca Sea Plate",
+        "speedMmYr": 78.4,
+        "azimuthDeg": 91.3,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 11.103,
+          "lonDeg": -56.746,
+          "omegaDegPerMyr": 4.07,
+          "sourceReference": "Rangin et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.481,
+          -1.13
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-na-1",
+        "plateCode": "NA",
+        "displayName": "North American Plate",
+        "speedMmYr": 83.21,
+        "azimuthDeg": 83.4,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 48.709,
+          "lonDeg": -78.167,
+          "omegaDegPerMyr": 0.7486,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.874,
+          39.284
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-na-2",
+        "plateCode": "NA",
+        "displayName": "North American Plate",
+        "speedMmYr": 73.38,
+        "azimuthDeg": 133.2,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 48.709,
+          "lonDeg": -78.167,
+          "omegaDegPerMyr": 0.7486,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.266,
+          16.707
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-na-3",
+        "plateCode": "NA",
+        "displayName": "North American Plate",
+        "speedMmYr": 83.12,
+        "azimuthDeg": 126.4,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 48.709,
+          "lonDeg": -78.167,
+          "omegaDegPerMyr": 0.7486,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          165.734,
+          24.954
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-na-4",
+        "plateCode": "NA",
+        "displayName": "North American Plate",
+        "speedMmYr": 83.23,
+        "azimuthDeg": 114.5,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 48.709,
+          "lonDeg": -78.167,
+          "omegaDegPerMyr": 0.7486,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.734,
+          33.201
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-na-5",
+        "plateCode": "NA",
+        "displayName": "North American Plate",
+        "speedMmYr": 79.92,
+        "azimuthDeg": 128.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 48.709,
+          "lonDeg": -78.167,
+          "omegaDegPerMyr": 0.7486,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          165.734,
+          41.448
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-na-6",
+        "plateCode": "NA",
+        "displayName": "North American Plate",
+        "speedMmYr": 68.69,
+        "azimuthDeg": 143.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 48.709,
+          "lonDeg": -78.167,
+          "omegaDegPerMyr": 0.7486,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -169.266,
+          49.695
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-na-7",
+        "plateCode": "NA",
+        "displayName": "North American Plate",
+        "speedMmYr": 61.85,
+        "azimuthDeg": 27.6,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 48.709,
+          "lonDeg": -78.167,
+          "omegaDegPerMyr": 0.7486,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          15.734,
+          66.188
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-na-8",
+        "plateCode": "NA",
+        "displayName": "North American Plate",
+        "speedMmYr": 61.24,
+        "azimuthDeg": 58.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 48.709,
+          "lonDeg": -78.167,
+          "omegaDegPerMyr": 0.7486,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          65.734,
+          82.682
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-nb-1",
+        "plateCode": "NB",
+        "displayName": "North Bismarck Plate",
+        "speedMmYr": 6.21,
+        "azimuthDeg": 351,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": -4,
+          "lonDeg": 139,
+          "omegaDegPerMyr": 0.33,
+          "sourceReference": "Tregoning et al. [1998]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          148.64,
+          -2.515
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-nd-1",
+        "plateCode": "ND",
+        "displayName": "North Andes Plate",
+        "speedMmYr": 62.56,
+        "azimuthDeg": 81.1,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 58.664,
+          "lonDeg": -89.003,
+          "omegaDegPerMyr": 0.7009,
+          "sourceReference": "Trenkamp et al. [1996]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.207,
+          6.352
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-nh-1",
+        "plateCode": "NH",
+        "displayName": "New Hebrides Plate",
+        "speedMmYr": 28.53,
+        "azimuthDeg": 243.9,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 13,
+          "lonDeg": -12,
+          "omegaDegPerMyr": 2.7,
+          "sourceReference": "this paper"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          170.457,
+          -17.913
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ni-1",
+        "plateCode": "NI",
+        "displayName": "Niuafo’ou Plate",
+        "speedMmYr": 150.14,
+        "azimuthDeg": 106.5,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 6.868,
+          "lonDeg": -168.868,
+          "omegaDegPerMyr": 3.255,
+          "sourceReference": "Zellmer and Taylor [2001]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -175.665,
+          -16.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-nz-1",
+        "plateCode": "NZ",
+        "displayName": "Nazca Plate",
+        "speedMmYr": 146.76,
+        "azimuthDeg": 91,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.578,
+          "lonDeg": -90.096,
+          "omegaDegPerMyr": 1.3599,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -91.83,
+          -20.473
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-nz-2",
+        "plateCode": "NZ",
+        "displayName": "Nazca Plate",
+        "speedMmYr": 151.13,
+        "azimuthDeg": 80.9,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.578,
+          "lonDeg": -90.096,
+          "omegaDegPerMyr": 1.3599,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -73.921,
+          -35.261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-nz-3",
+        "plateCode": "NZ",
+        "displayName": "Nazca Plate",
+        "speedMmYr": 150.76,
+        "azimuthDeg": 101.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.578,
+          "lonDeg": -90.096,
+          "omegaDegPerMyr": 1.3599,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -109.921,
+          -28.261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-nz-4",
+        "plateCode": "NZ",
+        "displayName": "Nazca Plate",
+        "speedMmYr": 150.63,
+        "azimuthDeg": 80.9,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.578,
+          "lonDeg": -90.096,
+          "omegaDegPerMyr": 1.3599,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -73.921,
+          -28.261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-nz-5",
+        "plateCode": "NZ",
+        "displayName": "Nazca Plate",
+        "speedMmYr": 147.57,
+        "azimuthDeg": 96.2,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.578,
+          "lonDeg": -90.096,
+          "omegaDegPerMyr": 1.3599,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -100.921,
+          -21.261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-nz-6",
+        "plateCode": "NZ",
+        "displayName": "Nazca Plate",
+        "speedMmYr": 143.66,
+        "azimuthDeg": 101.6,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.578,
+          "lonDeg": -90.096,
+          "omegaDegPerMyr": 1.3599,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -109.921,
+          -14.261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-nz-7",
+        "plateCode": "NZ",
+        "displayName": "Nazca Plate",
+        "speedMmYr": 142.48,
+        "azimuthDeg": 96.5,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.578,
+          "lonDeg": -90.096,
+          "omegaDegPerMyr": 1.3599,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -100.921,
+          -14.261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-nz-8",
+        "plateCode": "NZ",
+        "displayName": "Nazca Plate",
+        "speedMmYr": 126.14,
+        "azimuthDeg": 97.3,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.578,
+          "lonDeg": -90.096,
+          "omegaDegPerMyr": 1.3599,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -100.921,
+          -0.261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ok-1",
+        "plateCode": "OK",
+        "displayName": "Okhotsk Plate",
+        "speedMmYr": 84.35,
+        "azimuthDeg": 120.4,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.421,
+          "lonDeg": -82.859,
+          "omegaDegPerMyr": 0.845,
+          "sourceReference": "Cook et al. [1986]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          150.255,
+          52.11
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ok-2",
+        "plateCode": "OK",
+        "displayName": "Okhotsk Plate",
+        "speedMmYr": 73.14,
+        "azimuthDeg": 133.1,
+        "isPrimary": false,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.421,
+          "lonDeg": -82.859,
+          "omegaDegPerMyr": 0.845,
+          "sourceReference": "Cook et al. [1986]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          166.622,
+          61.403
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-on-1",
+        "plateCode": "ON",
+        "displayName": "Okinawa Plate",
+        "speedMmYr": 127.84,
+        "azimuthDeg": 114.1,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 48.351,
+          "lonDeg": 142.415,
+          "omegaDegPerMyr": 2.853,
+          "sourceReference": "this paper"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          128.053,
+          27.364
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-pa-1",
+        "plateCode": "PA",
+        "displayName": "Pacific Plate",
+        "speedMmYr": 0,
+        "azimuthDeg": 180.9,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 0,
+          "lonDeg": 0,
+          "omegaDegPerMyr": 0,
+          "sourceReference": "(abritrary choice of reference frame)"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -158.252,
+          -0.368
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-pa-2",
+        "plateCode": "PA",
+        "displayName": "Pacific Plate",
+        "speedMmYr": 0,
+        "azimuthDeg": 210,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 0,
+          "lonDeg": 0,
+          "omegaDegPerMyr": 0,
+          "sourceReference": "(abritrary choice of reference frame)"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -129.243,
+          -45.058
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-pa-3",
+        "plateCode": "PA",
+        "displayName": "Pacific Plate",
+        "speedMmYr": 0,
+        "azimuthDeg": 193.4,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 0,
+          "lonDeg": 0,
+          "omegaDegPerMyr": 0,
+          "sourceReference": "(abritrary choice of reference frame)"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -129.243,
+          -16.919
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-pa-4",
+        "plateCode": "PA",
+        "displayName": "Pacific Plate",
+        "speedMmYr": 0,
+        "azimuthDeg": 182.3,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 0,
+          "lonDeg": 0,
+          "omegaDegPerMyr": 0,
+          "sourceReference": "(abritrary choice of reference frame)"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -129.243,
+          -2.849
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-pa-5",
+        "plateCode": "PA",
+        "displayName": "Pacific Plate",
+        "speedMmYr": 0,
+        "azimuthDeg": 72.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 0,
+          "lonDeg": 0,
+          "omegaDegPerMyr": 0,
+          "sourceReference": "(abritrary choice of reference frame)"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          176.405,
+          11.221
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-pa-6",
+        "plateCode": "PA",
+        "displayName": "Pacific Plate",
+        "speedMmYr": 0,
+        "azimuthDeg": 42.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 0,
+          "lonDeg": 0,
+          "omegaDegPerMyr": 0,
+          "sourceReference": "(abritrary choice of reference frame)"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          154.665,
+          25.291
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-pa-7",
+        "plateCode": "PA",
+        "displayName": "Pacific Plate",
+        "speedMmYr": 0,
+        "azimuthDeg": 53.3,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 0,
+          "lonDeg": 0,
+          "omegaDegPerMyr": 0,
+          "sourceReference": "(abritrary choice of reference frame)"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          154.665,
+          39.36
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-pa-8",
+        "plateCode": "PA",
+        "displayName": "Pacific Plate",
+        "speedMmYr": 0,
+        "azimuthDeg": 136.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 0,
+          "lonDeg": 0,
+          "omegaDegPerMyr": 0,
+          "sourceReference": "(abritrary choice of reference frame)"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -140.113,
+          53.43
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-pm-1",
+        "plateCode": "PM",
+        "displayName": "Panama Plate",
+        "speedMmYr": 72.18,
+        "azimuthDeg": 82.5,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 54.058,
+          "lonDeg": -90.247,
+          "omegaDegPerMyr": 0.9069,
+          "sourceReference": "Kellogg et al. [1995]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -81.126,
+          8.938
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ps-1",
+        "plateCode": "PS",
+        "displayName": "Philippine Sea Plate",
+        "speedMmYr": 33.19,
+        "azimuthDeg": 88,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": -1.2,
+          "lonDeg": -45.8,
+          "omegaDegPerMyr": 1,
+          "sourceReference": "Seno et al. [1993]; Kato et al. [1998]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          133.59,
+          18.557
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ps-2",
+        "plateCode": "PS",
+        "displayName": "Philippine Sea Plate",
+        "speedMmYr": 36.8,
+        "azimuthDeg": 56.5,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": -1.2,
+          "lonDeg": -45.8,
+          "omegaDegPerMyr": 1,
+          "sourceReference": "Seno et al. [1993]; Kato et al. [1998]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.661,
+          17.517
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ri-1",
+        "plateCode": "RI",
+        "displayName": "Rivera Plate",
+        "speedMmYr": 63.17,
+        "azimuthDeg": 106.5,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 26.7,
+          "lonDeg": -105.2,
+          "omegaDegPerMyr": 4.6923,
+          "sourceReference": "DeMets and Traylen [2000]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -107.402,
+          20.046
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sa-1",
+        "plateCode": "SA",
+        "displayName": "South American Plate",
+        "speedMmYr": 70.62,
+        "azimuthDeg": 67.6,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 54.999,
+          "lonDeg": -85.752,
+          "omegaDegPerMyr": 0.6365,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -44.232,
+          -23.585
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sa-2",
+        "plateCode": "SA",
+        "displayName": "South American Plate",
+        "speedMmYr": 68.43,
+        "azimuthDeg": 74.8,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 54.999,
+          "lonDeg": -85.752,
+          "omegaDegPerMyr": 0.6365,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -59.51,
+          -47.433
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sa-3",
+        "plateCode": "SA",
+        "displayName": "South American Plate",
+        "speedMmYr": 70.37,
+        "azimuthDeg": 75.2,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 54.999,
+          "lonDeg": -85.752,
+          "omegaDegPerMyr": 0.6365,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -59.51,
+          -38.515
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sa-4",
+        "plateCode": "SA",
+        "displayName": "South American Plate",
+        "speedMmYr": 70.38,
+        "azimuthDeg": 62.5,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 54.999,
+          "lonDeg": -85.752,
+          "omegaDegPerMyr": 0.6365,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -32.51,
+          -29.596
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sa-5",
+        "plateCode": "SA",
+        "displayName": "South American Plate",
+        "speedMmYr": 70.72,
+        "azimuthDeg": 59.5,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 54.999,
+          "lonDeg": -85.752,
+          "omegaDegPerMyr": 0.6365,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -23.51,
+          -20.678
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sa-6",
+        "plateCode": "SA",
+        "displayName": "South American Plate",
+        "speedMmYr": 69.76,
+        "azimuthDeg": 62.2,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 54.999,
+          "lonDeg": -85.752,
+          "omegaDegPerMyr": 0.6365,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -32.51,
+          -11.76
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sa-7",
+        "plateCode": "SA",
+        "displayName": "South American Plate",
+        "speedMmYr": 62.35,
+        "azimuthDeg": 73.3,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 54.999,
+          "lonDeg": -85.752,
+          "omegaDegPerMyr": 0.6365,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -59.51,
+          -2.841
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sa-8",
+        "plateCode": "SA",
+        "displayName": "South American Plate",
+        "speedMmYr": 56.71,
+        "azimuthDeg": 71.5,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 54.999,
+          "lonDeg": -85.752,
+          "omegaDegPerMyr": 0.6365,
+          "sourceReference": "DeMets et al. [1994]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -59.51,
+          6.077
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sb-1",
+        "plateCode": "SB",
+        "displayName": "South Bismarck Plate",
+        "speedMmYr": 95,
+        "azimuthDeg": 107,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 10.61,
+          "lonDeg": -32.99,
+          "omegaDegPerMyr": 8.44,
+          "sourceReference": "Tregoning et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          148.734,
+          -5.056
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sc-1",
+        "plateCode": "SC",
+        "displayName": "Scotia Plate",
+        "speedMmYr": 68.64,
+        "azimuthDeg": 68.6,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 48.625,
+          "lonDeg": -81.454,
+          "omegaDegPerMyr": 0.6516,
+          "sourceReference": "Pelayo and Wiens [1989]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -49.966,
+          -56.867
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sc-2",
+        "plateCode": "SC",
+        "displayName": "Scotia Plate",
+        "speedMmYr": 65.95,
+        "azimuthDeg": 57.5,
+        "isPrimary": false,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 48.625,
+          "lonDeg": -81.454,
+          "omegaDegPerMyr": 0.6516,
+          "sourceReference": "Pelayo and Wiens [1989]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -33.795,
+          -59.01
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sl-1",
+        "plateCode": "SL",
+        "displayName": "Shetland Plate",
+        "speedMmYr": 74.75,
+        "azimuthDeg": 69.2,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 63.121,
+          "lonDeg": -97.084,
+          "omegaDegPerMyr": 0.8558,
+          "sourceReference": "(hypothetical; see text)"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -59.07,
+          -61.888
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-so-1",
+        "plateCode": "SO",
+        "displayName": "Somalia Plate",
+        "speedMmYr": 92.51,
+        "azimuthDeg": 62.1,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 58.789,
+          "lonDeg": -81.637,
+          "omegaDegPerMyr": 0.9783,
+          "sourceReference": "Chu and Gordon [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          48.169,
+          -13.795
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-so-2",
+        "plateCode": "SO",
+        "displayName": "Somalia Plate",
+        "speedMmYr": 69.69,
+        "azimuthDeg": 58.5,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 58.789,
+          "lonDeg": -81.637,
+          "omegaDegPerMyr": 0.9783,
+          "sourceReference": "Chu and Gordon [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          58.094,
+          -29.764
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-so-3",
+        "plateCode": "SO",
+        "displayName": "Somalia Plate",
+        "speedMmYr": 78.16,
+        "azimuthDeg": 62.2,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 58.789,
+          "lonDeg": -81.637,
+          "omegaDegPerMyr": 0.9783,
+          "sourceReference": "Chu and Gordon [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          58.094,
+          -22.764
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-so-4",
+        "plateCode": "SO",
+        "displayName": "Somalia Plate",
+        "speedMmYr": 85.96,
+        "azimuthDeg": 64.9,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 58.789,
+          "lonDeg": -81.637,
+          "omegaDegPerMyr": 0.9783,
+          "sourceReference": "Chu and Gordon [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          58.094,
+          -15.764
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-so-5",
+        "plateCode": "SO",
+        "displayName": "Somalia Plate",
+        "speedMmYr": 81.86,
+        "azimuthDeg": 69.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 58.789,
+          "lonDeg": -81.637,
+          "omegaDegPerMyr": 0.9783,
+          "sourceReference": "Chu and Gordon [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          67.094,
+          -15.764
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-so-6",
+        "plateCode": "SO",
+        "displayName": "Somalia Plate",
+        "speedMmYr": 89.53,
+        "azimuthDeg": 70.9,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 58.789,
+          "lonDeg": -81.637,
+          "omegaDegPerMyr": 0.9783,
+          "sourceReference": "Chu and Gordon [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          67.094,
+          -8.764
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-so-7",
+        "plateCode": "SO",
+        "displayName": "Somalia Plate",
+        "speedMmYr": 98.65,
+        "azimuthDeg": 68.3,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 58.789,
+          "lonDeg": -81.637,
+          "omegaDegPerMyr": 0.9783,
+          "sourceReference": "Chu and Gordon [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          58.094,
+          -1.764
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-so-8",
+        "plateCode": "SO",
+        "displayName": "Somalia Plate",
+        "speedMmYr": 103.22,
+        "azimuthDeg": 69.3,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 58.789,
+          "lonDeg": -81.637,
+          "omegaDegPerMyr": 0.9783,
+          "sourceReference": "Chu and Gordon [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          58.094,
+          5.236
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ss-1",
+        "plateCode": "SS",
+        "displayName": "South Bismarck Plate",
+        "speedMmYr": 86.76,
+        "azimuthDeg": 57.5,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 19.529,
+          "lonDeg": 135.017,
+          "omegaDegPerMyr": 1.478,
+          "sourceReference": "this paper"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          152.539,
+          -7.259
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-su-1",
+        "plateCode": "SU",
+        "displayName": "Sunda Plate",
+        "speedMmYr": 106.82,
+        "azimuthDeg": 92.7,
+        "isPrimary": true,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.442,
+          "lonDeg": -72.955,
+          "omegaDegPerMyr": 1.103,
+          "sourceReference": "Rangin et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.117,
+          5.032
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-su-2",
+        "plateCode": "SU",
+        "displayName": "Sunda Plate",
+        "speedMmYr": 100.3,
+        "azimuthDeg": 84.1,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.442,
+          "lonDeg": -72.955,
+          "omegaDegPerMyr": 1.103,
+          "sourceReference": "Rangin et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          98.486,
+          -1.024
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-su-3",
+        "plateCode": "SU",
+        "displayName": "Sunda Plate",
+        "speedMmYr": 108.12,
+        "azimuthDeg": 84.5,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.442,
+          "lonDeg": -72.955,
+          "omegaDegPerMyr": 1.103,
+          "sourceReference": "Rangin et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          98.486,
+          5.976
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-su-4",
+        "plateCode": "SU",
+        "displayName": "Sunda Plate",
+        "speedMmYr": 109.56,
+        "azimuthDeg": 101.6,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.442,
+          "lonDeg": -72.955,
+          "omegaDegPerMyr": 1.103,
+          "sourceReference": "Rangin et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          125.486,
+          5.976
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-su-5",
+        "plateCode": "SU",
+        "displayName": "Sunda Plate",
+        "speedMmYr": 114.35,
+        "azimuthDeg": 84.8,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.442,
+          "lonDeg": -72.955,
+          "omegaDegPerMyr": 1.103,
+          "sourceReference": "Rangin et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          98.486,
+          12.976
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-su-6",
+        "plateCode": "SU",
+        "displayName": "Sunda Plate",
+        "speedMmYr": 115.37,
+        "azimuthDeg": 101,
+        "isPrimary": false,
+        "isMajorPlate": true,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 55.442,
+          "lonDeg": -72.955,
+          "omegaDegPerMyr": 1.103,
+          "sourceReference": "Rangin et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          125.486,
+          12.976
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-sw-1",
+        "plateCode": "SW",
+        "displayName": "South Sandwich Plate",
+        "speedMmYr": 131.16,
+        "azimuthDeg": 71.7,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": -19.019,
+          "lonDeg": -39.64,
+          "omegaDegPerMyr": 1.84,
+          "sourceReference": "Pelayo and Wiens [1989]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -27.355,
+          -57.848
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ti-1",
+        "plateCode": "TI",
+        "displayName": "Timor Plate",
+        "speedMmYr": 87.25,
+        "azimuthDeg": 64.7,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 19.524,
+          "lonDeg": 112.175,
+          "omegaDegPerMyr": 1.514,
+          "sourceReference": "this paper"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          125.789,
+          -8.663
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-to-1",
+        "plateCode": "TO",
+        "displayName": "Tonga Plate",
+        "speedMmYr": 175.23,
+        "azimuthDeg": 107.2,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 28.807,
+          "lonDeg": 2.263,
+          "omegaDegPerMyr": 9.3,
+          "sourceReference": "Zellmer and Taylor [2001]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -174.459,
+          -19.519
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-wl-1",
+        "plateCode": "WL",
+        "displayName": "Woodlark Plate",
+        "speedMmYr": 96.94,
+        "azimuthDeg": 61.4,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 22.134,
+          "lonDeg": 132.33,
+          "omegaDegPerMyr": 1.546,
+          "sourceReference": "Tregoning et al. [1998]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          149.293,
+          -7.898
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ya-1",
+        "plateCode": "YA",
+        "displayName": "Yangtze Plate",
+        "speedMmYr": 109.5,
+        "azimuthDeg": 101.7,
+        "isPrimary": true,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 69.067,
+          "lonDeg": -97.718,
+          "omegaDegPerMyr": 0.9983,
+          "sourceReference": "Heki et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.24,
+          27.241
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vector-ya-2",
+        "plateCode": "YA",
+        "displayName": "Yangtze Plate",
+        "speedMmYr": 110.2,
+        "azimuthDeg": 99.1,
+        "isPrimary": false,
+        "isMajorPlate": false,
+        "anchorApproximate": false,
+        "coverage": "computed-from-pb2002-euler-poles",
+        "referenceFrame": "Pacific-plate reference frame (PB2002 Table 1)",
+        "eulerPole": {
+          "latDeg": 69.067,
+          "lonDeg": -97.718,
+          "omegaDegPerMyr": 0.9983,
+          "sourceReference": "Heki et al. [1999]"
+        },
+        "sourceModel": "PB2002",
+        "citationShort": "Bird (2003)",
+        "citationDoi": "10.1029/2001GC000252"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          108.442,
+          25.938
+        ]
+      }
+    }
+  ]
+}

@@ -10,7 +10,7 @@
       "plates": "http://peterbird.name/oldFTP/PB2002/PB2002_plates.dig.txt",
       "readme": "http://peterbird.name/oldFTP/PB2002/2001GC000252_readme.txt"
     },
-    "generatedAt": "2026-04-02T12:43:09.585Z",
+    "generatedAt": "2026-08-16T07:38:19.006Z",
     "generatedBy": "scripts/build-pb2002-boundaries.mjs",
     "featureCount": 52,
     "majorPlateCount": 15,

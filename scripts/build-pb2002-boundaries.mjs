@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -66,6 +66,298 @@ const PLATE_NAME_MAP = {
 function normalizeLongitude(longitude) {
   return longitude > 180 ? longitude - 360 : longitude;
 }
+
+// ===== PB2002 PLATE MOTION (Euler poles, Bird 2003 Table 1) =====
+
+const EARTH_RADIUS_KM = 6371.0088;
+const DEG_TO_RAD = Math.PI / 180;
+const MOTION_POLE_FILE = 'pb2002-euler-poles.json';
+const MOTION_OUTPUT_FILE = 'plate-motion-vectors.geojson';
+const MAJOR_SAMPLE_TARGET = 8;
+const MINOR_SAMPLE_TARGET = 2;
+
+function buildPlateMotionDisplayName(plateCode, poleName) {
+  return PLATE_NAME_MAP[plateCode] ?? `${poleName} Plate`;
+}
+
+async function loadEulerPoles(scriptDirectory) {
+  const poleFilePath = path.join(scriptDirectory, MOTION_POLE_FILE);
+  const payload = JSON.parse(await readFile(poleFilePath, 'utf8'));
+  if (!Array.isArray(payload?.plates) || payload.plates.length === 0) {
+    throw new Error(`${MOTION_POLE_FILE} is missing a plates array`);
+  }
+  return payload;
+}
+
+function unwrapRing(ring) {
+  const unwrapped = [[ring[0][0], ring[0][1]]];
+  for (let index = 1; index < ring.length; index += 1) {
+    let longitude = ring[index][0];
+    const previous = unwrapped[index - 1][0];
+    while (longitude - previous > 180) longitude -= 360;
+    while (previous - longitude > 180) longitude += 360;
+    unwrapped.push([longitude, ring[index][1]]);
+  }
+  return unwrapped;
+}
+
+function pointInUnwrappedRing(longitude, latitude, ring) {
+  let inside = false;
+  for (let index = 0, previous = ring.length - 1; index < ring.length; previous = index, index += 1) {
+    const [xCurrent, yCurrent] = ring[index];
+    const [xPrevious, yPrevious] = ring[previous];
+    const crossesLatitude = (yCurrent > latitude) !== (yPrevious > latitude);
+    if (crossesLatitude && longitude < ((xPrevious - xCurrent) * (latitude - yCurrent)) / (yPrevious - yCurrent) + xCurrent) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function ringBBox(ring) {
+  let lonMin = Infinity;
+  let lonMax = -Infinity;
+  let latMin = Infinity;
+  let latMax = -Infinity;
+  for (const [longitude, latitude] of ring) {
+    lonMin = Math.min(lonMin, longitude);
+    lonMax = Math.max(lonMax, longitude);
+    latMin = Math.min(latMin, latitude);
+    latMax = Math.max(latMax, latitude);
+  }
+  return { lonMin, lonMax, latMin, latMax };
+}
+
+function shoelaceCentroid(ring) {
+  let signedArea = 0;
+  let centroidLon = 0;
+  let centroidLat = 0;
+  for (let index = 0; index < ring.length - 1; index += 1) {
+    const [x1, y1] = ring[index];
+    const [x2, y2] = ring[index + 1];
+    const cross = x1 * y2 - x2 * y1;
+    signedArea += cross;
+    centroidLon += (x1 + x2) * cross;
+    centroidLat += (y1 + y2) * cross;
+  }
+  if (Math.abs(signedArea) < 1e-9) return null;
+  const scale = 1 / (3 * signedArea);
+  return [centroidLon * scale, centroidLat * scale];
+}
+
+function strideSubset(points, target) {
+  if (points.length <= target) return points;
+  const stride = (points.length - 1) / (target - 1);
+  const subset = [];
+  for (let index = 0; index < target; index += 1) {
+    subset.push(points[Math.round(index * stride)]);
+  }
+  return subset;
+}
+
+function samplePlateInteriorPoints(outerRing, isMajorPlate) {
+  const unwrapped = unwrapRing(outerRing);
+  const bbox = ringBBox(unwrapped);
+  const referenceLon = unwrapped[0][0];
+  const target = isMajorPlate ? MAJOR_SAMPLE_TARGET : MINOR_SAMPLE_TARGET;
+
+  const centroid = shoelaceCentroid(unwrapped);
+  const centroidPoint = centroid && pointInUnwrappedRing(centroid[0], centroid[1], unwrapped)
+    ? [[centroid[0], centroid[1]]]
+    : [];
+
+  const lonSpan = Math.max(bbox.lonMax - bbox.lonMin, 1);
+  const latSpan = Math.max(bbox.latMax - bbox.latMin, 1);
+  const lonStep = isMajorPlate
+    ? Math.min(25, Math.max(9, lonSpan / 11))
+    : Math.min(30, Math.max(7, lonSpan / 4));
+  const latStep = isMajorPlate
+    ? Math.min(20, Math.max(7, latSpan / 9))
+    : Math.min(25, Math.max(5, latSpan / 4));
+
+  const gridPoints = [];
+  for (let latitude = bbox.latMin + latStep / 2; latitude < bbox.latMax; latitude += latStep) {
+    for (let longitude = bbox.lonMin + lonStep / 2; longitude < bbox.lonMax; longitude += lonStep) {
+      if (pointInUnwrappedRing(longitude, latitude, unwrapped)) {
+        gridPoints.push([longitude, latitude]);
+      }
+    }
+  }
+
+  const anchor = centroidPoint[0] ?? gridPoints[0] ?? [
+    (bbox.lonMin + bbox.lonMax) / 2,
+    (bbox.latMin + bbox.latMax) / 2,
+  ];
+  const spread = centroidPoint.concat(gridPoints.filter(([lon]) => Math.abs(lon - anchor[0]) > lonStep));
+  const subset = strideSubset(spread, target);
+
+  return {
+    points: subset.length > 0 ? subset : [anchor],
+    anchorIsApproximate: centroidPoint.length === 0 && gridPoints.length === 0,
+  };
+}
+
+function computePlateVelocity(pole, latitudeDeg, longitudeDeg) {
+  const omegaRad = pole.omegaDegPerMyr * DEG_TO_RAD;
+  const poleLatRad = pole.latDeg * DEG_TO_RAD;
+  const poleLonRad = pole.lonDeg * DEG_TO_RAD;
+  const pointLatRad = latitudeDeg * DEG_TO_RAD;
+  const pointLonRad = longitudeDeg * DEG_TO_RAD;
+
+  const omegaUnitX = Math.cos(poleLatRad) * Math.cos(poleLonRad);
+  const omegaUnitY = Math.cos(poleLatRad) * Math.sin(poleLonRad);
+  const omegaUnitZ = Math.sin(poleLatRad);
+
+  const rx = Math.cos(pointLatRad) * Math.cos(pointLonRad);
+  const ry = Math.cos(pointLatRad) * Math.sin(pointLonRad);
+  const rz = Math.sin(pointLatRad);
+
+  // v = omega x r on the unit sphere; omega magnitude factors out of the projection.
+  const vx = omegaUnitY * rz - omegaUnitZ * ry;
+  const vy = omegaUnitZ * rx - omegaUnitX * rz;
+  const vz = omegaUnitX * ry - omegaUnitY * rx;
+
+  const east = vx * -Math.sin(pointLonRad) + vy * Math.cos(pointLonRad);
+  const north = vx * -Math.sin(pointLatRad) * Math.cos(pointLonRad)
+    + vy * -Math.sin(pointLatRad) * Math.sin(pointLonRad)
+    + vz * Math.cos(pointLatRad);
+
+  // km/Myr is numerically equal to mm/yr.
+  const speedMmYr = Math.hypot(east, north) * omegaRad * EARTH_RADIUS_KM;
+  const azimuthDeg = (Math.atan2(east, north) / DEG_TO_RAD + 360) % 360;
+  return { speedMmYr, azimuthDeg };
+}
+
+function buildMotionFeatures(plateFeatures, polesPayload) {
+  const polesByCode = new Map(polesPayload.plates.map(pole => [pole.code, pole]));
+  const features = [];
+  const perPlateSummary = [];
+
+  for (const plateFeature of plateFeatures) {
+    const plateCode = plateFeature.properties.plateCode;
+    const pole = polesByCode.get(plateCode);
+    if (!pole) {
+      throw new Error(`No PB2002 Euler pole found for plate code ${plateCode}`);
+    }
+
+    const outerRing = plateFeature.geometry?.coordinates?.[0];
+    if (!Array.isArray(outerRing) || outerRing.length < 4) {
+      throw new Error(`Plate ${plateCode} has no usable outer ring`);
+    }
+
+    const isMajorPlate = plateFeature.properties.isMajorPlate;
+    const { points, anchorIsApproximate } = samplePlateInteriorPoints(outerRing, isMajorPlate);
+    const primaryIndex = features.length;
+
+    points.forEach(([longitude, latitude], index) => {
+      const { speedMmYr, azimuthDeg } = computePlateVelocity(pole, latitude, longitude);
+      features.push({
+        type: 'Feature',
+        properties: {
+          id: `vector-${plateCode.toLowerCase()}-${index + 1}`,
+          plateCode,
+          displayName: buildPlateMotionDisplayName(plateCode, pole.name),
+          speedMmYr: Number.parseFloat(speedMmYr.toFixed(2)),
+          azimuthDeg: Number.parseFloat(azimuthDeg.toFixed(1)),
+          isPrimary: index === 0,
+          isMajorPlate,
+          anchorApproximate: anchorIsApproximate,
+          coverage: 'computed-from-pb2002-euler-poles',
+          referenceFrame: 'Pacific-plate reference frame (PB2002 Table 1)',
+          eulerPole: {
+            latDeg: pole.latDeg,
+            lonDeg: pole.lonDeg,
+            omegaDegPerMyr: pole.omegaDegPerMyr,
+            sourceReference: pole.reference,
+          },
+          sourceModel: 'PB2002',
+          citationShort: 'Bird (2003)',
+          citationDoi: '10.1029/2001GC000252',
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: [Number.parseFloat(normalizeLongitude(longitude).toFixed(3)), Number.parseFloat(latitude.toFixed(3))],
+        },
+      });
+    });
+
+    const primary = features[primaryIndex].properties;
+    perPlateSummary.push({
+      code: plateCode,
+      name: pole.name,
+      vectors: points.length,
+      speedMmYr: primary.speedMmYr,
+      azimuthDeg: primary.azimuthDeg,
+      omega: pole.omegaDegPerMyr,
+    });
+  }
+
+  return { features, perPlateSummary };
+}
+
+function assertMotionSanity(features, polesPayload) {
+  const pacific = polesPayload.plates.find(pole => pole.code === 'PA');
+  if (!pacific || pacific.latDeg !== 0 || pacific.lonDeg !== 0 || pacific.omegaDegPerMyr !== 0) {
+    throw new Error('Pacific plate pole must be the identity rotation of the reference frame');
+  }
+
+  const checks = [
+    { code: 'NA', lat: 37, lon: -122, min: 35, max: 60 },
+    { code: 'NZ', lat: -20, lon: -70, min: 110, max: 160 },
+    { code: 'CO', lat: 8, lon: -95, min: 90, max: 140 },
+    { code: 'AU', lat: -25, lon: 135, min: 65, max: 100 },
+  ];
+  for (const check of checks) {
+    const pole = polesPayload.plates.find(candidate => candidate.code === check.code);
+    const { speedMmYr } = computePlateVelocity(pole, check.lat, check.lon);
+    if (speedMmYr < check.min || speedMmYr > check.max) {
+      throw new Error(
+        `Sanity check failed for ${check.code} at (${check.lat}, ${check.lon}): ${speedMmYr.toFixed(1)} mm/yr outside [${check.min}, ${check.max}]`,
+      );
+    }
+  }
+
+  for (const feature of features) {
+    const { speedMmYr, azimuthDeg } = feature.properties;
+    if (!Number.isFinite(speedMmYr) || speedMmYr < 0 || speedMmYr > 400) {
+      throw new Error(`Implausible speed for ${feature.properties.plateCode}: ${speedMmYr}`);
+    }
+    if (!Number.isFinite(azimuthDeg) || azimuthDeg < 0 || azimuthDeg >= 360) {
+      throw new Error(`Implausible azimuth for ${feature.properties.plateCode}: ${azimuthDeg}`);
+    }
+  }
+}
+
+function buildMotionFeatureCollection(features, polesPayload, plateCount) {
+  return {
+    type: 'FeatureCollection',
+    metadata: {
+      name: 'Peter Bird PB2002 computed plate motion vectors',
+      status: 'computed',
+      citation:
+        'Bird, P. (2003). An updated digital model of plate boundaries. Geochemistry Geophysics Geosystems, 4(3), 1027. doi:10.1029/2001GC000252.',
+      citationDoi: '10.1029/2001GC000252',
+      sourceModel: 'PB2002',
+      poleSource: 'scripts/pb2002-euler-poles.json (transcribed from Table 1, page 6 of the published PDF)',
+      sourceUrls: SOURCE_URLS,
+      generatedAt: new Date().toISOString(),
+      generatedBy: 'scripts/build-pb2002-boundaries.mjs',
+      plateCount,
+      featureCount: features.length,
+      referenceFrame: 'Pacific-plate reference frame (PB2002 Table 1); the Pacific plate itself has zero velocity by definition',
+      velocityModel: 'v = omega x r on a sphere of radius 6371.0088 km; km/Myr is numerically equal to mm/yr',
+      notes: [
+        'Each feature is a sample point inside a PB2002 plate polygon with the linear velocity computed from that plate Euler pole.',
+        'Major plates carry multiple sample points so their velocity gradients are visible; small plates carry fewer.',
+        'All poles and boundary geometry come from the same PB2002 model, so plates and motions are internally consistent.',
+        'Euler vectors are stated with high precision to avoid round-off, but their true accuracy is lower (Table 1, footnote a).',
+      ],
+      poleMetadata: polesPayload.metadata,
+    },
+    features,
+  };
+}
+
 
 function roundCoord(value) {
   return Number.parseFloat(value.toFixed(3));
@@ -316,35 +608,89 @@ async function writeJsonFile(outputFile, payload) {
   await writeFile(outputFile, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
 }
 
+async function loadPlateFeatures(scriptDirectory, platesText) {
+  if (platesText) return parsePlatePolygons(platesText);
+
+  const committedPath = path.join(scriptDirectory, '..', 'public', 'data', 'tectonics', 'pb2002-plates.geojson');
+  const committed = JSON.parse(await readFile(committedPath, 'utf8'));
+  if (!Array.isArray(committed?.features) || committed.features.length === 0) {
+    throw new Error(`Could not fetch PB2002 plates and no committed artifact at ${committedPath}`);
+  }
+  return committed.features.map(feature => ({
+    ...feature,
+    properties: { ...feature.properties },
+  }));
+}
+
 async function main() {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const outputDirectory = path.join(__dirname, '..', 'public', 'data', 'tectonics');
   const boundaryOutputFile = path.join(outputDirectory, 'pb2002-boundaries.geojson');
   const plateOutputFile = path.join(outputDirectory, 'pb2002-plates.geojson');
+  const motionOutputFile = path.join(outputDirectory, MOTION_OUTPUT_FILE);
 
   const [stepsText, platesText] = await Promise.all([
-    fetchText(SOURCE_URLS.steps),
-    fetchText(SOURCE_URLS.plates),
+    fetchText(SOURCE_URLS.steps).catch(() => null),
+    fetchText(SOURCE_URLS.plates).catch(() => null),
   ]);
 
-  const boundaryFeatures = parseBoundarySteps(stepsText);
-  const boundaryFeatureCollection = buildFeatureCollection(boundaryFeatures);
-  const plateFeatures = parsePlatePolygons(platesText);
-  const plateFeatureCollection = buildPlateFeatureCollection(plateFeatures);
+  if (!stepsText) {
+    console.warn('Could not fetch PB2002 steps source; keeping the committed boundary artifact.');
+  }
+  if (!platesText) {
+    console.warn('Could not fetch PB2002 plates source; reusing the committed plate artifact for motion computation.');
+  }
+
+  const boundaryFeatures = stepsText ? parseBoundarySteps(stepsText) : [];
+  const boundaryFeatureCollection = stepsText ? buildFeatureCollection(boundaryFeatures) : null;
+  const plateFeatures = await loadPlateFeatures(__dirname, platesText);
+  const plateFeatureCollection = platesText ? buildPlateFeatureCollection(plateFeatures) : null;
+
+  const polesPayload = await loadEulerPoles(__dirname);
+  const poleCodes = new Set(polesPayload.plates.map(pole => pole.code));
+  const plateCodes = new Set(plateFeatures.map(feature => feature.properties.plateCode));
+  for (const code of poleCodes) {
+    if (!plateCodes.has(code)) {
+      throw new Error(`Euler pole ${code} has no matching PB2002 plate polygon`);
+    }
+  }
+  const { features: motionFeatures, perPlateSummary } = buildMotionFeatures(plateFeatures, polesPayload);
+  assertMotionSanity(motionFeatures, polesPayload);
+  const motionFeatureCollection = buildMotionFeatureCollection(motionFeatures, polesPayload, plateFeatures.length);
 
   await mkdir(outputDirectory, { recursive: true });
-  await writeJsonFile(boundaryOutputFile, boundaryFeatureCollection);
-  await writeJsonFile(plateOutputFile, plateFeatureCollection);
+  if (boundaryFeatureCollection) await writeJsonFile(boundaryOutputFile, boundaryFeatureCollection);
+  if (plateFeatureCollection) await writeJsonFile(plateOutputFile, plateFeatureCollection);
+  await writeJsonFile(motionOutputFile, motionFeatureCollection);
 
-  const boundarySummary = boundaryFeatures
-    .map((feature) => `${feature.properties.sourceType}: ${feature.properties.lineCount} lines (${feature.properties.rawStepCount} raw steps)`)
-    .join('\n');
+  if (boundaryFeatures.length) {
+    const boundarySummary = boundaryFeatures
+      .map((feature) => `${feature.properties.sourceType}: ${feature.properties.lineCount} lines (${feature.properties.rawStepCount} raw steps)`)
+      .join('\n');
+    console.log(`Wrote ${boundaryOutputFile}`);
+    console.log(boundarySummary);
+  }
+  if (plateFeatureCollection) {
+    console.log(`Wrote ${plateOutputFile}`);
+    console.log(`Plate polygons: ${plateFeatures.length} features (${plateFeatures.filter(feature => feature.properties.isMajorPlate).length} major-plate labels)`);
+  }
 
-  console.log(`Wrote ${boundaryOutputFile}`);
-  console.log(boundarySummary);
-  console.log(`Wrote ${plateOutputFile}`);
-  console.log(`Plate polygons: ${plateFeatures.length} features (${plateFeatures.filter(feature => feature.properties.isMajorPlate).length} major-plate labels)`);
+  console.log(`Wrote ${motionOutputFile}`);
+  console.log(`Motion vectors: ${motionFeatures.length} sample points across ${plateFeatures.length} plates (Pacific reference frame)`);
+  console.table(
+    perPlateSummary
+      .filter(entry => entry.vectors > 0)
+      .map(entry => ({
+        plate: entry.code,
+        name: entry.name,
+        vectors: entry.vectors,
+        'speed mm/yr': entry.speedMmYr,
+        'azimuth deg': entry.azimuthDeg,
+        'omega deg/Myr': entry.omega,
+      })),
+  );
 }
+
 
 main().catch((error) => {
   console.error(error);

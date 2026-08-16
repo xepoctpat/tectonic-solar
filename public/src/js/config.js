@@ -167,7 +167,7 @@ export const MAP_REGIONS = {
 export const TECTONIC_DATASET = {
   boundariesUrl: './data/tectonics/pb2002-boundaries.geojson',
   platesUrl: './data/tectonics/pb2002-plates.geojson',
-  vectorsUrl: './data/tectonics/plate-motion-vectors.json',
+  vectorsUrl: './data/tectonics/plate-motion-vectors.geojson',
   primaryLabel: 'Bird PB2002 (2003)',
   primaryAttribution: 'Bird PB2002 plate model (local GeoJSON artifacts)',
   partialAttribution: 'Bird PB2002 plate regions loaded; fallback sample boundaries still in use',
