@@ -36,7 +36,7 @@ const DEFAULT_MAP_TYPE = 'plates';
 const TECTONIC_FAMILY_STYLES = {
   convergent: {
     color: '#EF4444',
-    weight: 5,
+    weight: 3.4,
     dashArray: undefined,
     fallbackLabel: 'Convergent family',
     fallbackTooltip: 'Fallback convergent family — collision or subduction style only',
@@ -44,7 +44,7 @@ const TECTONIC_FAMILY_STYLES = {
   },
   divergent: {
     color: '#10B981',
-    weight: 4.4,
+    weight: 3.1,
     dashArray: '10 8',
     fallbackLabel: 'Divergent family',
     fallbackTooltip: 'Fallback divergent family — ridge or rift style only',
@@ -52,7 +52,7 @@ const TECTONIC_FAMILY_STYLES = {
   },
   transform: {
     color: '#F59E0B',
-    weight: 4.2,
+    weight: 3,
     dashArray: '14 8',
     fallbackLabel: 'Transform family',
     fallbackTooltip: 'Fallback transform family — strike-slip style only',
@@ -64,7 +64,7 @@ const TECTONIC_INTERACTION_STYLES = {
   SUB: {
     category: 'convergent',
     color: '#FF4D4F',
-    weight: 5.6,
+    weight: 4,
     dashArray: undefined,
     label: 'Subduction zone',
     description: 'oceanic slab descends beneath a neighboring plate',
@@ -74,7 +74,7 @@ const TECTONIC_INTERACTION_STYLES = {
   OCB: {
     category: 'convergent',
     color: '#E11D48',
-    weight: 5,
+    weight: 3.8,
     dashArray: '18 10',
     label: 'Oceanic convergent boundary',
     description: 'oceanic plates converge; trench or volcanic-arc systems are likely',
@@ -83,7 +83,7 @@ const TECTONIC_INTERACTION_STYLES = {
   CCB: {
     category: 'convergent',
     color: '#991B1B',
-    weight: 4.8,
+    weight: 3.6,
     dashArray: '3 9',
     label: 'Continental convergent boundary',
     description: 'continental crust shortens, uplifts, and collides',
@@ -92,7 +92,7 @@ const TECTONIC_INTERACTION_STYLES = {
   OSR: {
     category: 'divergent',
     color: '#06B6D4',
-    weight: 4.8,
+    weight: 3.6,
     dashArray: '14 10',
     label: 'Oceanic spreading ridge',
     description: 'seafloor spreading along a mid-ocean ridge system',
@@ -101,7 +101,7 @@ const TECTONIC_INTERACTION_STYLES = {
   CRB: {
     category: 'divergent',
     color: '#22C55E',
-    weight: 4.2,
+    weight: 3.3,
     dashArray: '4 9',
     label: 'Continental rift boundary',
     description: 'continental crust stretches and pulls apart',
@@ -110,7 +110,7 @@ const TECTONIC_INTERACTION_STYLES = {
   OTF: {
     category: 'transform',
     color: '#F59E0B',
-    weight: 4.2,
+    weight: 3.3,
     dashArray: '18 10',
     label: 'Oceanic transform fault',
     description: 'oceanic plates slide laterally in strike-slip motion',
@@ -119,7 +119,7 @@ const TECTONIC_INTERACTION_STYLES = {
   CTF: {
     category: 'transform',
     color: '#FB923C',
-    weight: 4,
+    weight: 3.1,
     dashArray: '7 8',
     label: 'Continental transform fault',
     description: 'continental plates shear laterally in strike-slip motion',
@@ -264,20 +264,22 @@ function boundaryFamilyText(category = '') {
 function addBoundarySet(coords, style) {
   const casing = L.polyline(coords, {
     color: 'rgba(255,255,255,0.82)',
-    weight: style.weight + 4,
-    opacity: 0.72,
+    weight: style.weight + 2.2,
+    opacity: 0.38,
     interactive: false,
     lineCap: 'round',
     lineJoin: 'round',
+    pane: 'boundaryPane',
   }).addTo(map);
 
   const line = L.polyline(coords, {
     color: style.color,
     weight: style.weight,
-    opacity: 0.98,
+    opacity: 0.82,
     dashArray: style.dashArray,
     lineCap: 'round',
     lineJoin: 'round',
+    pane: 'boundaryPane',
   }).addTo(map);
 
   line.bindTooltip(style.tooltip, {
@@ -460,20 +462,22 @@ function renderDatasetBoundaryFeature(feature) {
 
   const casing = L.polyline(lines, {
     color: 'rgba(255,255,255,0.82)',
-    weight: style.weight + 4,
-    opacity: 0.72,
+    weight: style.weight + 2.2,
+    opacity: 0.38,
     interactive: false,
     lineCap: 'round',
     lineJoin: 'round',
+    pane: 'boundaryPane',
   }).addTo(map);
 
   const line = L.polyline(lines, {
     color: style.color,
     weight: style.weight,
-    opacity: 0.98,
+    opacity: 0.82,
     dashArray: style.dashArray,
     lineCap: 'round',
     lineJoin: 'round',
+    pane: 'boundaryPane',
   }).addTo(map);
 
   line.bindTooltip(formatDatasetTooltip(feature.properties, style), {
@@ -502,6 +506,7 @@ function renderDatasetPlateFeature(feature) {
     opacity: plateStyle.opacity,
     fillColor: plateStyle.fillColor,
     fillOpacity: plateStyle.fillOpacity,
+    pane: 'tectonicPane',
   };
 
   plateCopies.forEach((coords) => {
@@ -653,6 +658,14 @@ export function initializeMap() {
     minZoom: 2,
     maxZoom: 18,
   });
+
+  // Keep observed events above the slower tectonic context layers.
+  map.createPane('tectonicPane');
+  map.getPane('tectonicPane').style.zIndex = 400;
+  map.createPane('boundaryPane');
+  map.getPane('boundaryPane').style.zIndex = 430;
+  map.createPane('eventPane');
+  map.getPane('eventPane').style.zIndex = 650;
 
   currentTileLayer = createTileLayer(DEFAULT_MAP_TYPE)?.addTo(map);
 
@@ -925,7 +938,7 @@ export function addEarthquakeMarkers(earthquakes) {
 
     const icon = L.divIcon({
       className: 'earthquake-marker',
-      html: `<div style="width:${iconSize}px;height:${iconSize}px;background:${iconColor};border:${borderPx}px solid white;border-radius:50%;box-shadow:0 0 10px rgba(255,255,255,0.5)"></div>`,
+      html: `<div style="width:${iconSize}px;height:${iconSize}px;background:${iconColor};border:${borderPx}px solid white;border-radius:50%;box-shadow:0 0 0 3px rgba(255,255,255,0.18),0 0 14px ${iconColor}"></div>`,
       iconSize: [iconSize, iconSize],
       iconAnchor: [iconSize / 2, iconSize / 2],
     });
@@ -959,7 +972,7 @@ export function addEarthquakeMarkers(earthquakes) {
       popup.appendChild(p);
     });
 
-    const marker = L.marker([eq.lat, eq.lon], { icon }).bindPopup(popup);
+    const marker = L.marker([eq.lat, eq.lon], { icon, pane: 'eventPane', zIndexOffset: 1000 }).bindPopup(popup);
 
     // Only add to map if the layer is enabled
     if (layerEnabled) marker.addTo(map);
@@ -1037,6 +1050,7 @@ export async function fetchRealEarthquakeData() {
     setText('footer-status', `Real Data – ${sourceLabel} & NOAA`);
     setText('map-update', new Date().toLocaleTimeString());
     setText('data-source', sourceLabel);
+    setText('map-event-status', `${earthquakes.length} live earthquakes · ${sourceLabel}`);
     setDataMode('live');
   } catch {
     const demo = DEMO_EARTHQUAKES.map(eq => ({ ...eq, date: new Date(), time: new Date().toLocaleString() }));
@@ -1047,6 +1061,7 @@ export async function fetchRealEarthquakeData() {
     setText('footer-status', 'Demo Mode');
     setText('map-update', 'Demo');
     setText('data-source', 'Demo');
+    setText('map-event-status', 'Demo earthquakes · live feed unavailable');
     setDataMode('demo');
   }
 }

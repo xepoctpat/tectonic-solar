@@ -1,15 +1,19 @@
 {
   "appUrl": "http://localhost:3000",
-  "generatedAt": "2026-08-16T09:20:56.247Z",
+  "generatedAt": "2026-08-19T02:23:10.791Z",
   "health": {
     "ok": true,
     "status": 200,
     "body": {
       "ok": true,
       "mode": "deployment-simulation",
-      "uptimeSeconds": 266,
-      "durationMs": 252,
+      "uptimeSeconds": 955,
+      "durationMs": 251,
       "checks": {
+        "usgs": {
+          "ok": true,
+          "status": 200
+        },
         "noaa": {
           "ok": true,
           "status": 200
@@ -18,7 +22,7 @@
           "ok": true,
           "status": 200
         },
-        "usgs": {
+        "emsc": {
           "ok": true,
           "status": 200
         }
@@ -44,23 +48,23 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 142,
+        "y": 92,
         "width": 1440,
-        "height": 715,
-        "top": 142,
+        "height": 774,
+        "top": 92,
         "right": 1440,
-        "bottom": 857,
+        "bottom": 866,
         "left": 0
       },
       "probeRect": {
-        "x": 281,
-        "y": 285.875,
-        "width": 1138,
-        "height": 477.125,
-        "top": 285.875,
-        "right": 1419,
-        "bottom": 763,
-        "left": 281
+        "x": 15,
+        "y": 227.28125,
+        "width": 1410,
+        "height": 532.71875,
+        "top": 227.28125,
+        "right": 1425,
+        "bottom": 760,
+        "left": 15
       }
     },
     {
@@ -73,23 +77,23 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 142,
+        "y": 92,
         "width": 1440,
-        "height": 715,
-        "top": 142,
+        "height": 774,
+        "top": 92,
         "right": 1440,
-        "bottom": 857,
+        "bottom": 866,
         "left": 0
       },
       "probeRect": {
-        "x": 45,
-        "y": 719.171875,
-        "width": 756,
+        "x": 39,
+        "y": 656.578125,
+        "width": 763,
         "height": 142,
-        "top": 719.171875,
-        "right": 801,
-        "bottom": 861.171875,
-        "left": 45
+        "top": 656.578125,
+        "right": 802,
+        "bottom": 798.578125,
+        "left": 39
       }
     },
     {
@@ -102,23 +106,23 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 142,
+        "y": 92,
         "width": 1440,
-        "height": 715,
-        "top": 142,
+        "height": 774,
+        "top": 92,
         "right": 1440,
-        "bottom": 857,
+        "bottom": 866,
         "left": 0
       },
       "probeRect": {
-        "x": 45,
-        "y": 322.28125,
-        "width": 756,
-        "height": 1963,
-        "top": 322.28125,
-        "right": 801,
-        "bottom": 2285.28125,
-        "left": 45
+        "x": 39,
+        "y": 263.6875,
+        "width": 762.953125,
+        "height": 1568,
+        "top": 263.6875,
+        "right": 801.953125,
+        "bottom": 1831.6875,
+        "left": 39
       }
     },
     {
@@ -131,23 +135,23 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 142,
+        "y": 92,
         "width": 1440,
-        "height": 715,
-        "top": 142,
+        "height": 774,
+        "top": 92,
         "right": 1440,
-        "bottom": 857,
+        "bottom": 866,
         "left": 0
       },
       "probeRect": {
-        "x": 1136.4375,
-        "y": 185.140625,
-        "width": 154,
-        "height": 42,
-        "top": 185.140625,
-        "right": 1290.4375,
-        "bottom": 227.140625,
-        "left": 1136.4375
+        "x": 1119.71875,
+        "y": 130.84375,
+        "width": 180,
+        "height": 40,
+        "top": 130.84375,
+        "right": 1299.71875,
+        "bottom": 170.84375,
+        "left": 1119.71875
       }
     },
     {
@@ -160,23 +164,23 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 142,
+        "y": 92,
         "width": 1440,
-        "height": 715,
-        "top": 142,
+        "height": 774,
+        "top": 92,
         "right": 1440,
-        "bottom": 857,
+        "bottom": 866,
         "left": 0
       },
       "probeRect": {
-        "x": 893,
-        "y": 338.875,
-        "width": 498,
-        "height": 356,
-        "top": 338.875,
-        "right": 1391,
-        "bottom": 694.875,
-        "left": 893
+        "x": 893.953125,
+        "y": 261.6875,
+        "width": 503,
+        "height": 444,
+        "top": 261.6875,
+        "right": 1396.953125,
+        "bottom": 705.6875,
+        "left": 893.953125
       }
     },
     {
@@ -189,23 +193,23 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 142,
+        "y": 92,
         "width": 1440,
-        "height": 715,
-        "top": 142,
+        "height": 774,
+        "top": 92,
         "right": 1440,
-        "bottom": 857,
+        "bottom": 866,
         "left": 0
       },
       "probeRect": {
-        "x": 43,
-        "y": 594.84375,
-        "width": 261.484375,
+        "x": 37,
+        "y": 517.65625,
+        "width": 254,
         "height": 38,
-        "top": 594.84375,
-        "right": 304.484375,
-        "bottom": 632.84375,
-        "left": 43
+        "top": 517.65625,
+        "right": 291,
+        "bottom": 555.65625,
+        "left": 37
       }
     },
     {
@@ -218,23 +222,23 @@
       "probeVisible": true,
       "panelRect": {
         "x": 0,
-        "y": 142,
+        "y": 92,
         "width": 1440,
-        "height": 715,
-        "top": 142,
+        "height": 774,
+        "top": 92,
         "right": 1440,
-        "bottom": 857,
+        "bottom": 866,
         "left": 0
       },
       "probeRect": {
-        "x": 45,
-        "y": 383.28125,
-        "width": 756,
-        "height": 40,
-        "top": 383.28125,
-        "right": 801,
-        "bottom": 423.28125,
-        "left": 45
+        "x": 39,
+        "y": 323.6875,
+        "width": 762.953125,
+        "height": 38,
+        "top": 323.6875,
+        "right": 801.953125,
+        "bottom": 361.6875,
+        "left": 39
       }
     }
   ]

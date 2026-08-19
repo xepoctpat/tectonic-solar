@@ -69,7 +69,7 @@
       <div class="tab-header">
         <div class="tab-heading">
           <h2>Global Map</h2>
-          <p class="tab-subtitle">Plate geometry first, subtype-styled boundary interactions next, earthquakes layered on top for context and exploration.</p>
+          <p class="tab-subtitle">Live earthquakes are the active signal. Plates and boundaries provide the slower geological context needed to understand where events occur.</p>
         </div>
         <div class="map-controls">
           <button data-map-type="standard"  id="map-standard">Standard</button>
@@ -89,10 +89,16 @@
 
         <aside id="map-sidebar" class="map-sidebar" aria-label="Map controls">
 
-          <div class="control-section">
-            <h3>Layers — what is shown</h3>
-            <label class="layer-option"><input type="checkbox" id="l-plate-regions" checked><span class="layer-copy"><span class="layer-title">Plate regions</span><span class="layer-note">Colored areas show PB2002 tectonic plates. This is a reference model, not live deformation.</span></span></label>
+          <div class="control-section control-section-live">
+            <h3><span class="section-kicker live-kicker">LIVE</span> Events</h3>
             <label class="layer-option"><input type="checkbox" id="l-earthquakes" checked><span class="layer-copy"><span class="layer-title">Earthquakes</span><span class="layer-note">Dots show live M4.5+ events. Color = magnitude; border thickness = depth.</span></span></label>
+            <div class="event-availability"><span class="availability-dot"></span><span id="map-event-status">Live seismic feed loading…</span></div>
+            <div class="event-availability event-availability-muted">Volcanic eruptions: not currently wired into this map.</div>
+          </div>
+
+          <div class="control-section">
+            <h3><span class="section-kicker context-kicker">CONTEXT</span> Earth structure</h3>
+            <label class="layer-option"><input type="checkbox" id="l-plate-regions" checked><span class="layer-copy"><span class="layer-title">Plate regions</span><span class="layer-note">Colored areas show PB2002 tectonic plates. This is a reference model, not live deformation.</span></span></label>
             <label class="layer-option"><input type="checkbox" id="l-vectors"><span class="layer-copy"><span class="layer-title">Motion arrows</span><span class="layer-note">Model-derived plate direction and speed from Bird (2003), not live GPS.</span></span></label>
             <label class="layer-option"><input type="checkbox" id="l-convergent"  checked><span class="layer-copy"><span class="layer-title">Convergent boundaries</span><span class="layer-note">Red lines: plates move together — subduction, collision, and compression.</span></span></label>
             <label class="layer-option"><input type="checkbox" id="l-divergent"   checked><span class="layer-copy"><span class="layer-title">Divergent boundaries</span><span class="layer-note">Cyan/green lines: plates move apart — ridges and continental rifts.</span></span></label>
@@ -108,7 +114,7 @@
           </div>
 
           <div class="control-section">
-            <h3>Earthquake marker filter</h3>
+            <h3>Event visibility</h3>
             <div style="display:flex;align-items:center;gap:8px">
               <input type="range" id="mag-filter" min="4.5" max="7.5" step="0.5" value="4.5"
                      style="flex:1;cursor:pointer" aria-label="Minimum magnitude filter">
@@ -116,7 +122,7 @@
                     id="mag-filter-value">4.5+</span>
             </div>
             <div style="font-size:11px;color:var(--color-text-secondary);margin-top:4px">
-              Showing <span id="eq-filter-count">—</span> quakes from the current USGS map feed
+              Showing <span id="eq-filter-count">—</span> earthquakes from the live map feed
             </div>
             <div style="font-size:11px;color:var(--color-text-secondary);margin-top:4px">
               This only affects earthquake dots. Plate boundaries stay visible regardless of the slider.
@@ -147,6 +153,14 @@
                 <span class="value" id="tectonic-source">Loading…</span>
               </div>
               <div class="info-item">
+                <span class="label">Plate coverage:</span>
+                <span class="value">52 PB2002 regions</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Boundary types:</span>
+                <span class="value">7 classes</span>
+              </div>
+              <div class="info-item">
                 <span class="label">Earthquakes:</span>
                 <span class="value" id="eq-count">—</span>
               </div>
@@ -156,7 +170,7 @@
               </div>
             </div>
             <div style="font-size:11px;color:var(--color-text-secondary);margin-top:8px">
-              Preferred tectonic layer: cited PB2002 present-day plate regions and subtype-aware boundary geometry. The old sketch lines only appear if the local boundary artifact fails to load.
+              Coverage includes all 52 curated PB2002 plate features and 7 boundary classes. The North American fill is intentionally omitted at the antimeridian seam to prevent false lines; its boundary geometry remains visible.
             </div>
           </div>
 
@@ -192,14 +206,21 @@
             <div class="map-guide-body">
               <p><strong>Plate regions</strong> show the cited PB2002 present-day plate model. They are context, not live deformation measurements.</p>
               <p><strong>Boundary families</strong> describe relative plate interaction: red = convergent, cyan/green = divergent, amber = transform.</p>
-              <p><strong>Earthquake dots</strong> are live M4.5+ events. Color represents magnitude; border thickness represents depth.</p>
+              <p><strong>Earthquake markers</strong> are the active layer: they sit above the static context, pulse gently, and grow with magnitude. Color represents magnitude; border thickness represents depth.</p>
               <p><strong>Motion arrows</strong> are Bird (2003) Euler-pole-derived reference-frame vectors, not real-time GPS velocities.</p>
+              <p><strong>Volcanic eruptions</strong> are not shown yet; the map does not claim a live volcano-event feed.</p>
               <p class="map-guide-hint">Use the <strong>Controls</strong> button to toggle layers, basemaps, regions, and the magnitude filter.</p>
             </div>
           </details>
         </div>
 
-        <div id="map-display" class="map-display" aria-label="Interactive earthquake and tectonic map"></div>
+        <div class="map-display" aria-label="Interactive earthquake and tectonic map">
+          <div class="map-layer-status" aria-label="Map layer status">
+            <span class="map-layer-status-item map-layer-status-live"><span class="status-symbol status-symbol-live">●</span><strong>LIVE EVENTS</strong><span>earthquakes</span></span>
+            <span class="map-layer-status-item map-layer-status-context"><span class="status-symbol status-symbol-context">▰</span><strong>STATIC CONTEXT</strong><span>plates + boundaries</span></span>
+          </div>
+          <div id="map-display" aria-label="Interactive earthquake and tectonic map"></div>
+        </div>
       </div>
 
       <div class="map-footer">

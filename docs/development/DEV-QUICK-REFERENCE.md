@@ -195,7 +195,7 @@ The UI is now intentionally split by role: `Correlation` is the quick summary su
 
 The map control rail is intentionally an opaque overlay: use **◀ Controls / ▶ Controls** to hide it while inspecting the Leaflet/PB2002 map, without losing the layer, region, filter, or source controls. The closed **Map reading guide** on the map expands only when layer explanations are needed.
 
-The renderer intentionally skips the full-cycle North American PB2002 polygon fill because Leaflet wraps its antimeridian seam into false horizontal lines; the cited boundary layer and other plate regions remain active.
+The renderer loads all 52 PB2002 plate features and 7 boundary classes. It intentionally skips only the full-cycle North American polygon fill because Leaflet wraps its antimeridian seam into false horizontal lines; the cited boundary layer and other plate regions remain active.
 
 ---
 

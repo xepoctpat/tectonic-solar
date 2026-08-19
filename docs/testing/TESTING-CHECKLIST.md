@@ -74,6 +74,9 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Vector Layer Honesty**: Turning on motion arrows shows a partial local vector artifact (currently 6 plates) without implying full global coverage or authoritative modern motion values
 - [ ] **Popup**: Click earthquake marker → popup shows magnitude, location, depth
 - [ ] **Layer Toggle**: Can switch between 4 tile layers (OSM, Satellite, Topo, Dark)
+- [ ] **Visual hierarchy**: Live earthquake markers are visibly prominent above quieter plate/boundary context
+- [ ] **Coverage labels**: Map reports 52 PB2002 plate features and 7 boundary classes
+- [ ] **Event honesty**: Map clearly states that volcanic eruptions are not currently wired into the live event layer
 - [ ] **Status**: No 404 errors in DevTools Console
 
 ### ⚡ Space Weather Tab
