@@ -8,6 +8,7 @@ import { NOAA_APIS, USGS_APIS } from './config.js';
 import { addEarthquake, addStorm, addDstSample, addDriverEvent, getDriverEvents, getEarthquakes, getStorms, getDstSamples } from './db.js';
 import {
   scanAllLags,
+  compareTargetToMatchedControls,
   assessLagScan,
   computePrediction,
   interpretHypothesisEvidence,
@@ -20,6 +21,7 @@ import { ensurePlateIndex, filterEarthquakesByRegion, REGION_GROUPS } from './re
 
 export {
   scanAllLags,
+  compareTargetToMatchedControls,
   assessLagScan,
   computePrediction,
   interpretHypothesisEvidence,
@@ -471,6 +473,9 @@ export async function runFullAnalysis(options = {}) {
     : [];
 
   const scanResults = regionAvailable ? scanAllLags(storms, earthquakes, 60) : [];
+  const matchedControls = regionAvailable
+    ? compareTargetToMatchedControls(storms, earthquakes)
+    : null;
   const assessment  = regionAvailable ? assessLagScan(scanResults) : null;
   const prediction  = regionAvailable ? computePrediction(storms, earthquakes) : null;
   const stormArchiveStatus = getStormArchiveStatus();
@@ -505,6 +510,7 @@ export async function runFullAnalysis(options = {}) {
     catalogs: {
       storms,
       earthquakes,
+      matchedControls,
     },
   };
 }

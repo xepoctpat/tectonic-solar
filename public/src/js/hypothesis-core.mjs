@@ -178,6 +178,68 @@ export function scanAllLags(storms, earthquakes, maxLag = 60) {
 }
 
 /**
+ * Compare each closed storm's 25–30 day target window with two mirrored
+ * control windows (11–16d and 39–44d). The paired construction keeps each
+ * storm as its own control unit instead of discarding storms with no target
+ * earthquake. It is descriptive; null calibration belongs to the bootstrap
+ * path and must not be inferred from this ratio alone.
+ */
+export function compareTargetToMatchedControls(storms = [], earthquakes = [], referenceTime = Date.now()) {
+  const targetStart = 25;
+  const targetEnd = 30;
+  const controlBeforeStart = 11;
+  const controlBeforeEnd = 16;
+  const controlAfterStart = 39;
+  const controlAfterEnd = 44;
+  const now = Number(referenceTime);
+  const pairs = [];
+
+  const countWindow = (storm, startDay, endDay) => {
+    const start = storm.date.getTime() + startDay * DAY_MS;
+    const end = storm.date.getTime() + endDay * DAY_MS;
+    return earthquakes.filter(eq => {
+      const time = eq.date.getTime();
+      return time >= start && time <= end;
+    }).length;
+  };
+
+  storms.forEach(storm => {
+    const targetEndTime = storm.date.getTime() + targetEnd * DAY_MS;
+    const controlEndTime = storm.date.getTime() + controlAfterEnd * DAY_MS;
+    if (targetEndTime > now || controlEndTime > now) return;
+
+    const targetCount = countWindow(storm, targetStart, targetEnd);
+    const beforeCount = countWindow(storm, controlBeforeStart, controlBeforeEnd);
+    const afterCount = countWindow(storm, controlAfterStart, controlAfterEnd);
+    const controlCount = (beforeCount + afterCount) / 2;
+    pairs.push({ targetCount, controlCount, difference: targetCount - controlCount });
+  });
+
+  const targetCount = pairs.reduce((sum, pair) => sum + pair.targetCount, 0);
+  const controlCount = pairs.reduce((sum, pair) => sum + pair.controlCount, 0);
+  const positivePairs = pairs.filter(pair => pair.difference > 0).length;
+  const negativePairs = pairs.filter(pair => pair.difference < 0).length;
+  const ties = pairs.length - positivePairs - negativePairs;
+
+  return {
+    targetWindow: `${targetStart}–${targetEnd}d`,
+    controlWindows: [`${controlBeforeStart}–${controlBeforeEnd}d`, `${controlAfterStart}–${controlAfterEnd}d`],
+    trials: pairs.length,
+    targetCount,
+    controlCount,
+    targetRate: pairs.length > 0 ? targetCount / pairs.length : 0,
+    controlRate: pairs.length > 0 ? controlCount / pairs.length : 0,
+    rateRatio: controlCount > 0 ? targetCount / controlCount : (targetCount > 0 ? 2 : 1),
+    meanDifference: pairs.length > 0
+      ? pairs.reduce((sum, pair) => sum + pair.difference, 0) / pairs.length
+      : 0,
+    positivePairs,
+    negativePairs,
+    ties,
+  };
+}
+
+/**
  * Find the peak lag(s) and assess whether the 27–28 day region is special.
  * @param {Array<{lag:number, eventRatio:number}>} scanResults
  * @returns {{ peakLag: number, peakRatio: number, lag27ratio: number, isHypothesisSupported: boolean } | null}

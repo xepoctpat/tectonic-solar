@@ -150,6 +150,13 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Live Updates**: Each page load fetches latest (timestamps differ)
 - [ ] **Historical Research Feed**: `/api/usgs/comcat` accepts valid queries and rejects malformed ones
 
+### Ranked Global Seismic Intake
+- [ ] **Merged Feed**: `/api/seismic/global` returns a GeoJSON FeatureCollection with provider metadata
+- [ ] **Provider Health**: metadata distinguishes USGS and EMSC availability/counts
+- [ ] **Deduplication**: overlapping USGS/EMSC events are not double-counted; metadata states the matching rule
+- [ ] **Fallback**: temporarily unavailable USGS or EMSC does not blank the map when the other provider remains live
+- [ ] **Attribution**: map source label reports the live provider set rather than claiming USGS-only data
+
 ### Open-Meteo Live Data (Weather/AQI)
 - [ ] **Current Weather**: Matches desktop weather apps for your location
 - [ ] **AQI Data**: PM2.5 values plausible (check local air quality reports)

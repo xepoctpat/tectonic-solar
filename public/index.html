@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Space-Earth Monitor</title>
+  <title>TECTONIC-SOLAR — Space-Earth Monitor</title>
   <meta name="description" content="Real-time monitoring of space weather, seismic activity, and their potential correlation.">
 
   <!-- PWA Manifest -->
@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="src/css/components.css" />
   <link rel="stylesheet" href="src/css/map.css" />
   <link rel="stylesheet" href="src/css/notifications.css" />
+  <link rel="stylesheet" href="src/css/hud.css" />
 </head>
 <body>
 
@@ -30,7 +31,10 @@
 
   <!-- ===== HEADER ===== -->
   <header>
-    <h1>🌍 Space-Earth Monitor</h1>
+    <div class="brand-lockup">
+      <h1>TECTONIC-SOLAR</h1>
+      <span class="brand-version">SPACE-EARTH MONITOR · v1.0</span>
+    </div>
     <div class="header-status" role="status" aria-live="polite">
       <button id="dark-mode-toggle" class="btn-secondary header-icon-btn" aria-label="Toggle dark mode">🌙</button>
       <span class="status-dot status-loading" id="status-dot"></span>
@@ -79,16 +83,20 @@
       </div>
 
       <div class="map-main">
-        <aside class="map-sidebar" aria-label="Map controls">
+        <button id="map-sidebar-toggle" class="map-sidebar-toggle btn btn-secondary" type="button" aria-expanded="true" aria-controls="map-sidebar">
+          ◀ Controls
+        </button>
+
+        <aside id="map-sidebar" class="map-sidebar" aria-label="Map controls">
 
           <div class="control-section">
-            <h3>Layers</h3>
-            <label class="layer-option"><input type="checkbox" id="l-plate-regions" checked><span class="layer-copy"><span class="layer-title">Plate regions</span><span class="layer-note">PB2002 polygons with curated fills and stronger borders</span></span></label>
-            <label class="layer-option"><input type="checkbox" id="l-earthquakes" checked><span class="layer-copy"><span class="layer-title">Earthquakes</span><span class="layer-note">USGS live markers with depth-coded borders</span></span></label>
-            <label class="layer-option"><input type="checkbox" id="l-vectors"><span class="layer-copy"><span class="layer-title">Motion arrows</span><span class="layer-note">Computed for all 52 PB2002 plates from Bird (2003) Euler poles — Pacific reference frame</span></span></label>
-            <label class="layer-option"><input type="checkbox" id="l-convergent"  checked><span class="layer-copy"><span class="layer-title">Convergent family</span><span class="layer-note">Subduction, oceanic convergence, and continental collision</span></span></label>
-            <label class="layer-option"><input type="checkbox" id="l-divergent"   checked><span class="layer-copy"><span class="layer-title">Divergent family</span><span class="layer-note">Oceanic spreading ridges and continental rifts</span></span></label>
-            <label class="layer-option"><input type="checkbox" id="l-transform"   checked><span class="layer-copy"><span class="layer-title">Transform family</span><span class="layer-note">Oceanic and continental strike-slip boundaries</span></span></label>
+            <h3>Layers — what is shown</h3>
+            <label class="layer-option"><input type="checkbox" id="l-plate-regions" checked><span class="layer-copy"><span class="layer-title">Plate regions</span><span class="layer-note">Colored areas show PB2002 tectonic plates. This is a reference model, not live deformation.</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-earthquakes" checked><span class="layer-copy"><span class="layer-title">Earthquakes</span><span class="layer-note">Dots show live M4.5+ events. Color = magnitude; border thickness = depth.</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-vectors"><span class="layer-copy"><span class="layer-title">Motion arrows</span><span class="layer-note">Model-derived plate direction and speed from Bird (2003), not live GPS.</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-convergent"  checked><span class="layer-copy"><span class="layer-title">Convergent boundaries</span><span class="layer-note">Red lines: plates move together — subduction, collision, and compression.</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-divergent"   checked><span class="layer-copy"><span class="layer-title">Divergent boundaries</span><span class="layer-note">Cyan/green lines: plates move apart — ridges and continental rifts.</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-transform"   checked><span class="layer-copy"><span class="layer-title">Transform boundaries</span><span class="layer-note">Amber lines: plates slide sideways past one another.</span></span></label>
           </div>
 
           <div class="control-section">
@@ -153,8 +161,9 @@
           </div>
 
           <div class="control-section">
-            <h3>Plate interactions (independent of solar weather)</h3>
-            <div style="font-size:11px;line-height:1.8;color:var(--color-text-secondary)">
+            <details class="control-details">
+              <summary>Plate interaction key</summary>
+              <div class="control-details-body">
               <div><span class="guide-tooth"></span> Teeth mark subduction-style segments</div>
               <div><span class="guide-chip guide-collide"></span> Red family = subduction / oceanic convergence / collision</div>
               <div><span class="guide-chip guide-separate"></span> Cyan–green = spreading ridges / continental rifts</div>
@@ -171,10 +180,24 @@
               <div>🟧 Intermediate (35–100 km)</div>
               <div>🟦 Deep (&gt;100 km)</div>
               <div style="margin-top:4px;font-style:italic">Border thickness = depth</div>
-            </div>
+              </div>
+            </details>
           </div>
 
         </aside>
+
+        <div class="map-reading-guide" aria-label="Map reading guide">
+          <details>
+            <summary>ⓘ Map reading guide</summary>
+            <div class="map-guide-body">
+              <p><strong>Plate regions</strong> show the cited PB2002 present-day plate model. They are context, not live deformation measurements.</p>
+              <p><strong>Boundary families</strong> describe relative plate interaction: red = convergent, cyan/green = divergent, amber = transform.</p>
+              <p><strong>Earthquake dots</strong> are live M4.5+ events. Color represents magnitude; border thickness represents depth.</p>
+              <p><strong>Motion arrows</strong> are Bird (2003) Euler-pole-derived reference-frame vectors, not real-time GPS velocities.</p>
+              <p class="map-guide-hint">Use the <strong>Controls</strong> button to toggle layers, basemaps, regions, and the magnitude filter.</p>
+            </div>
+          </details>
+        </div>
 
         <div id="map-display" class="map-display" aria-label="Interactive earthquake and tectonic map"></div>
       </div>
@@ -921,6 +944,10 @@
               <div class="analysis-item">
                 <div class="analysis-label">Corpus</div>
                 <div class="analysis-value" id="lag-evidence-corpus">—</div>
+              </div>
+              <div class="analysis-item analysis-item-wide">
+                <div class="analysis-label">Matched target vs. control windows</div>
+                <div class="analysis-value" id="lag-evidence-control">Awaiting analysis…</div>
               </div>
               <div class="analysis-item analysis-item-wide">
                 <div class="analysis-label">Why this state</div>

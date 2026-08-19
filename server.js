@@ -77,6 +77,9 @@ const UPSTREAM = {
     m25Week: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson',
     m45Week: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson',
   },
+  emsc: {
+    eventQuery: 'https://www.seismicportal.eu/fdsnws/event/1/query',
+  },
 };
 
 function firstQueryValue(value) {
@@ -448,6 +451,118 @@ async function proxyRequest(res, url, options = {}) {
   }
 }
 
+function parseProviderJson(body) {
+  try {
+    return JSON.parse(body);
+  } catch {
+    return null;
+  }
+}
+
+function normalizeSeismicFeature(feature, source) {
+  const coordinates = feature?.geometry?.coordinates;
+  const properties = feature?.properties || {};
+  const longitude = Number(coordinates?.[0]);
+  const latitude = Number(coordinates?.[1]);
+  const depth = Number(coordinates?.[2]);
+  const magnitude = Number(properties.mag ?? properties.magnitude);
+  const time = typeof properties.time === 'number'
+    ? properties.time
+    : Date.parse(properties.time || properties.originTime || '');
+
+  if (![longitude, latitude, magnitude, time].every(Number.isFinite)) return null;
+
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'Point',
+      coordinates: [longitude, latitude, Number.isFinite(depth) ? depth : null],
+    },
+    properties: {
+      mag: magnitude,
+      place: String(properties.place || properties.flynn_region || properties.description || 'Unknown location'),
+      time,
+      updated: Number.isFinite(Number(properties.updated)) ? Number(properties.updated) : time,
+      url: properties.url || null,
+      source,
+      sourceEventId: feature.id || properties.eventid || properties.id || null,
+    },
+    id: feature.id || properties.eventid || properties.id || `${source}-${time}-${latitude}-${longitude}`,
+  };
+}
+
+function seismicEventsMatch(left, right) {
+  const leftCoords = left.geometry.coordinates;
+  const rightCoords = right.geometry.coordinates;
+  const distance = Math.hypot(leftCoords[0] - rightCoords[0], leftCoords[1] - rightCoords[1]);
+  return Math.abs(left.properties.time - right.properties.time) <= 120_000
+    && distance <= 0.5
+    && Math.abs(left.properties.mag - right.properties.mag) <= 0.4;
+}
+
+async function fetchSeismicProvider(url, source) {
+  try {
+    const result = await fetchWithRetry(url, 1);
+    if (!result.ok) return { source, ok: false, status: result.status, features: [] };
+    const dataset = parseProviderJson(result.body);
+    const features = Array.isArray(dataset?.features)
+      ? dataset.features.map(feature => normalizeSeismicFeature(feature, source)).filter(Boolean)
+      : [];
+    return { source, ok: true, status: result.status, features };
+  } catch (error) {
+    return { source, ok: false, status: 0, features: [], error: error?.message || 'provider request failed' };
+  }
+}
+
+app.get('/api/seismic/global', async (_req, res) => {
+  const endTime = new Date();
+  const startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
+  const emscParams = new URLSearchParams({
+    format: 'json',
+    starttime: startTime.toISOString(),
+    endtime: endTime.toISOString(),
+    minmagnitude: '4.5',
+    orderby: 'time-asc',
+    limit: '2000',
+  });
+
+  const providers = await Promise.all([
+    fetchSeismicProvider(UPSTREAM.usgs.m45Day, 'USGS'),
+    fetchSeismicProvider(`${UPSTREAM.emsc.eventQuery}?${emscParams}`, 'EMSC SeismicPortal'),
+  ]);
+
+  const accepted = [];
+  providers
+    .sort((left, right) => (left.source === 'USGS' ? -1 : 1) - (right.source === 'USGS' ? -1 : 1))
+    .forEach(provider => {
+      provider.features.forEach(feature => {
+        if (!accepted.some(existing => seismicEventsMatch(existing, feature))) {
+          accepted.push(feature);
+        }
+      });
+    });
+
+  accepted.sort((left, right) => right.properties.time - left.properties.time);
+  const liveProviders = providers.filter(provider => provider.ok && provider.features.length > 0).map(provider => provider.source);
+  const sourceLabel = liveProviders.length > 0 ? liveProviders.join(' + ') : 'No live seismic providers';
+
+  res.status(200).json({
+    type: 'FeatureCollection',
+    metadata: {
+      count: accepted.length,
+      sourceLabel,
+      providers: providers.map(provider => ({
+        source: provider.source,
+        ok: provider.ok,
+        status: provider.status,
+        count: provider.features.length,
+      })),
+      deduplication: 'time ±120s, location ±0.5°, magnitude ±0.4',
+    },
+    features: accepted,
+  });
+});
+
 app.get('/api/noaa/rtsw-mag', (_req, res) => proxyRequest(res, UPSTREAM.noaa.rtswMag, {
   fallbackOnError: true,
   fallbackData: '[]',
@@ -733,6 +848,7 @@ app.get('/api/health', async (_req, res) => {
   const checks = {
     noaa: UPSTREAM.noaa.kp1m,
     usgs: UPSTREAM.usgs.m45Day,
+    emsc: `${UPSTREAM.emsc.eventQuery}?format=json&limit=1`,
     openmeteo: 'https://api.open-meteo.com/v1/forecast?latitude=44.97&longitude=20.17&current=temperature_2m',
   };
 

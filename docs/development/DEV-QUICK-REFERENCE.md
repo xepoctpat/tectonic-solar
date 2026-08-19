@@ -191,6 +191,9 @@ The UI is now intentionally split by role: `Correlation` is the quick summary su
 | `components.css` | Cards, buttons, forms, alerts, EQ list, correlation UI |
 | `map.css` | Leaflet customization (markers, popups) |
 | `notifications.css` | Toast styling + progress bar animation |
+| `hud.css` | Dark-first TECTONIC-SOLAR presentation layer; preserves semantic component contracts |
+
+The map control rail is intentionally an opaque overlay: use **◀ Controls / ▶ Controls** to hide it while inspecting the Leaflet/PB2002 map, without losing the layer, region, filter, or source controls. The closed **Map reading guide** on the map expands only when layer explanations are needed.
 
 ---
 

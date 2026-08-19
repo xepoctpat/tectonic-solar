@@ -49,8 +49,10 @@ export const NOAA_APIS = {
 export const NOAA_APIS_SOLAR_WIND = NOAA_APIS.solarWindMag;
 
 export const USGS_APIS = {
-  // M4.5+ past day (main real-time feed)
-  earthquakes: resolveApiUrl('/usgs/eq-4.5-day', 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson'),
+  // Ranked global M4.5+ feed: USGS primary + EMSC SeismicPortal fallback/independent coverage.
+  earthquakes: resolveApiUrl('/seismic/global', 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson'),
+  // Direct USGS-only path retained for diagnostics and historical compatibility.
+  earthquakesPrimary: resolveApiUrl('/usgs/eq-4.5-day', 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson'),
   // M2.5+ past week (richer history for correlation & stats)
   earthquakesWeek: resolveApiUrl('/usgs/eq-2.5-week', 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson'),
   // M4.5+ past 7 days (wider window for correlation analysis)

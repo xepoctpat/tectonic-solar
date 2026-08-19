@@ -5,6 +5,7 @@ and visualizes the scientifically-debated **27–28 day correlation lag** betwee
 storms and earthquake probability.
 
 **No build step. No API key. No database.** Pure ES modules + public APIs.  
+The interface uses a dark-first TECTONIC-SOLAR HUD skin layered over the modular map, telemetry, chart, correlation, research, and settings surfaces; feature modules and data contracts remain separate. The map's precise controls remain available as a collapsible overlay so the research map can use the full viewport when needed.
 Operational earthquake, space-weather, and environmental feeds are fetched live from NOAA, USGS, and Open-Meteo at runtime. The tectonic map now uses cited local PB2002 GeoJSON artifacts for both present-day plate regions and boundary geometry, generated from Bird's public source files.  
 Client-side IndexedDB provides a 90-day rolling event window for correlation analysis.  
 A Node.js Express server proxies external APIs to eliminate CORS issues in deployment and enforce query validation/security headers. An optional local Python research stack (`Flask`, `numpy`, `pandas`, `statsmodels`, `scikit-learn`) is reserved for heavier null calibration, interpretable modeling, and scorecard-style evaluation without changing the public runtime.
@@ -20,6 +21,7 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 | Data | Source | Feed |
 |---|---|---|
 | Earthquakes M4.5+ | USGS Earthquake Hazards | GeoJSON real-time (1-min lag) |
+| Global seismic fallback / independent coverage | EMSC SeismicPortal | Keyless FDSN GeoJSON; merged with USGS using provenance-aware deduplication |
 | Solar Wind speed/density | NOAA DSCOVR/ACE/IMAP Plasma | 1-min JSON feed (upstream plasma JSON currently retired during the IMAP transition — app degrades honestly; magnetometer remains live) |
 | Solar Wind Bt/Bz | NOAA DSCOVR/ACE Mag | 1-min JSON feed |
 | Kp Geomagnetic Index | NOAA SWPC | Real-time + 3-day history |
@@ -35,6 +37,25 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 | Map Tiles | OpenStreetMap / Esri / CARTO | CDN |
 
 The tectonic map layers are intentionally **not** live third-party browser dependencies. They are reproducible local artifacts generated from Peter Bird's public PB2002 source files via `npm run build:tectonics`, so the default plate-study view remains cited, stable, and cacheable.
+
+### Ranked intake policy
+
+The live M4.5+ seismic map currently uses **USGS first** and **EMSC SeismicPortal second**. Both public catalogs are queried through the Node proxy; near-identical events are deduplicated by time, location, and magnitude, with USGS retained as the preferred record when both providers report the same event. Provider counts and the merged source label are returned in the response metadata so extra coverage is visible rather than silently inflated.
+
+Additional catalogs should be added only after verifying response format, licensing, uptime, magnitude semantics, and cross-catalog identity rules. More records are not automatically more evidence: duplicate events, network-specific magnitude scales, and catalog completeness changes can bias the 27–28 day analysis.
+
+### Candidate source ranking for future intake
+
+| Rank | Source | Best use | Current decision |
+|---|---|---|---|
+| 1 | NOAA SWPC / Kyoto WDC | Solar-wind, Kp, Dst, GOES X-ray/proton drivers | Primary operational space-weather sources |
+| 1 | USGS ComCat / GeoJSON | Global earthquake catalog and historical analysis | Primary seismic catalog |
+| 1 | EMSC SeismicPortal | Global seismic availability and independent live cross-check | Implemented as ranked live partner |
+| 2 | GFZ GEOFON FDSN | Independent global event cross-check | Candidate; response/format behavior needs dedicated validation before wiring |
+| 2 | INGV FDSN | Regional Mediterranean/European completeness checks | Candidate; service may return QuakeML/XML rather than requested JSON |
+| 2 | EarthScope/IRIS FDSN | Waveforms, station metadata, advanced event studies | Candidate research adapter, not a simple live event feed |
+| 3 | ESA Space Weather / Australian BOM | Forecast and regional space-weather context | Candidate only after confirming public machine-readable access and terms |
+| Excluded | NASA DONKI and authenticated commercial feeds | CME metadata or enriched products | Not part of the default runtime because credentials/API keys violate the current keyless contract |
 
 ---
 
@@ -224,7 +245,7 @@ tectonic-solar/
 │   │       ├── pb2002-plates.geojson
 │   │       └── pb2002-boundaries.geojson
 │   └── src/
-│       ├── css/
+│       ├── css/             # tokenized base styles + modular HUD presentation layer
 │       └── js/
 ├── scripts/
 │   ├── launch.js             # Friendly launcher: start/reuse server + open browser

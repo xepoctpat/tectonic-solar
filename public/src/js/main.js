@@ -126,6 +126,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateMapLayers();
   fetchRealEarthquakeData();
 
+  // Keep the precise map controls available without permanently consuming map width.
+  const mapSidebarToggle = document.getElementById('map-sidebar-toggle');
+  const mapSidebar = document.getElementById('map-sidebar');
+  mapSidebarToggle?.addEventListener('click', () => {
+    const collapsed = mapSidebar?.classList.toggle('is-collapsed') ?? false;
+    mapSidebarToggle.setAttribute('aria-expanded', String(!collapsed));
+    mapSidebarToggle.textContent = collapsed ? '▶ Controls' : '◀ Controls';
+    window.setTimeout(() => resizeMapViewport(), 180);
+  });
+
   // Layer checkbox listeners
   document.querySelectorAll('.map-sidebar input[type="checkbox"]').forEach(cb => {
     cb.addEventListener('change', updateMapLayers);
@@ -172,6 +182,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (savedDarkMode === 'true') {
     document.documentElement.classList.add('dark');
     if (darkModeToggle) darkModeToggle.textContent = '☀️';
+  } else if (savedDarkMode === 'false') {
+    document.documentElement.classList.remove('dark');
+    if (darkModeToggle) darkModeToggle.textContent = '🌙';
   } else if (savedDarkMode === null && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
     document.documentElement.classList.add('dark');
     if (darkModeToggle) darkModeToggle.textContent = '☀️';
@@ -598,7 +611,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       await refreshResearchSidecarStatus();
       const analysis = await runFullAnalysis({ stormDefinition: definitionKey, region: regionKey });
-      const { scanResults, prediction, interpretation, meta } = analysis;
+      const { scanResults, prediction, interpretation, meta, catalogs } = analysis;
       latestAnalysisResult = analysis;
       latestBootstrapResult = null;
       clearBootstrapResultUI('Run the null test to compare the target-window bump against a shuffled-storm null distribution.');
@@ -649,6 +662,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const evidenceTargetEl = document.getElementById('lag-evidence-target');
       const evidencePeakEl = document.getElementById('lag-evidence-peak');
       const evidenceCorpusEl = document.getElementById('lag-evidence-corpus');
+      const evidenceControlEl = document.getElementById('lag-evidence-control');
       const evidenceWhyEl = document.getElementById('lag-evidence-why');
       const evidenceNoteEl = document.getElementById('lag-evidence-note');
       if (interpretation) {
@@ -671,6 +685,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         if (evidenceCorpusEl) {
           evidenceCorpusEl.textContent = interpretation.corpusText;
+        }
+        if (evidenceControlEl) {
+          const controls = catalogs?.matchedControls;
+          evidenceControlEl.textContent = controls
+            ? `${controls.targetWindow} target: ${controls.targetCount} events vs ${controls.controlWindows.join(' / ')} controls: ${controls.controlCount.toFixed(1)} `
+              + `(ratio ${controls.rateRatio.toFixed(2)}×; ${controls.trials} closed storms; paired +${controls.positivePairs} / −${controls.negativePairs} / ties ${controls.ties}). Descriptive contrast only; bootstrap calibration still required.`
+            : 'Matched control comparison unavailable for this corpus.';
         }
         if (evidenceWhyEl) {
           evidenceWhyEl.textContent = `${interpretation.whyText} ${interpretation.powerText}`;

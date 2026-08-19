@@ -1,7 +1,7 @@
 // ===== SERVICE WORKER: OFFLINE & CACHING SUPPORT =====
 
-const CACHE_NAME = 'tectonic-solar-v9';
-const API_CACHE_NAME = 'tectonic-solar-api-v9';
+const CACHE_NAME = 'tectonic-solar-v10';
+const API_CACHE_NAME = 'tectonic-solar-api-v10';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const STATIC_ASSETS = [
   './src/css/components.css',
   './src/css/map.css',
   './src/css/notifications.css',
+  './src/css/hud.css',
   './src/js/main.js',
   './src/js/store.js',
   './src/js/utils.js',

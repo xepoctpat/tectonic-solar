@@ -2,6 +2,7 @@
 
 import {
   assessLagScan,
+  compareTargetToMatchedControls,
   computePrediction,
   interpretHypothesisEvidence,
   scanAllLags,
@@ -135,6 +136,7 @@ const scenarios = [
       return result.assessment
         && result.assessment.isHypothesisSupported === true
         && within(result.assessment.peakLag, 25, 30)
+        && result.matchedControls.rateRatio > 1
         && result.interpretation?.state === 'candidate-27-signal';
     },
   },
@@ -182,8 +184,9 @@ function runScenario(scenario, seed) {
     scanResults,
     assessment,
     prediction,
+    matchedControls: compareTargetToMatchedControls(storms, earthquakes, NOW),
     interpretation,
-    passed: scenario.expected({ assessment, prediction, interpretation }),
+    passed: scenario.expected({ assessment, prediction, interpretation, matchedControls: compareTargetToMatchedControls(storms, earthquakes, NOW) }),
     topLags: topLagSummary(scanResults),
   };
 }
@@ -258,6 +261,7 @@ console.table(results.map(result => ({
   interpretation: result.interpretation?.stateLabel ?? '—',
   hypothesisSupported: result.assessment?.isHypothesisSupported ?? false,
   activeWindowProbability: `${Math.round((result.prediction?.probability ?? 0) * 100)}%`,
+  controlRatio: result.matchedControls?.rateRatio?.toFixed(2) ?? '—',
   topLags: result.topLags,
   passed: result.passed,
 })));

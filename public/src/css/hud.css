@@ -1,0 +1,475 @@
+/* ===== TECTONIC-SOLAR HUD SKIN =====
+ * Presentation layer for the existing modular Space-Earth Monitor.
+ * Feature modules and their semantic classes remain unchanged underneath.
+ */
+:root {
+  --hud-bg: #050810;
+  --hud-bg-deep: #020409;
+  --hud-panel: rgba(8, 14, 26, 0.94);
+  --hud-panel-soft: rgba(8, 20, 36, 0.78);
+  --hud-border: rgba(0, 180, 255, 0.2);
+  --hud-border-bright: rgba(0, 204, 255, 0.52);
+  --hud-text: #a8c4d8;
+  --hud-text-bright: #d8eef8;
+  --hud-text-dim: #66839b;
+  --hud-accent: #00ccff;
+  --hud-amber: #ffaa22;
+  --hud-green: #22ff88;
+  --hud-red: #ff4466;
+  --hud-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  --hud-display: "Space Grotesk", "Segoe UI", sans-serif;
+}
+
+html.dark,
+html.dark body {
+  background: var(--hud-bg);
+}
+
+body {
+  font-family: var(--hud-mono);
+  background:
+    radial-gradient(circle at 12% -20%, rgba(0, 128, 255, 0.13), transparent 34rem),
+    radial-gradient(circle at 100% 100%, rgba(0, 204, 255, 0.06), transparent 32rem),
+    var(--hud-bg);
+  color: var(--hud-text);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0.22;
+  background: linear-gradient(transparent 50%, rgba(0, 150, 255, 0.025) 50%);
+  background-size: 100% 4px;
+}
+
+.app-layout {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-layout::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 48%, rgba(0, 0, 0, 0.42) 100%);
+}
+
+header {
+  min-height: 52px;
+  padding: 0 18px;
+  gap: 18px;
+  background: var(--hud-panel);
+  border-bottom: 1px solid var(--hud-border);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+  z-index: 2;
+}
+
+header h1 {
+  font-family: var(--hud-display);
+  color: var(--hud-text-bright);
+  font-size: 16px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.brand-version {
+  color: var(--hud-text-dim);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+}
+
+.header-status {
+  border: 1px solid var(--hud-border);
+  border-radius: 2px;
+  background: rgba(0, 30, 60, 0.32);
+  color: var(--hud-text-dim);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header-status .status-dot {
+  box-shadow: 0 0 8px currentColor;
+}
+
+.tabs {
+  gap: 4px;
+  padding: 0 18px;
+  background: rgba(4, 10, 20, 0.96);
+  border-bottom: 1px solid var(--hud-border);
+  box-shadow: none;
+  z-index: 2;
+}
+
+.tab-btn {
+  margin-top: 5px;
+  padding: 10px 14px 9px;
+  border-radius: 2px 2px 0 0;
+  color: var(--hud-text-dim);
+  font-family: var(--hud-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tab-btn:hover,
+.tab-btn.active {
+  color: var(--hud-accent);
+  background: rgba(0, 40, 75, 0.42);
+  border-color: var(--hud-border-bright);
+}
+
+.tab-btn.active {
+  box-shadow: 0 -2px 0 var(--hud-accent) inset;
+}
+
+.tabs-container {
+  background: var(--hud-bg-deep);
+}
+
+.tab-content {
+  padding: 14px;
+  gap: 12px;
+}
+
+.tab-header,
+.data-card,
+.info-card,
+.timeline-container,
+.stat-card,
+.map-footer,
+.control-section {
+  border-radius: 2px;
+  border-color: var(--hud-border);
+  background: var(--hud-panel);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(0, 204, 255, 0.035);
+}
+
+.tab-header {
+  min-height: 62px;
+  padding: 12px 16px;
+  background: linear-gradient(90deg, rgba(0, 40, 75, 0.48), rgba(8, 14, 26, 0.94) 52%, rgba(42, 28, 8, 0.2));
+}
+
+.tab-header h2,
+.data-card h3,
+.info-card h3,
+.timeline-container h3,
+.control-section h3 {
+  font-family: var(--hud-display);
+  color: var(--hud-accent);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tab-header h2 {
+  font-size: 15px;
+}
+
+.tab-subtitle,
+.data-card p,
+.info-card p,
+.timeline-container p,
+.data-card li,
+.info-card li {
+  color: var(--hud-text-dim);
+}
+
+.btn,
+.region-btn,
+.map-controls button,
+.form-control {
+  border-radius: 2px;
+  font-family: var(--hud-mono);
+}
+
+.btn-primary {
+  background: rgba(0, 130, 190, 0.18);
+  border-color: var(--hud-accent);
+  color: var(--hud-accent);
+  box-shadow: none;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.region-btn:hover,
+.map-controls button:hover {
+  background: rgba(0, 160, 220, 0.25);
+  border-color: var(--hud-accent);
+  color: var(--hud-text-bright);
+  box-shadow: 0 0 14px rgba(0, 204, 255, 0.14);
+  transform: none;
+}
+
+.btn-secondary,
+.region-btn,
+.map-controls button {
+  background: rgba(0, 30, 60, 0.34);
+  border-color: var(--hud-border);
+  color: var(--hud-text);
+}
+
+.data-card:hover,
+.info-card:hover,
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--hud-border-bright);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32), 0 0 14px rgba(0, 180, 255, 0.08);
+}
+
+.metric,
+.stat,
+.analysis-item,
+.info-box,
+.window-indicator,
+.window-status,
+.eq-item {
+  border-color: rgba(0, 180, 255, 0.12);
+  background: rgba(0, 30, 60, 0.26);
+}
+
+.metric .label,
+.stat .label,
+.analysis-label,
+.info-item .label,
+.layer-note,
+.attribution,
+footer,
+.map-help-text {
+  color: var(--hud-text-dim);
+}
+
+.metric .value,
+.stat .value,
+.info-item .value,
+.analysis-value,
+.window-indicator .date,
+.percent {
+  color: var(--hud-accent);
+}
+
+.map-main {
+  position: relative;
+  border-radius: 2px;
+  border-color: var(--hud-border);
+  background: var(--hud-bg-deep);
+}
+
+.map-sidebar {
+  position: absolute;
+  z-index: 500;
+  inset: 0 auto 0 0;
+  width: 244px;
+  padding: 12px;
+  background: #071321;
+  border-right-color: var(--hud-border);
+  box-shadow: 8px 0 26px rgba(0, 0, 0, 0.3);
+  backdrop-filter: none;
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.dark .map-sidebar {
+  background: #071321;
+}
+
+.map-sidebar.is-collapsed {
+  transform: translateX(calc(-100% - 1px));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.map-sidebar-toggle {
+  position: absolute;
+  z-index: 501;
+  top: 12px;
+  left: 12px;
+  min-width: 92px;
+  padding: 8px 10px;
+  border-radius: 2px;
+  background: rgba(2, 10, 20, 0.86);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.map-main:not(:has(.map-sidebar.is-collapsed)) .map-sidebar-toggle {
+  left: 254px;
+}
+
+.control-section {
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #0b1b2d;
+  box-shadow: inset 0 1px 0 rgba(0, 204, 255, 0.04), 0 3px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dark .control-section {
+  background: #0b1b2d;
+}
+
+.control-section label:hover {
+  background: rgba(0, 100, 160, 0.18);
+  border-color: var(--hud-border);
+}
+
+.layer-note {
+  color: #9bb5c9;
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.map-sidebar-toggle {
+  background: #071321;
+  color: var(--hud-accent);
+  border-color: var(--hud-border-bright);
+}
+
+.map-reading-guide {
+  position: absolute;
+  z-index: 501;
+  top: 12px;
+  right: 12px;
+  width: min(290px, calc(100% - 24px));
+  color: var(--hud-text);
+  font-family: var(--hud-mono);
+  pointer-events: none;
+}
+
+.map-reading-guide details {
+  pointer-events: auto;
+  border: 1px solid var(--hud-border-bright);
+  background: #071321;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.38);
+}
+
+.map-reading-guide summary {
+  padding: 9px 11px;
+  color: var(--hud-accent);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.map-reading-guide summary:hover,
+.map-reading-guide summary:focus-visible {
+  background: rgba(0, 140, 200, 0.18);
+}
+
+.map-guide-body {
+  padding: 0 12px 10px;
+  border-top: 1px solid var(--hud-border);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.map-guide-body p {
+  margin: 9px 0 0;
+  color: #b7ccda;
+}
+
+.map-guide-body strong {
+  color: var(--hud-text-bright);
+}
+
+.map-guide-hint {
+  color: var(--hud-amber) !important;
+}
+
+.control-details {
+  color: var(--hud-text);
+}
+
+.control-details summary {
+  color: var(--hud-accent);
+  cursor: pointer;
+  font-family: var(--hud-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.control-details-body {
+  margin-top: 10px;
+  color: #b7ccda;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.map-display,
+.leaflet-container {
+  background: #020409;
+}
+
+.map-footer,
+footer {
+  background: rgba(4, 10, 20, 0.94);
+  border-color: var(--hud-border);
+  font-family: var(--hud-mono);
+  font-size: 10px;
+}
+
+input[type="range"] {
+  background: rgba(0, 100, 160, 0.28);
+}
+
+input[type="range"]::-webkit-slider-thumb,
+input[type="range"]::-moz-range-thumb {
+  background: var(--hud-accent);
+  box-shadow: 0 0 8px rgba(0, 204, 255, 0.5);
+}
+
+footer {
+  min-height: 34px;
+  padding: 8px 18px;
+}
+
+@media (max-width: 768px) {
+  header {
+    min-height: auto;
+    padding: 10px 14px;
+  }
+
+  header h1 {
+    font-size: 14px;
+  }
+
+  .brand-version {
+    display: none;
+  }
+
+  .tabs {
+    padding: 0 10px;
+  }
+
+  .tab-content {
+    padding: 10px;
+  }
+
+  .map-reading-guide {
+    top: 8px;
+    right: 8px;
+    width: min(260px, calc(100% - 16px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  .app-layout::after {
+    display: none;
+  }
+}

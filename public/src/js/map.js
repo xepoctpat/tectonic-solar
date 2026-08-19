@@ -994,7 +994,7 @@ export async function fetchRealEarthquakeData() {
     const response = await fetchWithRetry(USGS_APIS.earthquakes);
     const data = await response.json();
 
-    const earthquakes = data.features.map(feature => ({
+    const earthquakes = (Array.isArray(data.features) ? data.features : []).map(feature => ({
       mag: feature.properties.mag,
       place: feature.properties.place,
       lat: feature.geometry.coordinates[1],
@@ -1003,7 +1003,10 @@ export async function fetchRealEarthquakeData() {
       time: new Date(feature.properties.time).toLocaleString(),
       date: new Date(feature.properties.time),
       url: feature.properties.url,
+      source: feature.properties.source || data.metadata?.sourceLabel || 'USGS',
     }));
+
+    const sourceLabel = data.metadata?.sourceLabel || 'USGS';
 
     allEarthquakes = earthquakes;
     // Run alert checks BEFORE updating the historical store to avoid the
@@ -1017,9 +1020,9 @@ export async function fetchRealEarthquakeData() {
     addEarthquakeMarkers(earthquakes);
     if (_earthquakeDisplayCallback) _earthquakeDisplayCallback(earthquakes);
 
-    setText('footer-status', 'Real Data – USGS & NOAA');
+    setText('footer-status', `Real Data – ${sourceLabel} & NOAA`);
     setText('map-update', new Date().toLocaleTimeString());
-    setText('data-source', 'USGS');
+    setText('data-source', sourceLabel);
     setDataMode('live');
   } catch {
     const demo = DEMO_EARTHQUAKES.map(eq => ({ ...eq, date: new Date(), time: new Date().toLocaleString() }));

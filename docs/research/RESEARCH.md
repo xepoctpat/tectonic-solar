@@ -76,10 +76,12 @@ When updating docs or reviewing results, keep these concerns separate. A bug in 
 
 | Variable | Source | Threshold |
 |---|---|---|
-| Live earthquake feed | USGS M4.5+ past day | Used for map and alerts |
+| Live earthquake feed | Ranked USGS + EMSC M4.5+ past day, deduplicated through the Node proxy | Used for map and alerts; provider provenance is retained |
 | Weekly earthquake feed | USGS M2.5+ past week | Used for magnitude statistics |
 | 7-day M4.5+ feed | USGS M4.5+ past week | Used for correlation analysis |
 | Historical window | IndexedDB, 90-day rolling | Pearson r + Fisher p-value computation |
+
+The live provider merge is an availability and coverage improvement, not an automatic increase in independent sample size. USGS is preferred when an EMSC record matches within the documented time/location/magnitude tolerance; EMSC-only events remain visible with source attribution. Historical hypothesis tests should continue to use a clearly defined catalog and magnitude policy rather than combining catalogs retrospectively without a completeness and magnitude-harmonization study.
 
 ### 2.3 Current Analysis Workflow
 
@@ -96,6 +98,7 @@ The app currently has **two related analysis layers**, not one monolithic "corre
    - empirical conditional `P(M5+ | storm 25–30d ago)`
    - normalization of storm and earthquake catalogs
    - conservative interpretation states: insufficient-data / null-consistent / off-target / weak bump / candidate signal
+   - paired 25–30d target-versus-mirrored-control contrast for every closed storm
    - optional bootstrap null calibration via `researchCompute.js` and the local Python sidecar
 
 **Current limitations of the engine:**
@@ -192,6 +195,7 @@ Several non-exclusive mechanisms have been proposed in the literature. None are 
 - **Short-window Pearson r**: Whether, in the current 30-day window, storm intensity correlates with earthquake magnitude at a 27.5-day lag.
 - **Binary window activation**: Whether a Kp≥5 event occurred 27–28 days ago — the simplest form of the hypothesis.
 - **Trend accumulation**: Over months of use, the IndexedDB 90-day window accumulates enough data to run more meaningful Pearson r calculations.
+- **Provider robustness**: The live map can remain populated when one of the ranked seismic providers is degraded, and the UI can report which providers contributed records.
 
 ### Cannot Show (Without Enhancement)
 
@@ -322,6 +326,8 @@ A more robust test:
 
 This tests precisely whether the hypothesized window has statistically more seismicity than a matched control, without selection bias.
 
+The browser now exposes this paired contrast directly: target days 25–30 are compared with mirrored control windows at days 11–16 and 39–44 for each closed storm. The result is intentionally descriptive; a bootstrap/permutation procedure is still required before treating the contrast as unusual under a null.
+
 ### The Multiple Comparisons Problem
 
 If you scan lags from 0–60 days (§6.1), you will almost certainly find a lag with p<0.05 by chance alone (Bonferroni correction: significance threshold becomes p < 0.05/60 ≈ 0.0008 for 60 lag bins). The r(lag) curve needs to show a **physically plausible**, **isolated** peak at 27–28d with p < 0.001 after correction — not a weakly elevated plateau across many lags.
@@ -387,6 +393,10 @@ The app is instrumenting the right data streams to investigate this hypothesis. 
 The most likely scientific outcome, based on existing literature, is a **very weak, possibly real, regionally heterogeneous correlation** — not strong enough to predict individual earthquakes but potentially informative about seismic hazard modulation over multi-week windows. That is still scientifically interesting.
 
 The app is well-positioned to be a live, open-source demonstration of citizen-science methodology on this hypothesis — which is its most defensible scientific role.
+
+### Evidence status after ranked seismic intake
+
+The USGS + EMSC merge improves operational resilience and exposes more globally reported events, but it does **not** prove or disprove the 27–28 day claim. A decisive result still requires a preregistered storm definition, a fixed historical earthquake catalog, magnitude-completeness checks, deduplication rules, matched controls, an all-lag scan with multiple-comparison correction, and out-of-sample or forward validation. Until those checks are run, the hypothesis remains unproven; the current implementation is instrumentation, not evidence of causation.
 
 ---
 

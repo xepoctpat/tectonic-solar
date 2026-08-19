@@ -16,7 +16,7 @@
 
 | Feature | Details |
 |---|---|
-| Live USGS Earthquakes | M4.5+ past day, auto-refresh every 60 s |
+| Ranked Live Earthquakes | USGS + EMSC M4.5+ past day, deduplicated and auto-refreshing every 60 s |
 | Live NOAA Solar Wind | Speed, density, Bt/Bz from DSCOVR/ACE 1-min feed |
 | Live NOAA Kp Index | Real-time + 3-day history chart with storm threshold line |
 | Solar Flare Detection | GOES X-ray flux 7-day window, class detection |
@@ -38,6 +38,7 @@
 | Dark Mode CSS | Automatic via `prefers-color-scheme` |
 | Historical ComCat Research Loader | 2-year M5+ ingestion path via validated `/api/usgs/comcat` proxy |
 | Statistical Prediction Engine | Lag scan + empirical conditional probability for M5+ post-storm windows |
+| Matched Control Contrast | Paired 25–30d target windows versus mirrored 11–16d / 39–44d controls for closed storms |
 | Friendly Local Launch | `npm run launch` auto-starts or reuses local server and opens the app |
 
 ---
@@ -68,7 +69,7 @@
 - [x] Standardize the optional Python research environment on `statsmodels` + `scikit-learn` for interpretable modeling, calibration, and scorecard work
 - [x] Bootstrap / permutation null distribution (1000×+) via optional local Python sidecar + Node proxy
 - [ ] Regional stratification (Ring of Fire, Mediterranean-Himalayan, Cratons)
-- [ ] Bonferroni-aware lag scanning and significance calibration
+- [x] Multiple-comparison-aware lag calibration via the Python max-statistic bootstrap path
 
 ### 5. Keep optional factor models subordinate to the baseline
 - [ ] Freeze and preserve a storm-only benchmark before adding extra factors
