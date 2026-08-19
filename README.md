@@ -406,6 +406,7 @@ This project intentionally keeps the research surface area wide **without** loos
 
 - **Service Worker**: Static asset list is manual (update `sw.js` if new CDN libs added)
 - **Tectonic layer**: PB2002 is a cited present-day plate model (regions + boundaries), not a live plate-motion service or a time-varying tectonic reconstruction
+- **Antimeridian geometry**: the full-cycle North American PB2002 fill ring is omitted from the Leaflet fill layer to prevent false world-spanning seam lines; its boundary geometry remains visible while an antimeridian-safe artifact is pending
 - **Motion vectors**: computed for all 52 PB2002 plates from Bird (2003) Table 1 Euler poles in the Pacific-plate reference frame (the Pacific plate itself is zero by definition); absolute hotspot-frame motion would need an additional cited source
 - **Dark Mode & Leaflet**: Leaflet map tiles don't respond to dark mode toggle (Leaflet layer limitation)
 - **IndexedDB Data Volume**: Pruning uses synchronous cursor traversal (acceptable up to ~1M records)

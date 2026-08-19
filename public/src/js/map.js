@@ -359,6 +359,10 @@ function getVisibleWorldShifts(unwrappedRing = []) {
   const longitudes = unwrappedRing.map(([longitude]) => longitude);
   const minLongitude = Math.min(...longitudes);
   const maxLongitude = Math.max(...longitudes);
+  // NA/PA PB2002 polygons already span the antimeridian. Rendering shifted
+  // copies of these near-global rings makes Leaflet wrap their seam into
+  // full-width horizontal artifacts across the map. Keep one canonical copy.
+  if (maxLongitude - minLongitude > 300) return [0];
   const shifts = [-360, 0, 360].filter((shift) => maxLongitude + shift >= -180 && minLongitude + shift <= 180);
 
   return shifts.length ? shifts : [0];
@@ -372,6 +376,16 @@ function toLeafletPolygonCopies(polygonCoordinates = []) {
   if (!outerRing || outerRing.length < 4) return [];
 
   const unwrappedRing = unwrapLongitudeRing(outerRing);
+  const longitudes = unwrappedRing.map(([longitude]) => longitude);
+  const longitudeSpan = Math.max(...longitudes) - Math.min(...longitudes);
+
+  // The PB2002 North American ring follows the antimeridian for a full
+  // longitude cycle. Leaflet's polygon clipper wraps that ring into false
+  // full-width horizontal lines. Keep the authoritative boundary layer
+  // visible, but omit only this unsafe fill geometry until it can be split
+  // into antimeridian-safe polygons in the artifact generator.
+  if (longitudeSpan > 300) return [];
+
   const worldShifts = getVisibleWorldShifts(unwrappedRing);
 
   return worldShifts.map((shift) => unwrappedRing.map(([longitude, latitude]) => [latitude, longitude + shift]));

@@ -3,10 +3,38 @@
  * Feature modules and their semantic classes remain unchanged underneath.
  */
 :root {
+  --hud-bg: #f4f8fa;
+  --hud-bg-deep: #e8f0f4;
+  --hud-panel: rgba(255, 255, 255, 0.96);
+  --hud-panel-solid: #ffffff;
+  --hud-panel-soft: #edf5f8;
+  --hud-surface: #e8f2f6;
+  --hud-tabs: #e5eef3;
+  --hud-map-bg: #dce8ed;
+  --hud-control-bg: #eef6f8;
+  --hud-border: rgba(0, 105, 145, 0.24);
+  --hud-border-bright: rgba(0, 125, 170, 0.58);
+  --hud-text: #294653;
+  --hud-text-bright: #102d3a;
+  --hud-text-dim: #526f7c;
+  --hud-accent: #087ea4;
+  --hud-amber: #a75d00;
+  --hud-green: #14764e;
+  --hud-red: #b22b45;
+  --hud-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  --hud-display: "Space Grotesk", "Segoe UI", sans-serif;
+}
+
+.dark {
   --hud-bg: #050810;
   --hud-bg-deep: #020409;
-  --hud-panel: rgba(8, 14, 26, 0.94);
-  --hud-panel-soft: rgba(8, 20, 36, 0.78);
+  --hud-panel: rgba(8, 14, 26, 0.96);
+  --hud-panel-solid: #071321;
+  --hud-panel-soft: #081424;
+  --hud-surface: #0b1b2d;
+  --hud-tabs: #040a14;
+  --hud-map-bg: #020409;
+  --hud-control-bg: #071321;
   --hud-border: rgba(0, 180, 255, 0.2);
   --hud-border-bright: rgba(0, 204, 255, 0.52);
   --hud-text: #a8c4d8;
@@ -16,8 +44,6 @@
   --hud-amber: #ffaa22;
   --hud-green: #22ff88;
   --hud-red: #ff4466;
-  --hud-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
-  --hud-display: "Space Grotesk", "Segoe UI", sans-serif;
 }
 
 html.dark,
@@ -59,6 +85,10 @@ body::before {
   background: radial-gradient(ellipse at center, transparent 48%, rgba(0, 0, 0, 0.42) 100%);
 }
 
+html:not(.dark) .app-layout::after {
+  background: none;
+}
+
 header {
   min-height: 52px;
   padding: 0 18px;
@@ -94,7 +124,7 @@ header h1 {
 .header-status {
   border: 1px solid var(--hud-border);
   border-radius: 2px;
-  background: rgba(0, 30, 60, 0.32);
+  background: var(--hud-control-bg);
   color: var(--hud-text-dim);
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -108,7 +138,7 @@ header h1 {
 .tabs {
   gap: 4px;
   padding: 0 18px;
-  background: rgba(4, 10, 20, 0.96);
+  background: var(--hud-tabs);
   border-bottom: 1px solid var(--hud-border);
   box-shadow: none;
   z-index: 2;
@@ -161,7 +191,7 @@ header h1 {
 .tab-header {
   min-height: 62px;
   padding: 12px 16px;
-  background: linear-gradient(90deg, rgba(0, 40, 75, 0.48), rgba(8, 14, 26, 0.94) 52%, rgba(42, 28, 8, 0.2));
+  background: linear-gradient(90deg, rgba(0, 125, 170, 0.12), var(--hud-panel) 52%, rgba(180, 110, 0, 0.08));
 }
 
 .tab-header h2,
@@ -217,7 +247,7 @@ header h1 {
 .btn-secondary,
 .region-btn,
 .map-controls button {
-  background: rgba(0, 30, 60, 0.34);
+  background: var(--hud-control-bg);
   border-color: var(--hud-border);
   color: var(--hud-text);
 }
@@ -238,7 +268,7 @@ header h1 {
 .window-status,
 .eq-item {
   border-color: rgba(0, 180, 255, 0.12);
-  background: rgba(0, 30, 60, 0.26);
+  background: var(--hud-surface);
 }
 
 .metric .label,
@@ -274,7 +304,7 @@ footer,
   inset: 0 auto 0 0;
   width: 244px;
   padding: 12px;
-  background: #071321;
+  background: var(--hud-panel-solid);
   border-right-color: var(--hud-border);
   box-shadow: 8px 0 26px rgba(0, 0, 0, 0.3);
   backdrop-filter: none;
@@ -282,7 +312,7 @@ footer,
 }
 
 .dark .map-sidebar {
-  background: #071321;
+  background: var(--hud-panel-solid);
 }
 
 .map-sidebar.is-collapsed {
@@ -299,7 +329,7 @@ footer,
   min-width: 92px;
   padding: 8px 10px;
   border-radius: 2px;
-  background: rgba(2, 10, 20, 0.86);
+  background: var(--hud-control-bg);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
@@ -310,12 +340,12 @@ footer,
 .control-section {
   padding: 12px;
   margin-bottom: 12px;
-  background: #0b1b2d;
+  background: var(--hud-surface);
   box-shadow: inset 0 1px 0 rgba(0, 204, 255, 0.04), 0 3px 12px rgba(0, 0, 0, 0.2);
 }
 
 .dark .control-section {
-  background: #0b1b2d;
+  background: var(--hud-surface);
 }
 
 .control-section label:hover {
@@ -330,7 +360,7 @@ footer,
 }
 
 .map-sidebar-toggle {
-  background: #071321;
+  background: var(--hud-control-bg);
   color: var(--hud-accent);
   border-color: var(--hud-border-bright);
 }
@@ -349,7 +379,7 @@ footer,
 .map-reading-guide details {
   pointer-events: auto;
   border: 1px solid var(--hud-border-bright);
-  background: #071321;
+  background: var(--hud-panel-solid);
   box-shadow: 0 5px 18px rgba(0, 0, 0, 0.38);
 }
 
@@ -378,7 +408,7 @@ footer,
 
 .map-guide-body p {
   margin: 9px 0 0;
-  color: #b7ccda;
+  color: var(--hud-text);
 }
 
 .map-guide-body strong {
@@ -405,19 +435,19 @@ footer,
 
 .control-details-body {
   margin-top: 10px;
-  color: #b7ccda;
+  color: var(--hud-text);
   font-size: 10px;
   line-height: 1.65;
 }
 
 .map-display,
 .leaflet-container {
-  background: #020409;
+  background: var(--hud-map-bg);
 }
 
 .map-footer,
 footer {
-  background: rgba(4, 10, 20, 0.94);
+  background: var(--hud-panel);
   border-color: var(--hud-border);
   font-family: var(--hud-mono);
   font-size: 10px;
