@@ -911,7 +911,15 @@ app.post('/api/proto-sir/log-event', (req, res) => {
 });
 
 // SPA fallback — only serve index.html for clean navigation paths
-app.get('*', (req, res) => {
+const spaFallbackLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: 'Too many requests' },
+});
+
+app.get('*', spaFallbackLimiter, (req, res) => {
   // Block anything with a file extension or starting with a dot-segment
   if (path.extname(req.path) || /\/\./.test(req.path)) {
     res.status(404).end();
