@@ -79,7 +79,6 @@ def bvalue() -> tuple:
         return jsonify({
             'ok': False,
             'error': 'bvalue failed',
-            'message': str(exc),
         }), 500
 
     return jsonify({
