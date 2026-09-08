@@ -1,6 +1,9 @@
 const express = require('express');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
+const { loadLocalEnv, createAiBriefingHandler } = require('./ai-briefing');
+
+loadLocalEnv(__dirname);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -514,7 +517,7 @@ async function fetchSeismicProvider(url, source) {
   }
 }
 
-app.get('/api/seismic/global', async (_req, res) => {
+async function loadGlobalSeismic() {
   const endTime = new Date();
   const startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
   const emscParams = new URLSearchParams({
@@ -546,7 +549,7 @@ app.get('/api/seismic/global', async (_req, res) => {
   const liveProviders = providers.filter(provider => provider.ok && provider.features.length > 0).map(provider => provider.source);
   const sourceLabel = liveProviders.length > 0 ? liveProviders.join(' + ') : 'No live seismic providers';
 
-  res.status(200).json({
+  return {
     type: 'FeatureCollection',
     metadata: {
       count: accepted.length,
@@ -560,7 +563,19 @@ app.get('/api/seismic/global', async (_req, res) => {
       deduplication: 'time ±120s, location ±0.5°, magnitude ±0.4',
     },
     features: accepted,
-  });
+  };
+}
+
+app.get('/api/seismic/global', async (_req, res) => {
+  try {
+    const collection = await loadGlobalSeismic();
+    res.status(200).json(collection);
+  } catch (error) {
+    res.status(502).json({
+      ok: false,
+      error: error?.message || 'Seismic merge failed',
+    });
+  }
 });
 
 app.get('/api/noaa/rtsw-mag', (_req, res) => proxyRequest(res, UPSTREAM.noaa.rtswMag, {
@@ -844,6 +859,24 @@ app.get('/api/openmeteo/air-quality', (req, res) => {
   proxyRequest(res, url);
 });
 
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 8,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: 'Too many briefing requests, please try again in a minute' },
+});
+
+app.post(
+  '/api/ai/briefing',
+  aiLimiter,
+  createAiBriefingHandler({
+    fetchWithTimeout,
+    loadGlobalSeismic,
+    upstream: UPSTREAM,
+  }),
+);
+
 app.get('/api/health', async (_req, res) => {
   const checks = {
     noaa: UPSTREAM.noaa.kp1m,
@@ -911,7 +944,15 @@ app.post('/api/proto-sir/log-event', (req, res) => {
 });
 
 // SPA fallback — only serve index.html for clean navigation paths
-app.get('*', (req, res) => {
+const spaFallbackLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: 'Too many requests' },
+});
+
+app.get('/{*splat}', spaFallbackLimiter, (req, res) => {
   // Block anything with a file extension or starting with a dot-segment
   if (path.extname(req.path) || /\/\./.test(req.path)) {
     res.status(404).end();

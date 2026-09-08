@@ -24,6 +24,8 @@
   <link rel="stylesheet" href="src/css/map.css" />
   <link rel="stylesheet" href="src/css/notifications.css" />
   <link rel="stylesheet" href="src/css/hud.css" />
+  <link rel="stylesheet" href="src/css/ai.css" />
+  <link rel="stylesheet" href="src/css/panels.css" />
 </head>
 <body>
 
@@ -51,6 +53,7 @@
     <button id="tab-seismic" class="tab-btn" data-tab="seismic"     role="tab" aria-selected="false" aria-controls="seismic-tab">Seismic</button>
     <button id="tab-env" class="tab-btn" data-tab="env"         role="tab" aria-selected="false" aria-controls="env-tab">Environment</button>
     <button id="tab-correlation" class="tab-btn" data-tab="correlation" role="tab" aria-selected="false" aria-controls="correlation-tab">Correlation</button>
+    <button id="tab-ai" class="tab-btn" data-tab="ai" role="tab" aria-selected="false" aria-controls="ai-tab" data-testid="tab-ai">✦ AI Briefing</button>
     <button id="tab-research" class="tab-btn" data-tab="research"    role="tab" aria-selected="false" aria-controls="research-tab">Research Lab</button>
     <button id="tab-settings" class="tab-btn" data-tab="settings"    role="tab" aria-selected="false" aria-controls="settings-tab">Settings</button>
   </nav>
@@ -762,6 +765,71 @@
     </section>
 
     <!-- ============================================================
+         AI BRIEFING TAB
+    ============================================================= -->
+    <section id="ai-tab" class="tab-content" role="tabpanel">
+
+      <div class="tab-header">
+        <div class="tab-heading">
+          <h2>AI Situation Briefing</h2>
+          <p class="tab-subtitle">A plain-language read of the live NOAA/USGS snapshot, written on this machine. Optional Grok polish uses a server-only env var and is never shipped in the public repo. Informational only — not a forecast.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="btn-ai-clear" class="btn btn-secondary" data-testid="ai-clear-btn">Clear</button>
+          <button id="btn-ai-digest" class="btn btn-secondary" data-testid="ai-digest-btn">☀ Daily Digest</button>
+          <button id="btn-ai-generate" class="btn btn-primary" data-testid="ai-generate-briefing-btn">✦ Generate Briefing</button>
+        </div>
+      </div>
+
+      <div class="ai-layout">
+
+        <div class="ai-context-chips" id="ai-context-chips" data-testid="ai-context-chips"></div>
+
+        <section class="ai-digest" id="ai-digest" hidden data-testid="ai-digest-card" aria-label="Daily digest">
+          <div class="ai-digest-head">
+            <span class="ai-digest-title">☀ Daily Digest</span>
+            <span class="ai-digest-meta" id="ai-digest-meta" data-testid="ai-digest-meta"></span>
+            <div class="ai-digest-actions">
+              <button type="button" class="panel-tool" id="btn-ai-digest-refresh" aria-label="Regenerate digest" title="Regenerate digest" data-testid="ai-digest-refresh-btn">↻</button>
+              <button type="button" class="panel-tool" id="btn-ai-digest-hide" aria-label="Hide digest" title="Hide digest" data-testid="ai-digest-hide-btn">×</button>
+            </div>
+          </div>
+          <div class="ai-digest-body ai-md" id="ai-digest-body" data-testid="ai-digest-body"></div>
+        </section>
+
+        <div class="ai-conversation" id="ai-conversation" data-testid="ai-conversation" aria-live="polite">
+          <div class="ai-empty" id="ai-empty">
+            <span class="ai-empty-mark">✦</span>
+            <h3>Ask about the current Space-Earth situation</h3>
+            <p>Tap <strong>Generate Briefing</strong> for a full plain-language summary, <strong>☀ Daily Digest</strong> for today's one-screen recap of notable storms and quakes, or ask a specific question below. Star a question to keep it one tap away. Answers are written from the live NOAA solar-wind, Kp, Dst, flare, and USGS/EMSC feeds — no browser API key.</p>
+            <div class="ai-prompts">
+              <button type="button" class="ai-prompt-chip" data-ai-prompt="What's the current space weather situation in simple terms?" data-testid="ai-prompt-space">What's the space weather doing right now?</button>
+              <button type="button" class="ai-prompt-chip" data-ai-prompt="Are there any notable earthquakes in the last 24 hours, and where?" data-testid="ai-prompt-seismic">Any notable earthquakes today?</button>
+              <button type="button" class="ai-prompt-chip" data-ai-prompt="Explain the 27-28 day correlation hypothesis and whether current data supports it." data-testid="ai-prompt-hypothesis">Explain the 27–28 day hypothesis</button>
+              <button type="button" class="ai-prompt-chip" data-ai-prompt="Should I be worried about the current conditions?" data-testid="ai-prompt-worry">Should I be worried?</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-saved" id="ai-saved-questions" hidden data-testid="ai-saved-questions" aria-label="Saved questions"></div>
+
+        <form class="ai-composer" id="ai-composer" data-testid="ai-composer">
+          <input type="text" id="ai-input" class="ai-input" autocomplete="off"
+                 placeholder="Ask about the current conditions…" aria-label="Ask the AI about current conditions"
+                 data-testid="ai-question-input" />
+          <button type="button" id="ai-save-question" class="btn btn-secondary ai-save-btn" title="Save this question for one-tap reuse" aria-label="Save question" data-testid="ai-save-question-btn">☆</button>
+          <button type="submit" id="ai-send" class="btn btn-primary" data-testid="ai-send-btn">Send</button>
+        </form>
+
+        <div class="ai-disclaimer">
+          ⚠️ This assistant explains monitoring data. USGS and most seismologists find no proven causal link between space weather and earthquakes — nothing here is an earthquake prediction.
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================
          RESEARCH LAB TAB
     ============================================================= -->
     <section id="research-tab" class="tab-content" role="tabpanel">
@@ -1033,6 +1101,7 @@
           <p class="tab-subtitle">Browser-local alert thresholds and runtime preferences for this device.</p>
         </div>
         <div style="display:flex;gap:8px">
+          <button id="btn-reset-layout" class="btn btn-secondary" title="Restore default panel order, sizes and collapsed state" data-testid="reset-layout-btn">Reset Layout</button>
           <button id="btn-reset-settings"  class="btn btn-secondary">Reset Defaults</button>
           <button id="btn-save-settings"   class="btn btn-primary">Save Settings</button>
         </div>
@@ -1107,6 +1176,8 @@
             <li>Browser &amp; in-app toast notifications</li>
             <li>27–28 day geomagnetic ↔ seismic correlation timeline</li>
             <li>Cited PB2002 plate regions, subtype-styled tectonic boundaries &amp; computed plate-motion vectors for all 52 plates (Bird 2003 Euler poles, Pacific reference frame)</li>
+            <li>Situation briefing written from the live NOAA/USGS snapshot (local by default; optional server-only Grok, never a public key)</li>
+            <li>Dashboard panels can be reordered, collapsed, and reset per device</li>
             <li>Settings persistence via <code>localStorage</code></li>
           </ul>
 

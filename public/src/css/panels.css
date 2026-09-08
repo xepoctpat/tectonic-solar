@@ -1,0 +1,78 @@
+/* ===== PANEL TOOLBAR: REORDER + COLLAPSE ===== */
+.resizable-panel > h3 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+
+.panel-toolbar {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.55;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.resizable-panel:hover .panel-toolbar,
+.resizable-panel:focus-within .panel-toolbar,
+.resizable-panel.is-collapsed .panel-toolbar {
+  opacity: 1;
+}
+
+.panel-tool {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--hud-mono, var(--font-family-base));
+  font-size: 11px;
+  font-weight: normal;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background-color var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard),
+              border-color var(--duration-fast) var(--ease-standard);
+}
+
+.panel-tool:hover,
+.panel-tool:focus-visible {
+  outline: none;
+  color: var(--color-primary);
+  background: rgba(var(--color-teal-500-rgb), 0.12);
+  border-color: rgba(var(--color-teal-500-rgb), 0.4);
+}
+
+.panel-drag { cursor: grab; }
+.panel-drag:active { cursor: grabbing; }
+
+/* Collapsed: keep only the heading row */
+.resizable-panel.is-collapsed {
+  height: auto !important;
+  min-height: 0 !important;
+  flex: 0 0 auto !important;
+  resize: none;
+  overflow: hidden;
+}
+
+.resizable-panel.is-collapsed > :not(h3) { display: none !important; }
+.resizable-panel.is-collapsed::after { display: none; }
+.resizable-panel.is-collapsed > h3 { margin-bottom: 0; }
+
+/* Drag feedback */
+.resizable-panel.is-dragging { opacity: 0.45; }
+.resizable-panel.drop-before { box-shadow: inset 0 3px 0 0 var(--color-primary) !important; }
+.resizable-panel.drop-after { box-shadow: inset 0 -3px 0 0 var(--color-primary) !important; }
+.split-pane.drop-into {
+  outline: 2px dashed rgba(var(--color-teal-500-rgb), 0.55);
+  outline-offset: -2px;
+}

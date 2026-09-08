@@ -1,4 +1,5 @@
 // ===== DASHBOARD LAYOUT CONTROLS =====
+import { initPanelControls } from './panels.js';
 
 const STORAGE_PREFIX = 'space-earth-layout';
 const DEFAULT_MIN_LEFT_PX = 320;
@@ -200,5 +201,6 @@ function initResizablePanels(scheduleRefresh) {
 export function initLayoutControls({ onLayoutChange } = {}) {
   const scheduleRefresh = createRefreshScheduler(onLayoutChange);
   initSplitLayouts(scheduleRefresh);
+  initPanelControls(scheduleRefresh);
   initResizablePanels(scheduleRefresh);
 }

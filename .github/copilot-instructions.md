@@ -32,7 +32,7 @@ pytest tests/test_research_stats.py -q
 
 - **No build step**: no Vite, webpack, Babel, TypeScript, or bundler assumptions.
 - **No server-side storage**: no database, ORM, Redis, or silent server cache.
-- **No API keys or authenticated upstreams** unless explicitly discussed.
+- **No API keys or authenticated upstreams** unless explicitly discussed. The one current exception is the optional server-side `XAI_API_KEY` for `/api/ai/briefing` (SpaceXAI / Grok). Keep it in `.env`, never in `public/`.
 - `public/` is the **only** browser-served web root.
 - `server.js` stays **CommonJS**; `public/src/js/**` stays **ES modules**.
 - Browser clients must go through the **Node proxy** for NOAA, USGS, Open-Meteo, and research-sidecar routes.

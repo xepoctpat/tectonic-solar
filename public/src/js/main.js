@@ -38,6 +38,7 @@ import {
   STORM_DEFINITIONS,
 } from './prediction.js';
 import { checkResearchSidecarStatus, runBootstrapNullTest, runBValueTest } from './researchCompute.js';
+import { initAI } from './ai.js';
 import {
   buildAnalysisRunArtifact,
   downloadJson,
@@ -53,6 +54,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const reg = await navigator.serviceWorker.register('./sw.js');
       console.log('Service Worker registered:', reg);
+      reg.update();
+      // When a new service worker takes control (an update, not the first
+      // install), reload once so the page runs the freshly cached JS/CSS
+      // instead of a stale build.
+      if (navigator.serviceWorker.controller) {
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
+      }
     } catch (err) {
       console.warn('Service Worker registration failed:', err);
     }
@@ -1053,6 +1066,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-save-settings')?.addEventListener('click', saveAlertSettings);
   document.getElementById('btn-reset-settings')?.addEventListener('click', resetSettings);
   document.getElementById('alert-enabled')?.addEventListener('change', toggleAlerts);
+
+  // ---- AI Situation Briefing ----
+  initAI();
 
   // ---- Auto-refresh intervals ----
   setInterval(fetchRealEarthquakeData, REFRESH_INTERVALS.earthquakes);

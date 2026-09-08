@@ -7,6 +7,7 @@
 **Recommended launch**: `npm run launch`  
 **App URL**: `http://localhost:3000`  
 **Health endpoint**: `http://localhost:3000/api/health`  
+**AI briefing**: `POST /api/ai/briefing` (SSE) writes a local snapshot briefing with no key. Optional Grok is server-only `.env` / `XAI_API_KEY` — never commit it.  
 
 ---
 

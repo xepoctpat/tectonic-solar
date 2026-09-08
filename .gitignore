@@ -18,3 +18,7 @@ Thumbs.db
 # Build/test artifacts
 *.zip
 test-results-*.log
+.preview-upgrade/
+
+# Local secrets — never commit API keys
+.env

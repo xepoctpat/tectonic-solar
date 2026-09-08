@@ -3,7 +3,7 @@ import { resizeMapViewport } from './mapViewport.js';
 
 /**
  * Switch to the specified tab.
- * @param {string} tabName - One of: map, space, seismic, env, correlation, research, settings
+ * @param {string} tabName - One of: map, space, seismic, env, correlation, ai, research, settings
  */
 export function switchTab(tabName, { updateHash = true } = {}) {
   // Hide all tab content panels and update ARIA
