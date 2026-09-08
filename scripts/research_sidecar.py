@@ -41,13 +41,13 @@ def bootstrap_null() -> tuple:
             random_seed=int(payload.get('randomSeed', 42)),
             batch_size=int(payload.get('batchSize', 50)),
         )
-    except ValueError as exc:
-        app.logger.warning('bootstrap-null invalid payload: %s', exc)
+    except ValueError:
+        app.logger.exception('bootstrap-null invalid payload')
         return jsonify({
             'ok': False,
             'error': 'invalid payload',
         }), 400
-    except Exception:  # pragma: no cover - defensive server boundary
+    except Exception:
         app.logger.exception('bootstrap-null failed')
         return jsonify({
             'ok': False,
@@ -69,13 +69,13 @@ def bvalue() -> tuple:
             payload.get('earthquakes'),
             completeness=float(payload.get('completeness', 5.0)),
         )
-    except ValueError as exc:
-        app.logger.warning('bvalue invalid payload: %s', exc)
+    except ValueError:
+        app.logger.exception('bvalue invalid payload')
         return jsonify({
             'ok': False,
             'error': 'invalid payload',
         }), 400
-    except Exception:  # pragma: no cover - defensive server boundary
+    except Exception:
         app.logger.exception('bvalue failed')
         return jsonify({
             'ok': False,

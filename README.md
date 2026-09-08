@@ -4,11 +4,14 @@ A real-time browser dashboard that monitors **space weather**, **global seismic 
 and visualizes the scientifically-debated **27–28 day correlation lag** between geomagnetic
 storms and earthquake probability.
 
-**No build step. No API key. No database.** Pure ES modules + public APIs.  
+**No build step. No public API key. No database.** Pure ES modules + public feeds.  
+Eight tabs: Map, Space Weather, Seismic, Environment, Correlation, **AI Briefing**, Research Lab, Settings.  
+The AI Briefing tab writes a plain-language situation report from the same live NOAA / USGS / EMSC snapshot the rest of the dashboard uses. It does **not** need SpaceXAI. Optional Grok is server-only (gitignored `.env`) and is never in this public repo or the browser. Nothing in that tab is an earthquake forecast.
+
 The interface uses a dark-first TECTONIC-SOLAR HUD skin layered over the modular map, telemetry, chart, correlation, research, and settings surfaces; feature modules and data contracts remain separate. The map's precise controls remain available as a collapsible overlay so the research map can use the full viewport when needed.
 Operational earthquake, space-weather, and environmental feeds are fetched live from NOAA, USGS, and Open-Meteo at runtime. The tectonic map now uses cited local PB2002 GeoJSON artifacts for both present-day plate regions and boundary geometry, generated from Bird's public source files.  
 Client-side IndexedDB provides a 90-day rolling event window for correlation analysis.  
-A Node.js Express server proxies external APIs to eliminate CORS issues in deployment and enforce query validation/security headers. An optional local Python research stack (`Flask`, `numpy`, `pandas`, `statsmodels`, `scikit-learn`) is reserved for heavier null calibration, interpretable modeling, and scorecard-style evaluation without changing the public runtime.
+A Node.js Express server proxies external APIs to eliminate CORS issues in deployment and enforce query validation/security headers. An optional local Python research stack (`Flask`, `numpy`, `pandas`, `statsmodels`, `scikit-learn`) is reserved for heavier null calibration, interpretable modeling, and scorecard-style evaluation without changing the public runtime. The Python sidecar returns generic errors to the client; exception details stay in server logs.
 
 > Recommended local launch: `npm run launch`  
 > See [docs/planning/ROADMAP.md](docs/planning/ROADMAP.md) for the full development plan.  
@@ -234,9 +237,11 @@ Containerization note: **Docker is a future optional reproducibility/deployment 
 
 ```
 tectonic-solar/
-├── server.js                 # Node proxy server + security headers + research feed validation
-├── ai-briefing.js            # Optional Grok briefing SSE: live NOAA/USGS context + SpaceXAI stream
-├── .env.example              # Server-side XAI_API_KEY template (copy to .env locally)
+├── server.js                 # Node proxy + security headers + research feed validation + AI briefing
+├── ai-briefing.js            # Local snapshot briefing SSE (optional server-only Grok)
+├── .env.example              # Optional XAI_API_KEY template — copy to gitignored .env, never commit
+├── .github/rulesets/
+│   └── main-safe.json        # Branch ruleset import: PRs required, repo admin can merge own PRs
 ├── package.json              # Runtime scripts (`launch`, `start`, `test:tabs`)
 ├── requirements.txt          # Python research environment dependencies
 ├── public/                   # Browser-served web root
@@ -248,8 +253,8 @@ tectonic-solar/
 │   │       ├── pb2002-plates.geojson
 │   │       └── pb2002-boundaries.geojson
 │   └── src/
-│       ├── css/             # tokenized base styles + modular HUD presentation layer
-│       └── js/
+│       ├── css/             # HUD + ai.css + panels.css
+│       └── js/              # ES modules including ai.js and panels.js
 ├── scripts/
 │   ├── launch.js             # Friendly launcher: start/reuse server + open browser
 │   ├── build-pb2002-boundaries.mjs # Rebuild cited PB2002 plate/boundary GeoJSON artifacts
@@ -355,13 +360,18 @@ For the fuller execution plan, see [docs/planning/ROADMAP.md](docs/planning/ROAD
 This project intentionally keeps the research surface area wide **without** loosening the security model:
 
 - `public/` is the only served web root
-- no API keys or authenticated feeds
+- **no API keys in the public repo or the browser**; live NOAA / USGS / Open-Meteo / EMSC stay keyless
+- optional Grok uses a server-only `XAI_API_KEY` in gitignored `.env` — never required for the briefing tab
 - no server-side database or caching layer
-- Node proxy applies rate limiting to the **API surface** and security headers to the whole app
+- Node proxy rate-limits `/api` and the SPA fallback, and sets CSP / `X-Frame-Options` / `nosniff`
+- Python research sidecar binds to `127.0.0.1` only; HTTP responses are generic (`invalid payload` / `… failed`); stack traces stay in logs
+- `qs` is overridden to 6.16.0 (CVE-2026-82562)
 - historical research queries are validated before proxying upstream
 - historical NOAA storm archive requests are date-validated before proxying upstream
 - new external feeds should be added through `server.js` + `public/src/js/config.js`
 - live-data UI should prefer safe DOM APIs over `innerHTML`
+
+Solo-owner GitHub note: import `.github/rulesets/main-safe.json` so `main` still requires a PR and blocks force-push, while **repository admins can merge their own PRs** (bypass mode: pull requests only). You cannot approve a PR you opened; that is GitHub, not missing access.
 
 ---
 
