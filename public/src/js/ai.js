@@ -29,7 +29,10 @@ function writeJson(key, value) {
 function getSessionId() {
   let id = localStorage.getItem(SESSION_KEY);
   if (!id) {
-    id = `ses-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const bytes = new Uint8Array(8);
+    window.crypto.getRandomValues(bytes);
+    const randomPart = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    id = `ses-${Date.now()}-${randomPart}`;
     localStorage.setItem(SESSION_KEY, id);
   }
   return id;
