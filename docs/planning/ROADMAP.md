@@ -8,6 +8,8 @@
 > This project is **accelerated-prototype** quality — functional, real-data connected,
 > and actively evolving. It is not a finished product.
 
+**Current compare-against plan:** [`2026-09-08-always-on-feeds-and-outbound-alerts.md`](./2026-09-08-always-on-feeds-and-outbound-alerts.md) — ranked keyless feeds so the dashboard stays live-degraded, then outbound alerts (Web Push / email / WhatsApp) without earthquake forecasts.
+
 ---
 
 ## Current State — v0.2.0
@@ -16,8 +18,8 @@
 
 | Feature | Details |
 |---|---|
-| Ranked Live Earthquakes | USGS + EMSC M4.5+ past day, deduplicated and auto-refreshing every 60 s |
-| Live NOAA Solar Wind | Speed, density, Bt/Bz from DSCOVR/ACE 1-min feed |
+| Ranked Live Earthquakes | USGS > EMSC > GFZ GEOFON M4.5+ past day, deduplicated and auto-refreshing every 60 s |
+| Live NOAA Solar Wind | Speed, density, Bt/Bz from DSCOVR/ACE/IMAP 1-min mag + `rtsw_wind_1m` |
 | Live NOAA Kp Index | Real-time + 3-day history chart with storm threshold line |
 | Solar Flare Detection | GOES X-ray flux 7-day window, class detection |
 | Real Weather | Open-Meteo free API — temp, humidity, pressure, wind, condition |
@@ -48,6 +50,13 @@
 ## Immediate Focus — Launch UX + Research Execution (next)
 
 > This is the near-term operating plan for what the app is actually trying to achieve: safe, repeatable hypothesis testing with live + historical public data.
+
+### 0. Always-on feeds (see dated plan)
+- [x] NOAA `rtsw_wind_1m` successor for retired plasma JSON; operational spacecraft; health 200/`degraded`; process last-good
+- [x] GFZ GEOFON as ranked seismic partner (FDSN text, CC-BY-4.0, USGS > EMSC > GEOFON)
+- [x] GFZ Kp as NOAA Kp second (CC BY 4.0; also parses SCN 26-21 NOAA 3-day object rows)
+- [x] Map volcanoes: Smithsonian GVP Holocene (active/dormant) + USGS unrest colors; near live M4.5+
+- [ ] Outbound alerts (Web Push, then email, WhatsApp last) — observational copy only
 
 ### 1. Researcher-friendly local launch
 - [x] One-command startup via `npm run launch`
@@ -195,7 +204,7 @@
 |---|---|---|---|---|
 | USGS Earthquakes | `earthquake.usgs.gov` | ✅ | None | None |
 | NOAA Solar Wind (mag) | `services.swpc.noaa.gov` | ✅ | None | None |
-| NOAA Solar Wind (plasma) | `services.swpc.noaa.gov` | ✅ | None | None |
+| NOAA Solar Wind (wind) | `services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json` | ✅ | None | None |
 | NOAA Kp Index (1-min) | `services.swpc.noaa.gov` | ✅ | None | None |
 | NOAA Kp 3-day history | `services.swpc.noaa.gov` | ✅ | None | None |
 | NOAA GOES X-ray flux | `services.swpc.noaa.gov` | ✅ | None | None |

@@ -25,9 +25,10 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 |---|---|---|
 | Earthquakes M4.5+ | USGS Earthquake Hazards | GeoJSON real-time (1-min lag) |
 | Global seismic fallback / independent coverage | EMSC SeismicPortal | Keyless FDSN GeoJSON; merged with USGS using provenance-aware deduplication |
-| Solar Wind speed/density | NOAA DSCOVR/ACE/IMAP Plasma | 1-min JSON feed (upstream plasma JSON currently retired during the IMAP transition — app degrades honestly; magnetometer remains live) |
+| Global seismic cross-check | GFZ GEOFON | Keyless FDSN **text** (JSON not offered); CC-BY-4.0; ranked third; mixed mb/Mw |
+| Solar Wind speed/density | NOAA DSCOVR/ACE/IMAP RTSW wind | `rtsw_wind_1m.json` (SCN 26-21 successor to retired `rtsw_plasma_1m.json`); operational `active:true` spacecraft |
 | Solar Wind Bt/Bz | NOAA DSCOVR/ACE Mag | 1-min JSON feed |
-| Kp Geomagnetic Index | NOAA SWPC | Real-time + 3-day history |
+| Kp Geomagnetic Index | NOAA SWPC (1-min + 3-day) · GFZ Potsdam official IAGA Kp | NOAA first; GFZ 3-hour nowcast (CC BY 4.0) as ranked second |
 | X-ray Flux / Solar Flares | NOAA GOES-Primary | 7-day JSON |
 | Dst Index | NOAA / Kyoto WDC | Live via `/api/noaa/dst` |
 | Proton Flux | NOAA GOES-Primary | 6-hour JSON |
@@ -37,13 +38,15 @@ A Node.js Express server proxies external APIs to eliminate CORS issues in deplo
 | Weather | Open-Meteo | Free API, no key |
 | Air Quality (PM2.5, AQI) | Open-Meteo Air Quality | Free API, no key |
 | Global tectonic plate regions + boundaries | Bird PB2002 (2003) | Local GeoJSON artifacts at `public/data/tectonics/pb2002-plates.geojson` and `public/data/tectonics/pb2002-boundaries.geojson` |
+| Holocene volcanoes | Smithsonian GVP WFS | Last-eruption year → active (≥1800) / dormant; not a forecast |
+| US volcano unrest | USGS VNS elevated | Aviation color YELLOW/ORANGE/RED merged onto GVP by volcano number |
 | Map Tiles | OpenStreetMap / Esri / CARTO | CDN |
 
 The tectonic map layers are intentionally **not** live third-party browser dependencies. They are reproducible local artifacts generated from Peter Bird's public PB2002 source files via `npm run build:tectonics`, so the default plate-study view remains cited, stable, and cacheable.
 
 ### Ranked intake policy
 
-The live M4.5+ seismic map currently uses **USGS first** and **EMSC SeismicPortal second**. Both public catalogs are queried through the Node proxy; near-identical events are deduplicated by time, location, and magnitude, with USGS retained as the preferred record when both providers report the same event. Provider counts and the merged source label are returned in the response metadata so extra coverage is visible rather than silently inflated.
+The live M4.5+ seismic map currently uses **USGS first**, **EMSC SeismicPortal second**, and **GFZ GEOFON third**. All three are queried through the Node proxy. Near-identical events are deduplicated by time, location, and magnitude; USGS is kept when it matches a later catalog. GEOFON only offers FDSN text (not GeoJSON); magnitudes are mixed mb/Mw and are **not** homogenized. Provider counts and the merged source label are returned in the response metadata so extra coverage is visible rather than silently inflated. Attribution: © GFZ (GEOFON), CC-BY-4.0.
 
 Additional catalogs should be added only after verifying response format, licensing, uptime, magnitude semantics, and cross-catalog identity rules. More records are not automatically more evidence: duplicate events, network-specific magnitude scales, and catalog completeness changes can bias the 27–28 day analysis.
 
@@ -52,9 +55,10 @@ Additional catalogs should be added only after verifying response format, licens
 | Rank | Source | Best use | Current decision |
 |---|---|---|---|
 | 1 | NOAA SWPC / Kyoto WDC | Solar-wind, Kp, Dst, GOES X-ray/proton drivers | Primary operational space-weather sources |
+| 2 | GFZ Potsdam Kp | Official IAGA 3-hour Kp nowcast (CC BY 4.0) | Implemented as ranked second for current Kp and 3-day history |
 | 1 | USGS ComCat / GeoJSON | Global earthquake catalog and historical analysis | Primary seismic catalog |
 | 1 | EMSC SeismicPortal | Global seismic availability and independent live cross-check | Implemented as ranked live partner |
-| 2 | GFZ GEOFON FDSN | Independent global event cross-check | Candidate; response/format behavior needs dedicated validation before wiring |
+| 2 | GFZ GEOFON FDSN | Independent global event cross-check | Implemented as ranked live partner (FDSN text; JSON/GeoJSON rejected by upstream) |
 | 2 | INGV FDSN | Regional Mediterranean/European completeness checks | Candidate; service may return QuakeML/XML rather than requested JSON |
 | 2 | EarthScope/IRIS FDSN | Waveforms, station metadata, advanced event studies | Candidate research adapter, not a simple live event feed |
 | 3 | ESA Space Weather / Australian BOM | Forecast and regional space-weather context | Candidate only after confirming public machine-readable access and terms |
@@ -66,12 +70,12 @@ Additional catalogs should be added only after verifying response format, licens
 
 | Tab | What it does |
 |---|---|
-| **Map** | Interactive Leaflet map — the primary 2D research view for live USGS/EMSC earthquakes, cited PB2002 coverage of all 52 plate features, subtype-styled tectonic boundary families (including explicit subduction symbology), computed plate-motion vectors for all 52 PB2002 plates (Euler-pole derived, Pacific reference frame), a magnitude filter slider, clearer live-versus-context controls, and multiple basemaps; any future 3D globe should remain optional and isolated from the default map path |
-| **Space Weather** | Live NOAA solar wind with derived coupling metrics (dynamic pressure, E_y), Kp index chart, hourly Dst index with storm bands, ≥10 MeV proton flux with NOAA S-scale status, GOES X-ray flare log, a Coupling Chain Monitor (solar wind → magnetosphere → atmosphere → lithosphere), and a resizable split workspace |
-| **Seismic** | Dynamic USGS earthquake list (newest first, time-ago), statistics (M5+/M6+ counts, largest), magnitude + depth distribution charts, and a resizable split workspace |
-| **Environment** | Real-time weather (temp, feels-like, humidity, pressure, wind, condition) and air quality (PM2.5, PM10, CO, NO₂, European AQI) via Open-Meteo free API, AQI gauge doughnut chart, and a resizable split workspace |
-| **Correlation** | Quick correlation readout: research background, current 27–28 day window status, descriptive probability card, 30-day storms-vs-seismic timeline, and summary stats |
-| **AI Briefing** | Plain-language briefing / digest / Q&A from `/api/ai/briefing`. Default writer is local (same live NOAA + USGS/EMSC snapshot, no API key). Optional Grok uses a **server-only** `XAI_API_KEY` in gitignored `.env` — never the public repo, never the browser. Informational only — not a forecast. |
+| **Map** | Interactive Leaflet map — the primary 2D research view for live USGS/EMSC/GEOFON earthquakes, Smithsonian GVP Holocene volcanoes + USGS unrest colors, cited PB2002 coverage of all 52 plate features, subtype-styled tectonic boundary families (including explicit subduction symbology), computed plate-motion vectors for all 52 PB2002 plates (Euler-pole derived, Pacific reference frame), a magnitude filter slider, clearer live-versus-context controls, and multiple basemaps; any future 3D globe should remain optional and isolated from the default map path |
+| **Space Weather** | Live NOAA solar wind with derived coupling metrics (dynamic pressure, E_y), newest ~2 h speed chart, Kp bar chart with a Kp 5 threshold line, hourly Dst (0 nT is plotted), ≥10 MeV proton flux with NOAA S-scale status, GOES X-ray flare log, a Coupling Chain Monitor (solar wind → magnetosphere → atmosphere → lithosphere), and a resizable split workspace whose cards scroll instead of clipping charts |
+| **Seismic** | Dynamic USGS earthquake list (newest first, time-ago), statistics (M5+/M6+ counts, largest), magnitude + depth distribution charts (Y starts at 0), and a resizable split workspace |
+| **Environment** | Real-time weather (temp, feels-like, humidity, pressure, wind, condition) and air quality (PM2.5, PM10, CO, NO₂, European AQI) via Open-Meteo free API, AQI gauge doughnut chart in a dedicated chart box, and a resizable split workspace |
+| **Correlation** | Quick correlation readout: research background, current 27–28 day window status, descriptive probability card, 30-day two-lane storms-vs-M5+ timeline (green lag-pair lines when pairs exist), and summary stats |
+| **AI Briefing** | Plain-language briefing / digest / Q&A from `/api/ai/briefing`. Default writer is local (same live NOAA + USGS/EMSC/GEOFON snapshot, no API key). Optional Grok uses a **server-only** `XAI_API_KEY` in gitignored `.env` — never the public repo, never the browser. Informational only — not a forecast. |
 | **Research Lab** | Historical USGS ComCat + NOAA storm + Kyoto Dst archive loading; selectable storm definitions (Kp ≥ 5 baseline, Dst ≤ −50 nT, pressure pulses); regional stratification (Global / Circum-Pacific via PB2002 tagging); multiple-comparison-aware bootstrap null calibration through a local Python sidecar; 0–60 day lag scan; Gutenberg–Richter b-value; JSON run-artifact and CSV export; live coupling-driver readout |
 | **Settings** | Configurable alert thresholds, dark mode toggle (☀️/🌙), notifications, localStorage persistence, **Reset Layout** for panel order/collapse, and a resizable split workspace |
 
@@ -238,11 +242,12 @@ Containerization note: **Docker is a future optional reproducibility/deployment 
 ```
 tectonic-solar/
 ├── server.js                 # Node proxy + security headers + research feed validation + AI briefing
+├── lib/                      # Node-side seismic merge + volcano ingest (GEOFON, GVP, USGS VNS)
 ├── ai-briefing.js            # Local snapshot briefing SSE (optional server-only Grok)
 ├── .env.example              # Optional XAI_API_KEY template — copy to gitignored .env, never commit
 ├── .github/rulesets/
 │   └── main-safe.json        # Branch ruleset import: PRs required, repo admin can merge own PRs
-├── package.json              # Runtime scripts (`launch`, `start`, `test:tabs`)
+├── package.json              # Runtime scripts (`launch`, `start`, `test:tabs`, `test:ux`)
 ├── requirements.txt          # Python research environment dependencies
 ├── public/                   # Browser-served web root
 │   ├── index.html
@@ -262,6 +267,7 @@ tectonic-solar/
 │   ├── research_stats.py     # Pure NumPy research helpers used by the sidecar
 │   ├── hypothesis-sim.mjs    # Deterministic lag-analysis sanity harness
 │   ├── tab-smoke-test.mjs    # 8-tab Playwright smoke test
+│   ├── ux-interaction-test.mjs # Panel/chart interaction pass (records video)
 │   ├── verify-visuals.js
 │   ├── lighthouse-automation.js
 │   ├── restart-server.js
@@ -337,7 +343,7 @@ Legacy Pearson/Fisher outputs still exist for the older/basic browser correlatio
 When moving from setup to real-data analysis, the preferred path is now:
 
 1. run `npm run test:hypothesis-sim`
-2. launch the app
+2. launch the app (`npm run test:tabs` / `npm run test:ux` after UI changes)
 3. open the **Research Lab** tab and click **Load Full Research Foundation**
 4. optionally start the Python research sidecar and click **Run Bootstrap Null Test**
 5. rerun the lag scan on the combined NOAA + USGS historical corpus

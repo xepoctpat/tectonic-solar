@@ -4,7 +4,8 @@ import { initPanelControls } from './panels.js';
 const STORAGE_PREFIX = 'space-earth-layout';
 const DEFAULT_MIN_LEFT_PX = 320;
 const DEFAULT_MIN_RIGHT_PX = 280;
-const DEFAULT_MIN_PANEL_HEIGHT = 160;
+const DEFAULT_MIN_PANEL_HEIGHT = 260;
+const DEFAULT_MIN_CHART_PANEL_HEIGHT = 440;
 
 function readNumber(value, fallback = null) {
   const parsed = Number.parseFloat(value);
@@ -161,15 +162,22 @@ function initSplitLayouts(scheduleRefresh) {
   });
 }
 
+function minHeightFor(panel) {
+  if (panel.querySelector('.chart-box')) return DEFAULT_MIN_CHART_PANEL_HEIGHT;
+  return DEFAULT_MIN_PANEL_HEIGHT;
+}
+
 function initResizablePanels(scheduleRefresh) {
   if (!('ResizeObserver' in window)) return;
 
   const observer = new ResizeObserver(entries => {
     entries.forEach(entry => {
       const panel = entry.target;
+      if (panel.classList.contains('is-collapsed')) return;
       const panelId = panel.dataset.panelId;
       const height = Math.round(entry.contentRect.height);
-      if (panelId && height >= DEFAULT_MIN_PANEL_HEIGHT) {
+      const minHeight = minHeightFor(panel);
+      if (panelId && height >= minHeight) {
         storeValue(`panel:${panelId}`, height);
       }
     });
@@ -180,8 +188,9 @@ function initResizablePanels(scheduleRefresh) {
   document.querySelectorAll('[data-resizable-panel]').forEach(panel => {
     const panelId = panel.dataset.panelId;
     const storedHeight = panelId ? readNumber(loadStoredValue(`panel:${panelId}`), null) : null;
+    const minHeight = minHeightFor(panel);
 
-    if (storedHeight && storedHeight >= DEFAULT_MIN_PANEL_HEIGHT) {
+    if (storedHeight && storedHeight >= minHeight) {
       panel.style.height = `${storedHeight}px`;
     }
 

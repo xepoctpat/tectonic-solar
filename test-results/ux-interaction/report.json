@@ -1,0 +1,671 @@
+{
+  "appUrl": "http://localhost:3000",
+  "generatedAt": "2026-09-08T22:43:27.033Z",
+  "consoleErrorCount": 0,
+  "pageErrorCount": 0,
+  "consoleErrors": [],
+  "pageErrors": [],
+  "failures": [],
+  "findings": [
+    {
+      "tab": "map",
+      "chartInfo": [
+        {
+          "id": "solar-wind-chart",
+          "panelId": "space-solar-wind",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "kp-chart",
+          "panelId": "space-geomagnetic",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "dst-chart",
+          "panelId": "space-geomagnetic",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "magnitude-chart",
+          "panelId": "seismic-stats",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "depth-chart",
+          "panelId": "seismic-stats",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "aqi-chart",
+          "panelId": "environment-air-quality",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "correlation-timeline",
+          "panelId": "correlation-timeline-panel",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "lag-scan-chart",
+          "panelId": "research-lag-scan-panel",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        }
+      ],
+      "analysisOverflow": [],
+      "toast": {
+        "top": 848,
+        "bottom": 848,
+        "position": "fixed",
+        "cssTop": "848px",
+        "cssBottom": "52px"
+      },
+      "timelineScale": {
+        "min": 0.4,
+        "max": 2.6
+      },
+      "magnitudeScale": {
+        "min": 0,
+        "max": 10
+      },
+      "toastsVisible": []
+    },
+    {
+      "tab": "space",
+      "chartInfo": [
+        {
+          "id": "solar-wind-chart",
+          "panelId": "space-solar-wind",
+          "canvasH": 200,
+          "boxH": 200,
+          "panelH": 440,
+          "panelOverflowY": "auto",
+          "clippedByPanel": true,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "kp-chart",
+          "panelId": "space-geomagnetic",
+          "canvasH": 200,
+          "boxH": 200,
+          "panelH": 440,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "dst-chart",
+          "panelId": "space-geomagnetic",
+          "canvasH": 200,
+          "boxH": 200,
+          "panelH": 440,
+          "panelOverflowY": "auto",
+          "clippedByPanel": true,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "magnitude-chart",
+          "panelId": "seismic-stats",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "depth-chart",
+          "panelId": "seismic-stats",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "aqi-chart",
+          "panelId": "environment-air-quality",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "correlation-timeline",
+          "panelId": "correlation-timeline-panel",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "lag-scan-chart",
+          "panelId": "research-lag-scan-panel",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        }
+      ],
+      "analysisOverflow": [],
+      "toast": {
+        "top": 848,
+        "bottom": 848,
+        "position": "fixed",
+        "cssTop": "848px",
+        "cssBottom": "52px"
+      },
+      "timelineScale": {
+        "min": 0.4,
+        "max": 2.6
+      },
+      "magnitudeScale": {
+        "min": 0,
+        "max": 10
+      },
+      "toastsVisible": []
+    },
+    {
+      "tab": "seismic",
+      "chartInfo": [
+        {
+          "id": "solar-wind-chart",
+          "panelId": "space-solar-wind",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "kp-chart",
+          "panelId": "space-geomagnetic",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "dst-chart",
+          "panelId": "space-geomagnetic",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "magnitude-chart",
+          "panelId": "seismic-stats",
+          "canvasH": 160,
+          "boxH": 160,
+          "panelH": 440,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "depth-chart",
+          "panelId": "seismic-stats",
+          "canvasH": 160,
+          "boxH": 160,
+          "panelH": 440,
+          "panelOverflowY": "auto",
+          "clippedByPanel": true,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "aqi-chart",
+          "panelId": "environment-air-quality",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "correlation-timeline",
+          "panelId": "correlation-timeline-panel",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "lag-scan-chart",
+          "panelId": "research-lag-scan-panel",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        }
+      ],
+      "analysisOverflow": [],
+      "toast": {
+        "top": 848,
+        "bottom": 848,
+        "position": "fixed",
+        "cssTop": "848px",
+        "cssBottom": "52px"
+      },
+      "timelineScale": {
+        "min": 0.4,
+        "max": 2.6
+      },
+      "magnitudeScale": {
+        "min": 0,
+        "max": 10
+      },
+      "toastsVisible": []
+    },
+    {
+      "tab": "env",
+      "chartInfo": [
+        {
+          "id": "solar-wind-chart",
+          "panelId": "space-solar-wind",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "kp-chart",
+          "panelId": "space-geomagnetic",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "dst-chart",
+          "panelId": "space-geomagnetic",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "magnitude-chart",
+          "panelId": "seismic-stats",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "depth-chart",
+          "panelId": "seismic-stats",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "aqi-chart",
+          "panelId": "environment-air-quality",
+          "canvasH": 180,
+          "boxH": 180,
+          "panelH": 440,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "correlation-timeline",
+          "panelId": "correlation-timeline-panel",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "lag-scan-chart",
+          "panelId": "research-lag-scan-panel",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        }
+      ],
+      "analysisOverflow": [],
+      "toast": {
+        "top": 848,
+        "bottom": 848,
+        "position": "fixed",
+        "cssTop": "848px",
+        "cssBottom": "52px"
+      },
+      "timelineScale": {
+        "min": 0.4,
+        "max": 2.6
+      },
+      "magnitudeScale": {
+        "min": 0,
+        "max": 10
+      },
+      "toastsVisible": []
+    },
+    {
+      "tab": "correlation",
+      "chartInfo": [
+        {
+          "id": "solar-wind-chart",
+          "panelId": "space-solar-wind",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "kp-chart",
+          "panelId": "space-geomagnetic",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "dst-chart",
+          "panelId": "space-geomagnetic",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "magnitude-chart",
+          "panelId": "seismic-stats",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "depth-chart",
+          "panelId": "seismic-stats",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "aqi-chart",
+          "panelId": "environment-air-quality",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "correlation-timeline",
+          "panelId": "correlation-timeline-panel",
+          "canvasH": 333,
+          "boxH": 333,
+          "panelH": 478,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "lag-scan-chart",
+          "panelId": "research-lag-scan-panel",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        }
+      ],
+      "analysisOverflow": [],
+      "toast": {
+        "top": 848,
+        "bottom": 848,
+        "position": "fixed",
+        "cssTop": "848px",
+        "cssBottom": "52px"
+      },
+      "timelineScale": {
+        "min": 0.4,
+        "max": 2.6
+      },
+      "magnitudeScale": {
+        "min": 0,
+        "max": 10
+      },
+      "toastsVisible": []
+    },
+    {
+      "tab": "research",
+      "chartInfo": [
+        {
+          "id": "solar-wind-chart",
+          "panelId": "space-solar-wind",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "kp-chart",
+          "panelId": "space-geomagnetic",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "dst-chart",
+          "panelId": "space-geomagnetic",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "magnitude-chart",
+          "panelId": "seismic-stats",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "depth-chart",
+          "panelId": "seismic-stats",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "aqi-chart",
+          "panelId": "environment-air-quality",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "correlation-timeline",
+          "panelId": "correlation-timeline-panel",
+          "canvasH": 0,
+          "boxH": 0,
+          "panelH": 0,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        },
+        {
+          "id": "lag-scan-chart",
+          "panelId": "research-lag-scan-panel",
+          "canvasH": 280,
+          "boxH": 280,
+          "panelH": 440,
+          "panelOverflowY": "auto",
+          "clippedByPanel": false,
+          "overflowHidden": false,
+          "hardClip": false
+        }
+      ],
+      "analysisOverflow": [],
+      "toast": {
+        "top": 848,
+        "bottom": 848,
+        "position": "fixed",
+        "cssTop": "848px",
+        "cssBottom": "52px"
+      },
+      "timelineScale": {
+        "min": 0.4,
+        "max": 2.6
+      },
+      "magnitudeScale": {
+        "min": 0,
+        "max": 10
+      },
+      "toastsVisible": []
+    }
+  ]
+}

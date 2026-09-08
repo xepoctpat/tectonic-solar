@@ -1,9 +1,81 @@
 /* ===== PANEL TOOLBAR: REORDER + COLLAPSE ===== */
+/* Loaded last so these win over .data-card { overflow: hidden } and hover-lift. */
+
+.resizable-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  min-height: 260px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 180, 255, 0.35) transparent;
+}
+
+.resizable-panel:has(.chart-box) {
+  min-height: 440px;
+}
+
+.resizable-panel .metric {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.data-card.resizable-panel,
+.info-card.resizable-panel,
+.timeline-container.resizable-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  transform: none;
+}
+
+.data-card.resizable-panel:hover,
+.info-card.resizable-panel:hover,
+.timeline-container.resizable-panel:hover {
+  transform: none;
+}
+
+.timeline-container.resizable-panel {
+  margin-bottom: 0;
+}
+
 .resizable-panel > h3 {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px 8px;
+  flex-shrink: 0;
+}
+
+.chart-box {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  min-height: 180px;
+  margin-top: 8px;
+  flex: 1 1 auto;
+  flex-shrink: 0;
+}
+
+.chart-box.chart-box-tall {
+  height: 280px;
+  min-height: 240px;
+}
+
+.chart-box.chart-box-compact {
+  height: 160px;
+  min-height: 140px;
+  flex: 0 0 auto;
+}
+
+.chart-box.chart-box-gauge {
+  height: 180px;
+  min-height: 160px;
+}
+
+.chart-box canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .panel-toolbar {
@@ -75,4 +147,28 @@
 .split-pane.drop-into {
   outline: 2px dashed rgba(var(--color-teal-500-rgb), 0.55);
   outline-offset: -2px;
+}
+
+@media (max-width: 960px) {
+  .tab-content.active {
+    overflow: auto;
+  }
+
+  .split-layout[data-split-layout] {
+    flex-direction: column;
+    overflow: visible;
+    height: auto;
+  }
+
+  .split-layout .split-pane-primary,
+  .split-layout .split-pane-secondary {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    overflow: visible;
+  }
+
+  .resizable-panel:has(.chart-box) {
+    min-height: 300px;
+  }
 }

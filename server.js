@@ -2,6 +2,12 @@ const express = require('express');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 const { loadLocalEnv, createAiBriefingHandler } = require('./ai-briefing');
+const {
+  parseFdsnEventText,
+  normalizeSeismicFeature,
+  mergeRankedSeismicProviders,
+} = require('./lib/seismic-merge.cjs');
+const { mergeVolcanoCatalog } = require('./lib/volcanoes.cjs');
 
 loadLocalEnv(__dirname);
 
@@ -36,6 +42,74 @@ const RESEARCH_SIDECAR = {
 };
 const researchJsonParser = express.json({ limit: RESEARCH_SIDECAR.payloadLimit });
 const fallbackLogState = new Map();
+// Process-lifetime last-good bodies only. Advertised via X-Feed-Freshness; not a database.
+const lastGoodFeeds = new Map();
+
+function toIsoZ(date) {
+  return date.toISOString().replace(/\.\d{3}Z$/, 'Z');
+}
+
+function buildGfzKpUrl(hours) {
+  const end = new Date();
+  const start = new Date(end.getTime() - hours * 3600 * 1000);
+  const params = new URLSearchParams({
+    start: toIsoZ(start),
+    end: toIsoZ(end),
+    index: 'Kp',
+  });
+  return `${UPSTREAM.gfz.kpJson}?${params}`;
+}
+
+function normalizeGfzKpBody(body) {
+  let data;
+  try {
+    data = JSON.parse(body);
+  } catch {
+    return JSON.stringify({ source: 'GFZ Potsdam', license: 'CC BY 4.0', points: [] });
+  }
+  const times = Array.isArray(data.datetime) ? data.datetime : [];
+  const values = Array.isArray(data.Kp) ? data.Kp : [];
+  const statuses = Array.isArray(data.status) ? data.status : [];
+  const n = Math.min(times.length, values.length);
+  const points = [];
+  for (let i = 0; i < n; i += 1) {
+    const kp = Number(values[i]);
+    if (!Number.isFinite(kp) || !times[i]) continue;
+    points.push({
+      time: times[i],
+      kp,
+      status: statuses[i] || null,
+      source: 'GFZ Potsdam',
+    });
+  }
+  return JSON.stringify({
+    source: 'GFZ Potsdam',
+    license: 'CC BY 4.0',
+    attribution: 'GFZ German Research Centre for Geosciences',
+    points,
+  });
+}
+
+function normalizeRtswWindBody(body) {
+  let data;
+  try {
+    data = JSON.parse(body);
+  } catch {
+    return body;
+  }
+  if (!Array.isArray(data)) return body;
+
+  const mapped = data.map((row) => {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) return row;
+    return {
+      ...row,
+      speed: row.speed ?? row.proton_speed,
+      density: row.density ?? row.proton_density,
+      temperature: row.temperature ?? row.proton_temperature,
+    };
+  });
+  return JSON.stringify(mapped);
+}
 
 app.disable('x-powered-by');
 
@@ -67,7 +141,9 @@ app.use(express.static(PUBLIC_DIR, {
 const UPSTREAM = {
   noaa: {
     rtswMag: 'https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json',
-    rtswPlasma: 'https://services.swpc.noaa.gov/json/rtsw/rtsw_plasma_1m.json',
+    // SCN 26-21: rtsw_plasma_1m.json retired. rtsw_wind_1m.json is the successor.
+    rtswWind: 'https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json',
+    rtswPlasma: 'https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json',
     kp1m: 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json',
     kpHistory: 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json',
     xray7d: 'https://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json',
@@ -82,6 +158,20 @@ const UPSTREAM = {
   },
   emsc: {
     eventQuery: 'https://www.seismicportal.eu/fdsnws/event/1/query',
+  },
+  geofon: {
+    eventQuery: 'https://geofon.gfz.de/fdsnws/event/1/query',
+    version: 'https://geofon.gfz.de/fdsnws/event/1/version',
+  },
+  gfz: {
+    kpJson: 'https://kp.gfz.de/app/json/',
+  },
+  gvp: {
+    holocene: 'https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=GVP-VOTW:Smithsonian_VOTW_Holocene_Volcanoes&outputFormat=application/json',
+    holoceneProbe: 'https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=GVP-VOTW:Smithsonian_VOTW_Holocene_Volcanoes&maxFeatures=1&outputFormat=application/json',
+  },
+  usgsVolcano: {
+    elevated: 'https://volcanoes.usgs.gov/hans-public/api/volcano/getElevatedVolcanoes',
   },
 };
 
@@ -406,18 +496,35 @@ async function fetchWithRetry(url, maxRetries = 1) {
   }
 }
 
+function sendLastGood(res, url, reason) {
+  const cached = lastGoodFeeds.get(url);
+  if (!cached) return false;
+  res.status(200);
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Feed-Freshness', 'last-good');
+  res.setHeader('X-Last-Good-At', cached.savedAt);
+  res.type(cached.contentType).send(cached.body);
+  logFallbackEvent(url, `last-good after ${reason}`);
+  return true;
+}
+
+function sendEmptyFallback(res, url, options, reason) {
+  res.status(200);
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Feed-Freshness', 'empty');
+  res.type(options.fallbackContentType || 'application/json')
+    .send(options.fallbackData || '[]');
+  logFallbackEvent(url, reason);
+}
+
 async function proxyRequest(res, url, options = {}) {
   try {
     const upstream = await fetchWithRetry(url, options.maxRetries || 1);
 
     if (!upstream.ok) {
-      // For non-critical endpoints, return graceful fallback instead of 502
-      // This prevents browser console errors while still logging the failure
+      if (sendLastGood(res, url, `status ${upstream.status}`)) return;
       if (options.fallbackOnError) {
-        res.status(200)
-           .type(options.fallbackContentType || 'application/json')
-           .send(options.fallbackData || '[]');
-        logFallbackEvent(url, `status ${upstream.status}`);
+        sendEmptyFallback(res, url, options, `status ${upstream.status}`);
         return;
       }
 
@@ -430,18 +537,32 @@ async function proxyRequest(res, url, options = {}) {
       return;
     }
 
+    let body = upstream.body;
+    if (typeof options.transformBody === 'function') {
+      try {
+        body = options.transformBody(body);
+      } catch {
+        body = upstream.body;
+      }
+    }
+
+    lastGoodFeeds.set(url, {
+      body,
+      contentType: upstream.contentType || 'application/json',
+      savedAt: new Date().toISOString(),
+    });
+
     res.status(200);
     res.setHeader('Cache-Control', 'no-store');
-    res.type(upstream.contentType).send(upstream.body);
+    res.setHeader('X-Feed-Freshness', 'live');
+    res.type(upstream.contentType).send(body);
   } catch (error) {
     const isTimeout = error?.name === 'AbortError';
-    
-    // For non-critical endpoints, return graceful fallback on error
+    const reason = `error: ${error?.message || 'unknown error'}`;
+
+    if (sendLastGood(res, url, reason)) return;
     if (options.fallbackOnError) {
-      res.status(200)
-         .type(options.fallbackContentType || 'application/json')
-         .send(options.fallbackData || '[]');
-      logFallbackEvent(url, `error: ${error?.message || 'unknown error'}`);
+      sendEmptyFallback(res, url, options, reason);
       return;
     }
 
@@ -462,114 +583,189 @@ function parseProviderJson(body) {
   }
 }
 
-function normalizeSeismicFeature(feature, source) {
-  const coordinates = feature?.geometry?.coordinates;
-  const properties = feature?.properties || {};
-  const longitude = Number(coordinates?.[0]);
-  const latitude = Number(coordinates?.[1]);
-  const depth = Number(coordinates?.[2]);
-  const magnitude = Number(properties.mag ?? properties.magnitude);
-  const time = typeof properties.time === 'number'
-    ? properties.time
-    : Date.parse(properties.time || properties.originTime || '');
-
-  if (![longitude, latitude, magnitude, time].every(Number.isFinite)) return null;
-
-  return {
-    type: 'Feature',
-    geometry: {
-      type: 'Point',
-      coordinates: [longitude, latitude, Number.isFinite(depth) ? depth : null],
-    },
-    properties: {
-      mag: magnitude,
-      place: String(properties.place || properties.flynn_region || properties.description || 'Unknown location'),
-      time,
-      updated: Number.isFinite(Number(properties.updated)) ? Number(properties.updated) : time,
-      url: properties.url || null,
-      source,
-      sourceEventId: feature.id || properties.eventid || properties.id || null,
-    },
-    id: feature.id || properties.eventid || properties.id || `${source}-${time}-${latitude}-${longitude}`,
-  };
-}
-
-function seismicEventsMatch(left, right) {
-  const leftCoords = left.geometry.coordinates;
-  const rightCoords = right.geometry.coordinates;
-  const distance = Math.hypot(leftCoords[0] - rightCoords[0], leftCoords[1] - rightCoords[1]);
-  return Math.abs(left.properties.time - right.properties.time) <= 120_000
-    && distance <= 0.5
-    && Math.abs(left.properties.mag - right.properties.mag) <= 0.4;
-}
-
-async function fetchSeismicProvider(url, source) {
+async function fetchSeismicProvider(url, source, options = {}) {
   try {
     const result = await fetchWithRetry(url, 1);
     if (!result.ok) return { source, ok: false, status: result.status, features: [] };
-    const dataset = parseProviderJson(result.body);
-    const features = Array.isArray(dataset?.features)
-      ? dataset.features.map(feature => normalizeSeismicFeature(feature, source)).filter(Boolean)
-      : [];
+    let features = [];
+    if (options.textFormat === 'fdsn-text') {
+      features = parseFdsnEventText(result.body, source);
+    } else {
+      const dataset = parseProviderJson(result.body);
+      features = Array.isArray(dataset?.features)
+        ? dataset.features.map(feature => normalizeSeismicFeature(feature, source)).filter(Boolean)
+        : [];
+    }
     return { source, ok: true, status: result.status, features };
   } catch (error) {
     return { source, ok: false, status: 0, features: [], error: error?.message || 'provider request failed' };
   }
 }
 
+const SEISMIC_LAST_GOOD_KEY = 'seismic:global';
+
 async function loadGlobalSeismic() {
   const endTime = new Date();
   const startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
-  const emscParams = new URLSearchParams({
-    format: 'json',
+  const windowParams = {
     starttime: startTime.toISOString(),
     endtime: endTime.toISOString(),
     minmagnitude: '4.5',
     orderby: 'time-asc',
     limit: '2000',
-  });
+  };
+  const emscParams = new URLSearchParams({ format: 'json', ...windowParams });
+  const geofonParams = new URLSearchParams({ format: 'text', ...windowParams });
 
   const providers = await Promise.all([
     fetchSeismicProvider(UPSTREAM.usgs.m45Day, 'USGS'),
     fetchSeismicProvider(`${UPSTREAM.emsc.eventQuery}?${emscParams}`, 'EMSC SeismicPortal'),
+    fetchSeismicProvider(`${UPSTREAM.geofon.eventQuery}?${geofonParams}`, 'GFZ GEOFON', { textFormat: 'fdsn-text' }),
   ]);
 
-  const accepted = [];
-  providers
-    .sort((left, right) => (left.source === 'USGS' ? -1 : 1) - (right.source === 'USGS' ? -1 : 1))
-    .forEach(provider => {
-      provider.features.forEach(feature => {
-        if (!accepted.some(existing => seismicEventsMatch(existing, feature))) {
-          accepted.push(feature);
-        }
-      });
-    });
-
-  accepted.sort((left, right) => right.properties.time - left.properties.time);
-  const liveProviders = providers.filter(provider => provider.ok && provider.features.length > 0).map(provider => provider.source);
+  const accepted = mergeRankedSeismicProviders(providers);
+  const liveProviders = providers
+    .filter(provider => provider.ok && provider.features.length > 0)
+    .map(provider => provider.source);
   const sourceLabel = liveProviders.length > 0 ? liveProviders.join(' + ') : 'No live seismic providers';
 
-  return {
+  if (accepted.length === 0) {
+    const cached = lastGoodFeeds.get(SEISMIC_LAST_GOOD_KEY);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached.body);
+        if (parsed?.metadata) {
+          parsed.metadata.freshness = 'last-good';
+          parsed.metadata.lastGoodAt = cached.savedAt;
+        }
+        return parsed;
+      } catch {
+        // fall through to empty
+      }
+    }
+  }
+
+  const collection = {
     type: 'FeatureCollection',
     metadata: {
       count: accepted.length,
       sourceLabel,
+      freshness: accepted.length > 0 ? 'live' : 'empty',
       providers: providers.map(provider => ({
         source: provider.source,
         ok: provider.ok,
         status: provider.status,
         count: provider.features.length,
       })),
-      deduplication: 'time ±120s, location ±0.5°, magnitude ±0.4',
+      deduplication: 'time ±120s, location ±0.5°, magnitude ±0.4; rank USGS > EMSC > GFZ GEOFON',
+      geofon: {
+        format: 'fdsn-text (JSON/GeoJSON not offered)',
+        license: 'CC-BY-4.0',
+        attribution: '© GFZ (GEOFON)',
+        magNote: 'Preferred magnitudes are mixed mb/Mw; not homogenized with USGS',
+      },
     },
     features: accepted,
   };
+
+  if (accepted.length > 0) {
+    lastGoodFeeds.set(SEISMIC_LAST_GOOD_KEY, {
+      body: JSON.stringify(collection),
+      contentType: 'application/json',
+      savedAt: new Date().toISOString(),
+    });
+  }
+
+  return collection;
 }
+
+const VOLCANO_LAST_GOOD_KEY = 'volcanoes:global';
+
+async function loadVolcanoCatalog() {
+  const [gvpResult, usgsResult] = await Promise.all([
+    fetchWithRetry(UPSTREAM.gvp.holocene, 1).catch(error => ({ ok: false, status: 0, body: '', error })),
+    fetchWithRetry(UPSTREAM.usgsVolcano.elevated, 1).catch(error => ({ ok: false, status: 0, body: '', error })),
+  ]);
+
+  const gvpCollection = gvpResult.ok ? parseProviderJson(gvpResult.body) : null;
+  const usgsAlerts = usgsResult.ok ? parseProviderJson(usgsResult.body) : [];
+  const hasGvp = gvpCollection && Array.isArray(gvpCollection.features) && gvpCollection.features.length > 0;
+
+  if (!hasGvp) {
+    const cached = lastGoodFeeds.get(VOLCANO_LAST_GOOD_KEY);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached.body);
+        if (parsed?.metadata) {
+          parsed.metadata.freshness = 'last-good';
+          parsed.metadata.lastGoodAt = cached.savedAt;
+        }
+        return parsed;
+      } catch {
+        // fall through
+      }
+    }
+    return {
+      type: 'FeatureCollection',
+      metadata: {
+        count: 0,
+        freshness: 'empty',
+        providers: {
+          gvp: { ok: Boolean(gvpResult.ok), status: gvpResult.status || 0 },
+          usgs: { ok: Boolean(usgsResult.ok), status: usgsResult.status || 0 },
+        },
+      },
+      features: [],
+    };
+  }
+
+  const collection = mergeVolcanoCatalog(gvpCollection, Array.isArray(usgsAlerts) ? usgsAlerts : []);
+  collection.metadata.freshness = 'live';
+  collection.metadata.providers = {
+    gvp: { ok: true, status: gvpResult.status, count: gvpCollection.features.length },
+    usgs: {
+      ok: Boolean(usgsResult.ok),
+      status: usgsResult.status || 0,
+      elevated: Array.isArray(usgsAlerts) ? usgsAlerts.length : 0,
+    },
+  };
+
+  lastGoodFeeds.set(VOLCANO_LAST_GOOD_KEY, {
+    body: JSON.stringify(collection),
+    contentType: 'application/json',
+    savedAt: new Date().toISOString(),
+  });
+  return collection;
+}
+
+app.get('/api/volcanoes/global', async (_req, res) => {
+  try {
+    const collection = await loadVolcanoCatalog();
+    res.status(200);
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Feed-Freshness', collection?.metadata?.freshness || 'live');
+    if (collection?.metadata?.lastGoodAt) {
+      res.setHeader('X-Last-Good-At', collection.metadata.lastGoodAt);
+    }
+    res.json(collection);
+  } catch (error) {
+    res.status(502).json({
+      ok: false,
+      error: error?.message || 'Volcano catalog merge failed',
+    });
+  }
+});
 
 app.get('/api/seismic/global', async (_req, res) => {
   try {
     const collection = await loadGlobalSeismic();
-    res.status(200).json(collection);
+    res.status(200);
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Feed-Freshness', collection?.metadata?.freshness || 'live');
+    if (collection?.metadata?.lastGoodAt) {
+      res.setHeader('X-Last-Good-At', collection.metadata.lastGoodAt);
+    }
+    res.json(collection);
   } catch (error) {
     res.status(502).json({
       ok: false,
@@ -583,11 +779,14 @@ app.get('/api/noaa/rtsw-mag', (_req, res) => proxyRequest(res, UPSTREAM.noaa.rts
   fallbackData: '[]',
   fallbackContentType: 'application/json',
 }));
-app.get('/api/noaa/rtsw-plasma', (_req, res) => proxyRequest(res, UPSTREAM.noaa.rtswPlasma, {
+const rtswWindProxyOptions = {
   fallbackOnError: true,
   fallbackData: '[]',
   fallbackContentType: 'application/json',
-}));
+  transformBody: normalizeRtswWindBody,
+};
+app.get('/api/noaa/rtsw-plasma', (_req, res) => proxyRequest(res, UPSTREAM.noaa.rtswWind, rtswWindProxyOptions));
+app.get('/api/noaa/rtsw-wind', (_req, res) => proxyRequest(res, UPSTREAM.noaa.rtswWind, rtswWindProxyOptions));
 app.get('/api/noaa/kp-1m', (_req, res) => proxyRequest(res, UPSTREAM.noaa.kp1m, {
   fallbackOnError: true,
   fallbackData: '[]',
@@ -598,6 +797,15 @@ app.get('/api/noaa/kp-history', (_req, res) => proxyRequest(res, UPSTREAM.noaa.k
   fallbackData: '[]',
   fallbackContentType: 'application/json',
 }));
+app.get('/api/gfz/kp', (req, res) => {
+  const hours = parseBoundedNumber(req.query.hours, { min: 6, max: 168, fallback: 72 });
+  proxyRequest(res, buildGfzKpUrl(hours), {
+    fallbackOnError: true,
+    fallbackData: '{"source":"GFZ Potsdam","license":"CC BY 4.0","points":[]}',
+    fallbackContentType: 'application/json',
+    transformBody: normalizeGfzKpBody,
+  });
+});
 app.get('/api/noaa/xrays', (_req, res) => proxyRequest(res, UPSTREAM.noaa.xray7d, {
   fallbackOnError: true,
   fallbackData: '[]',
@@ -879,9 +1087,15 @@ app.post(
 
 app.get('/api/health', async (_req, res) => {
   const checks = {
-    noaa: UPSTREAM.noaa.kp1m,
+    noaa_mag: UPSTREAM.noaa.rtswMag,
+    noaa_wind: UPSTREAM.noaa.rtswWind,
+    noaa_kp: UPSTREAM.noaa.kp1m,
     usgs: UPSTREAM.usgs.m45Day,
     emsc: `${UPSTREAM.emsc.eventQuery}?format=json&limit=1`,
+    geofon: UPSTREAM.geofon.version,
+    gfz_kp: buildGfzKpUrl(24),
+    gvp: UPSTREAM.gvp.holoceneProbe,
+    usgs_volcano: UPSTREAM.usgsVolcano.elevated,
     openmeteo: 'https://api.open-meteo.com/v1/forecast?latitude=44.97&longitude=20.17&current=temperature_2m',
   };
 
@@ -890,25 +1104,33 @@ app.get('/api/health', async (_req, res) => {
 
   await Promise.all(
     Object.entries(checks).map(async ([key, url]) => {
+      const cached = lastGoodFeeds.get(url);
       try {
         const upstream = await fetchWithTimeout(url);
         result[key] = {
           ok: upstream.ok,
           status: upstream.status,
+          freshness: upstream.ok ? 'live' : (cached ? 'last-good' : 'none'),
         };
+        if (cached) result[key].lastGoodAt = cached.savedAt;
       } catch (error) {
         result[key] = {
           ok: false,
           error: error?.name === 'AbortError' ? 'timeout' : (error?.message || 'unknown'),
+          freshness: cached ? 'last-good' : 'none',
         };
+        if (cached) result[key].lastGoodAt = cached.savedAt;
       }
     })
   );
 
   const allOk = Object.values(result).every(entry => entry.ok === true);
 
-  res.status(allOk ? 200 : 503).json({
+  // HTTP 200 means this Node process is serving. `ok`/`status` describe upstreams.
+  res.status(200).json({
     ok: allOk,
+    status: allOk ? 'ok' : 'degraded',
+    local: true,
     mode: 'deployment-simulation',
     uptimeSeconds: Math.round(process.uptime()),
     durationMs: Date.now() - startedAt,

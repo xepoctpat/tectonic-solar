@@ -6,7 +6,7 @@
 **Status**: Active research dashboard with hardened Node proxy, no-build frontend, cited local PB2002 plate-model artifacts, and a refreshed custom UI polish pass  
 **Recommended launch**: `npm run launch`  
 **App URL**: `http://localhost:3000`  
-**Health endpoint**: `http://localhost:3000/api/health`  
+**Health endpoint**: `http://localhost:3000/api/health` (HTTP 200 = Node is up; JSON `status` is `ok` or `degraded`)  
 **AI briefing**: `POST /api/ai/briefing` (SSE) writes a local snapshot briefing with no key. Optional Grok is server-only `.env` / `XAI_API_KEY` — never commit it.  
 
 ---
@@ -147,7 +147,7 @@ For handoffs specifically, prefer a **new dated file in `docs/handoff/`** over a
 | `layout.js` | Split-layout + resizable-panel wiring for non-map tabs | initLayoutControls |
 | `store.js` | Global mutable state (storms, EQs, settings) | store, subscribe, publish, getActiveStorms, getRecentEarthquakes |
 | `utils.js` | Helpers: fetch retry, DOM utils, CSS vars | fetchWithRetry, fetchWithTimeout, mapDateToX, getCSSVar, setText |
-| `charts.js` | Chart.js visualization (5 charts) | drawRealSolarWindChart, drawRealKpChart, drawMagnitudeDistribution, drawAqiChart, drawCorrelationTimeline |
+| `charts.js` | Chart.js visualization (solar wind, Kp, Dst, magnitude, depth, AQI, lag scan, timeline) | drawRealSolarWindChart, drawRealKpChart, drawMagnitudeDistribution, drawAqiChart, drawCorrelationTimeline, resizeOpenCharts |
 | `correlation.js` | 27.5-day lag analysis + statistics | analyzeCorrelation, calculatePearsonCorrelation, estimatePValue, getCorrelationStrength |
 | `spaceWeather.js` | NOAA API: solar wind, Kp index | refreshSpaceWeatherData, getGeomagneticStorms |
 | `map.js` | Leaflet + USGS earthquakes + PB2002 tectonic overlay loading | refreshSeismicData, getMajorEarthquakes |

@@ -91,6 +91,29 @@ export function getCSSVar(varName) {
   return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
 }
 
+/** Parse a numeric sample; keep 0; turn missing/NaN into null. */
+export function finiteOrNull(value) {
+  const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * Sort samples by time and keep the newest `count`.
+ * NOAA RTSW arrays are often newest-first; a raw `.slice(-n)` then plots the oldest window.
+ */
+export function latestChronological(rows = [], count, timeKey = 'time') {
+  const dated = [];
+  for (const sample of rows) {
+    if (!sample) continue;
+    const raw = sample[timeKey];
+    const ms = typeof raw === 'number' ? raw : Date.parse(raw);
+    if (!Number.isFinite(ms)) continue;
+    dated.push({ sample, ms });
+  }
+  dated.sort((a, b) => a.ms - b.ms);
+  return dated.slice(-count).map(row => row.sample);
+}
+
 /**
  * Fetch with timeout using AbortController.
  * @param {string} url - URL to fetch.

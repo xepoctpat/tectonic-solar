@@ -29,6 +29,8 @@ import {
   detectProtonEvents,
   PROTON_ENERGY_CHANNEL,
 } from './solarMetrics.mjs';
+import { operationalRtswRows, windDensity, windSpeed } from './rtswWind.mjs';
+import { parseGfzKpPayload, parseNoaaKpHistory, pickCurrentKp, pickKpHistory } from './kpIndex.mjs';
 
 const SPACE_WEATHER_STORAGE_KEY = 'space-earth-monitor-space-weather-last-good';
 const DRIVER_INGEST_KEY = 'space-earth-driver-ingest-v1';
@@ -123,16 +125,18 @@ function parseNumber(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-// Merge 1-minute mag + plasma streams by time_tag, computing the derived
+// Merge 1-minute mag + wind streams by time_tag, computing the derived
 // coupling metrics per matched sample. Keeps the last 240 samples (~4 h).
 export function buildCompositeSolarWindHistory(magData = [], plasmaData = []) {
-  const plasmaByTime = new Map(plasmaData.map(point => [point.time_tag, point]));
+  const magRows = operationalRtswRows(magData);
+  const windRows = operationalRtswRows(plasmaData);
+  const plasmaByTime = new Map(windRows.map(point => [point.time_tag, point]));
 
   const merged = [];
-  magData.forEach((magPoint) => {
+  magRows.forEach((magPoint) => {
     const plasma = plasmaByTime.get(magPoint.time_tag);
-    const speed = parseNumber(plasma?.speed);
-    const density = parseNumber(plasma?.density);
+    const speed = windSpeed(plasma);
+    const density = windDensity(plasma);
     const bt = parseNumber(magPoint.bt);
     const bz = parseNumber(magPoint.bz_gsm);
     merged.push({
@@ -146,7 +150,14 @@ export function buildCompositeSolarWindHistory(magData = [], plasmaData = []) {
     });
   });
 
-  return merged.filter(sample => Number.isFinite(sample.speed) || Number.isFinite(sample.bt)).slice(-240);
+  merged.sort((a, b) => {
+    const left = Date.parse(a.time);
+    const right = Date.parse(b.time);
+    return (Number.isFinite(left) ? left : 0) - (Number.isFinite(right) ? right : 0);
+  });
+  return merged
+    .filter(sample => Number.isFinite(sample.speed) || Number.isFinite(sample.bt))
+    .slice(-240);
 }
 
 function setMetricText(id, value, formatter, fallback = '—') {
@@ -473,13 +484,13 @@ export async function fetchNOAASpaceWeather() {
   const cachedSnapshot = readCachedSpaceWeatherSnapshot();
 
   try {
-    const [magResult, plasmaResult, kpResult, kpHistoryResult, xrayResult, dstResult, protonResult] = await Promise.all([
+    const [magResult, plasmaResult, kpResult, kpHistoryResult, gfzKpResult, xrayResult, dstResult, protonResult] = await Promise.all([
       fetchJsonFeed(NOAA_APIS.solarWindMag, {
         description: 'NOAA magnetometer data unavailable',
         minimumItems: 1,
       }),
       fetchJsonFeed(NOAA_APIS.solarWindPlasma, {
-        description: 'NOAA plasma data unavailable',
+        description: 'NOAA solar-wind data unavailable',
         minimumItems: 1,
       }),
       fetchJsonFeed(NOAA_APIS.kpIndex, {
@@ -488,7 +499,11 @@ export async function fetchNOAASpaceWeather() {
       }),
       fetchJsonFeed(NOAA_APIS.kpHistory, {
         description: 'NOAA Kp history unavailable',
-        minimumItems: 2,
+        minimumItems: 1,
+      }),
+      fetchJsonFeed(NOAA_APIS.kpGfz, {
+        description: 'GFZ Kp nowcast unavailable',
+        minimumItems: 0,
       }),
       fetchJsonFeed(NOAA_APIS.xrayFlux, {
         description: 'NOAA GOES X-ray data unavailable',
@@ -504,19 +519,19 @@ export async function fetchNOAASpaceWeather() {
       }),
     ]);
 
-    // ---- Solar wind (composite card: magnetometer + plasma + derived coupling) ----
-    const magData = Array.isArray(magResult.data) ? magResult.data : [];
-    const plasmaData = Array.isArray(plasmaResult.data) ? plasmaResult.data : [];
+    // ---- Solar wind (composite card: magnetometer + wind + derived coupling) ----
+    const magData = operationalRtswRows(Array.isArray(magResult.data) ? magResult.data : []);
+    const plasmaData = operationalRtswRows(Array.isArray(plasmaResult.data) ? plasmaResult.data : []);
     const latestMag = magData.length > 0 ? magData[magData.length - 1] : null;
     const latestPlasma = plasmaData.length > 0 ? plasmaData[plasmaData.length - 1] : null;
 
-    // Merge 1-minute mag + plasma streams by time_tag so derived metrics use
+    // Merge 1-minute mag + wind streams by time_tag so derived metrics use
     // matched samples; unmatched samples still carry whichever side exists.
     const compositeHistory = buildCompositeSolarWindHistory(magData, plasmaData);
 
     if (latestMag || latestPlasma) {
-      const speed = parseNumber(latestPlasma?.speed);
-      const density = parseNumber(latestPlasma?.density);
+      const speed = windSpeed(latestPlasma);
+      const density = windDensity(latestPlasma);
       const bt = parseNumber(latestMag?.bt);
       const bz = parseNumber(latestMag?.bz_gsm);
       const pdyn = dynamicPressure(density, speed);
@@ -538,13 +553,13 @@ export async function fetchNOAASpaceWeather() {
 
       const solarWindUpdatedAt = latestPlasma?.time_tag || latestMag?.time_tag;
       if (latestMag && latestPlasma) {
-        setFeedStatus('solarWind', 'live', 'live', 'Live NOAA magnetometer + plasma', solarWindUpdatedAt);
+        setFeedStatus('solarWind', 'live', 'live', 'Live NOAA magnetometer + solar wind', solarWindUpdatedAt);
       } else if (latestMag) {
         setFeedStatus(
           'solarWind',
           'degraded',
           'live',
-          'Magnetometer live (Bt/Bz); NOAA plasma feed unavailable upstream — speed/density/pressure hidden',
+          'Magnetometer live (Bt/Bz); NOAA solar-wind feed unavailable — speed/density/pressure hidden',
           solarWindUpdatedAt,
         );
       } else {
@@ -552,7 +567,7 @@ export async function fetchNOAASpaceWeather() {
           'solarWind',
           'degraded',
           'live',
-          'Plasma live; magnetometer unavailable — Bt/Bz hidden',
+          'Solar wind live; magnetometer unavailable — Bt/Bz hidden',
           solarWindUpdatedAt,
         );
       }
@@ -567,55 +582,64 @@ export async function fetchNOAASpaceWeather() {
       spaceWeatherCache.solarWind = null;
       setSolarWindHistory([]);
       const solarWindReason = plasmaResult.disabled
-        ? 'Solar-wind plasma feed is disabled outside proxy mode'
+        ? 'Solar-wind feed is disabled outside proxy mode'
         : 'NOAA solar-wind feeds unavailable — no cached data';
       setFeedStatus('solarWind', 'unavailable', 'live', solarWindReason);
     }
 
-    // ---- Kp index + history ----
+    // ---- Kp index + history (NOAA first, GFZ official 3-hour second) ----
     const kpData = Array.isArray(kpResult.data) ? kpResult.data : [];
-    const kp3DayData = Array.isArray(kpHistoryResult.data) ? kpHistoryResult.data : [];
-    const latestRealtimeKp = kpData.length > 0 ? kpData[kpData.length - 1] : null;
-    const kpHist = kp3DayData.length > 1
-      ? kp3DayData.slice(1)
-          .map(row => ({ kp: parseNumber(row[1]), time: row[0] }))
-          .filter(point => Number.isFinite(point.kp))
-      : [];
-
+    const noaaHistory = parseNoaaKpHistory(kpHistoryResult.data);
+    const gfzPoints = parseGfzKpPayload(gfzKpResult.data);
+    const currentKp = pickCurrentKp({
+      noaa1m: kpData,
+      noaaHistory,
+      gfzPoints,
+    });
+    const historyPick = pickKpHistory(noaaHistory, gfzPoints);
+    const kpHist = historyPick.points;
     setKpHistory(kpHist);
 
-    if (latestRealtimeKp || kpHist.length > 0) {
-      const fallbackKp = kpHist.length > 0 ? kpHist[kpHist.length - 1] : null;
-      const kpValue = latestRealtimeKp
-        ? parseNumber(latestRealtimeKp.kp_index ?? latestRealtimeKp.kp)
-        : fallbackKp?.kp ?? null;
-      const kpTimestamp = latestRealtimeKp?.time_tag || fallbackKp?.time || 0;
+    if (currentKp || kpHist.length > 0) {
+      const kpValue = currentKp?.value ?? null;
+      const kpTimestamp = currentKp?.time || kpHist.at(-1)?.time || 0;
 
       spaceWeatherCache.kpIndex = Number.isFinite(kpValue)
         ? {
             value: kpValue,
             status: getKpStatus(kpValue),
             timestamp: kpTimestamp,
+            source: currentKp?.source || null,
           }
         : null;
 
-      if (Number.isFinite(kpValue) && kpValue >= 5 && latestRealtimeKp) {
-        const storm = { kp: kpValue, date: new Date(latestRealtimeKp.time_tag) };
-        addHistoricalStorm(storm);
-        addStorm(storm).catch(err => console.warn('Failed to save storm to DB:', err));
+      if (Number.isFinite(kpValue) && kpValue >= 5 && currentKp?.time) {
+        const stormDate = new Date(currentKp.time);
+        if (!Number.isNaN(stormDate.getTime())) {
+          const storm = { kp: kpValue, date: stormDate };
+          addHistoricalStorm(storm);
+          addStorm(storm).catch(err => console.warn('Failed to save storm to DB:', err));
+        }
       }
 
-      if (latestRealtimeKp && kpHist.length > 0) {
-        setFeedStatus('kpIndex', 'live', 'live', 'Live 1-minute Kp + 3-day NOAA history', kpTimestamp);
-      } else if (latestRealtimeKp) {
-        setFeedStatus('kpIndex', 'degraded', 'live', 'Live 1-minute Kp; 3-day history unavailable', kpTimestamp);
+      const nowLive = currentKp?.source === 'NOAA 1-min';
+      const histNoaa = historyPick.source === 'NOAA';
+      const histGfz = historyPick.source === 'GFZ Potsdam';
+      if (nowLive && histNoaa) {
+        setFeedStatus('kpIndex', 'live', 'live', 'Live NOAA 1-minute Kp + 3-day NOAA history', kpTimestamp);
+      } else if (nowLive && histGfz) {
+        setFeedStatus('kpIndex', 'degraded', 'live', 'Live NOAA 1-minute Kp; 3-day chart from GFZ (CC BY 4.0)', kpTimestamp);
+      } else if (nowLive) {
+        setFeedStatus('kpIndex', 'degraded', 'live', 'Live NOAA 1-minute Kp; 3-day history unavailable', kpTimestamp);
+      } else if (currentKp?.source === 'GFZ Potsdam') {
+        setFeedStatus('kpIndex', 'degraded', 'gfz', 'NOAA 1-minute Kp unavailable — using GFZ 3-hour Kp (CC BY 4.0)', kpTimestamp);
       } else {
         setFeedStatus('kpIndex', 'degraded', 'history', 'Realtime Kp unavailable — using latest 3-day NOAA product', kpTimestamp);
       }
     } else if (!restoreCachedKp(cachedSnapshot)) {
       spaceWeatherCache.kpIndex = null;
       setKpHistory([]);
-      setFeedStatus('kpIndex', 'unavailable', 'live', 'NOAA Kp feeds unavailable — no cached data');
+      setFeedStatus('kpIndex', 'unavailable', 'live', 'NOAA and GFZ Kp feeds unavailable — no cached data');
     }
 
     // ---- X-ray flux / solar flares ----
@@ -722,7 +746,7 @@ export async function fetchNOAASpaceWeather() {
     if (!restoreCachedKp(cachedSnapshot)) {
       spaceWeatherCache.kpIndex = null;
       setKpHistory([]);
-      setFeedStatus('kpIndex', 'unavailable', 'live', 'NOAA Kp feeds unavailable — no cached data');
+      setFeedStatus('kpIndex', 'unavailable', 'live', 'NOAA and GFZ Kp feeds unavailable — no cached data');
     }
 
     if (!restoreCachedXray(cachedSnapshot)) {
@@ -957,9 +981,9 @@ export function renderCouplingChain() {
   };
 
   renderStage('chain-solar-wind', 'Solar wind driver', driverLines, driverBand,
-    'DSCOVR/ACE/IMAP — pressure P_dyn = ρv², reconnection driver E_y = −v·Bz. If fields are missing, the NOAA plasma feed is degraded upstream.');
+    'DSCOVR/ACE/IMAP operational RTSW — pressure P_dyn = ρv², reconnection driver E_y = −v·Bz. Wind from rtsw_wind_1m (active spacecraft).');
   renderStage('chain-magnetosphere', 'Magnetosphere response', magnetosphereLines, magnetosphereBand,
-    'NOAA SWPC Kp · Kyoto Dst · GOES protons');
+    'NOAA SWPC Kp · GFZ IAGA Kp (CC BY 4.0) · Kyoto Dst · GOES protons');
   renderStage('chain-ionosphere', 'Ionosphere / atmosphere', [], 'unmonitored',
     'No public real-time feed wired in — this link is not monitored by this app',
     'Not monitored');

@@ -12,7 +12,12 @@
     "build:tectonics": "node scripts/build-pb2002-boundaries.mjs",
     "test:hypothesis-sim": "node scripts/hypothesis-sim.mjs",
     "test:tabs": "node scripts/tab-smoke-test.mjs",
-    "test:solar-metrics": "node scripts/solar-metrics-test.mjs"
+    "test:ux": "node scripts/ux-interaction-test.mjs",
+    "test:solar-metrics": "node scripts/solar-metrics-test.mjs",
+    "test:seismic-merge": "node scripts/seismic-merge-test.mjs",
+    "test:kp-index": "node scripts/kp-index-test.mjs",
+    "test:volcanoes": "node scripts/volcanoes-test.mjs",
+    "test:volcano-analytics": "node scripts/volcano-analytics-test.mjs"
   },
   "engines": {
     "node": ">=18"

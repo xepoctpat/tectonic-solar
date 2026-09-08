@@ -1,5 +1,5 @@
 // ===== CHART.JS CHART RENDERING =====
-import { getCSSVar } from './utils.js';
+import { getCSSVar, finiteOrNull, latestChronological } from './utils.js';
 
 const chartInstances = {};
 const chartCache = {
@@ -87,6 +87,50 @@ function destroyChart(key) {
   }
 }
 
+function preserveDatasetHidden(existing, nextDatasets) {
+  if (!existing?.data?.datasets) return nextDatasets;
+  const hiddenByLabel = new Map(
+    existing.data.datasets.map(ds => [ds.label, ds.hidden]),
+  );
+  return nextDatasets.map(ds => {
+    if (ds.label && hiddenByLabel.has(ds.label) && hiddenByLabel.get(ds.label) != null) {
+      return { ...ds, hidden: hiddenByLabel.get(ds.label) };
+    }
+    return ds;
+  });
+}
+
+function upsertChart(key, canvas, config) {
+  const existing = chartInstances[key];
+  const nextType = config.type;
+  if (existing && existing.canvas === canvas && existing.config.type === nextType) {
+    existing.data.labels = config.data.labels;
+    existing.data.datasets = preserveDatasetHidden(existing, config.data.datasets);
+    if (config.options?.plugins?.emptyStateMessage && existing.options?.plugins) {
+      existing.options.plugins.emptyStateMessage = config.options.plugins.emptyStateMessage;
+    }
+    existing.update('none');
+    return existing;
+  }
+
+  destroyChart(key);
+  const created = new Chart(canvas.getContext('2d'), {
+    ...config,
+    options: {
+      ...config.options,
+      animation: existing ? { duration: 0 } : (config.options?.animation ?? { duration: 700 }),
+    },
+  });
+  chartInstances[key] = created;
+  return created;
+}
+
+export function resizeOpenCharts() {
+  Object.values(chartInstances).forEach(chart => {
+    if (chart && typeof chart.resize === 'function') chart.resize();
+  });
+}
+
 export function redrawCachedCharts() {
   drawRealSolarWindChart(chartCache.solarWindHistory);
   drawRealKpChart(chartCache.kpHistory);
@@ -115,18 +159,16 @@ export function drawRealSolarWindChart(history = []) {
   const canvas = document.getElementById('solar-wind-chart');
   if (!canvas) return;
 
-  destroyChart('solarWind');
-
-  const recent = history.slice(-120);
+  const recent = latestChronological(history, 120);
   cacheData('solarWindHistory', recent);
 
   const hasData = recent.some(sample => Number.isFinite(Number(sample.speed)));
   const labels = recent.length > 0 ? recent.map((_, i) => `${i}m`) : createSequenceLabels(12, 'm');
-  const speed = recent.length > 0 ? recent.map(d => Number(d.speed) || null) : createPlaceholderSeries(12);
-  const density = recent.map(d => Number.isFinite(Number(d.density)) ? Number(d.density) : null);
-  const pdyn = recent.map(d => Number.isFinite(Number(d.pdyn)) ? Number(d.pdyn) : null);
+  const speed = recent.length > 0 ? recent.map(d => finiteOrNull(d.speed)) : createPlaceholderSeries(12);
+  const density = recent.map(d => finiteOrNull(d.density));
+  const pdyn = recent.map(d => finiteOrNull(d.pdyn));
 
-  chartInstances.solarWind = new Chart(canvas.getContext('2d'), {
+  upsertChart('solarWind', canvas, {
     type: 'line',
     data: {
       labels,
@@ -139,6 +181,7 @@ export function drawRealSolarWindChart(history = []) {
           fill: true,
           tension: 0.35,
           pointRadius: 0,
+          spanGaps: false,
           yAxisID: 'y',
         },
         {
@@ -188,6 +231,7 @@ export function drawRealSolarWindChart(history = []) {
         },
         y1: {
           position: 'right',
+          display: 'auto',
           beginAtZero: true,
           grid: { drawOnChartArea: false },
           ticks: { color: tickColor() },
@@ -207,16 +251,14 @@ export function drawDstChart(history = []) {
   const canvas = document.getElementById('dst-chart');
   if (!canvas) return;
 
-  destroyChart('dst');
-
-  const recent = history.slice(-72);
+  const recent = latestChronological(history, 72);
   cacheData('dstHistory', recent);
 
   const hasData = recent.some(sample => Number.isFinite(Number(sample.dst)));
   const labels = recent.length > 0 ? recent.map((_, i) => `${i}h`) : createSequenceLabels(12, 'h');
-  const data = recent.length > 0 ? recent.map(d => Number(d.dst) || null) : createPlaceholderSeries(12);
+  const data = recent.length > 0 ? recent.map(d => finiteOrNull(d.dst)) : createPlaceholderSeries(12);
 
-  chartInstances.dst = new Chart(canvas.getContext('2d'), {
+  upsertChart('dst', canvas, {
     type: 'line',
     data: {
       labels,
@@ -228,6 +270,7 @@ export function drawDstChart(history = []) {
         fill: true,
         tension: 0.3,
         pointRadius: 0,
+        spanGaps: false,
       }],
     },
     options: {
@@ -266,13 +309,11 @@ export function drawRealKpChart(history = []) {
   const canvas = document.getElementById('kp-chart');
   if (!canvas) return;
 
-  destroyChart('kp');
-
-  const recent = history.slice(-24);
+  const recent = latestChronological(history, 24);
   cacheData('kpHistory', recent);
 
   const data = recent.length > 0
-    ? recent.map(d => Number(d.kp) || 0)
+    ? recent.map(d => finiteOrNull(d.kp) ?? 0)
     : createPlaceholderSeries(12);
   const labels = recent.length > 0 ? data.map((_, i) => `${i}h`) : createSequenceLabels(12, 'h');
   const hasData = hasSeriesData(data);
@@ -281,11 +322,23 @@ export function drawRealKpChart(history = []) {
     ? data.map(v => (v >= 7 ? '#F44336' : v >= 5 ? '#FF9800' : v >= 4 ? '#FFC107' : '#32B8C6'))
     : Array.from({ length: data.length }, () => colorVar('--color-border', '#d0d0d0'));
 
-  chartInstances.kp = new Chart(canvas.getContext('2d'), {
+  upsertChart('kp', canvas, {
     type: 'bar',
     data: {
       labels,
-      datasets: [{ data, backgroundColor: colors, borderWidth: 0 }],
+      datasets: [
+        { label: 'Kp', data, backgroundColor: colors, borderWidth: 0 },
+        {
+          type: 'line',
+          label: 'Storm threshold (Kp 5)',
+          data: labels.map(() => 5),
+          borderColor: '#FF9800',
+          borderDash: [6, 4],
+          pointRadius: 0,
+          borderWidth: 1.5,
+          fill: false,
+        },
+      ],
     },
     options: {
       responsive: true,
@@ -320,7 +373,6 @@ export function drawMagnitudeDistribution(earthquakes = []) {
   const canvas = document.getElementById('magnitude-chart');
   if (!canvas) return;
 
-  destroyChart('magnitude');
   cacheData('earthquakes', earthquakes);
 
   const bins = { 'M4–4.9': 0, 'M5–5.9': 0, 'M6–6.9': 0, 'M7+': 0 };
@@ -332,7 +384,7 @@ export function drawMagnitudeDistribution(earthquakes = []) {
     else if (mag >= 4) bins['M4–4.9']++;
   });
 
-  chartInstances.magnitude = new Chart(canvas.getContext('2d'), {
+  upsertChart('magnitude', canvas, {
     type: 'bar',
     data: {
       labels: Object.keys(bins),
@@ -359,8 +411,8 @@ export function drawMagnitudeDistribution(earthquakes = []) {
         },
         y: {
           beginAtZero: true,
+          ticks: { color: tickColor(), precision: 0 },
           grid: { color: gridColor() },
-          ticks: { color: tickColor() },
         },
       },
       animation: { duration: 700 },
@@ -377,7 +429,6 @@ export function drawAqiChart(aqiValue) {
   const canvas = document.getElementById('aqi-chart');
   if (!canvas) return;
 
-  destroyChart('aqi');
   cacheData('aqiValue', aqiValue);
 
   const hasData = Number.isFinite(aqiValue);
@@ -390,7 +441,7 @@ export function drawAqiChart(aqiValue) {
   if (safeValue > 80) { label = 'Very Poor'; gaugeColor = '#F44336'; }
   if (safeValue > 100) { label = 'Extreme'; gaugeColor = '#9C27B0'; }
 
-  chartInstances.aqi = new Chart(canvas.getContext('2d'), {
+  upsertChart('aqi', canvas, {
     type: 'doughnut',
     data: {
       labels: [label, 'Remaining'],
@@ -413,15 +464,19 @@ export function drawAqiChart(aqiValue) {
       id: 'aqiCenterText',
       beforeDatasetsDraw(chart) {
         const { ctx, chartArea: { left, top, width, height } } = chart;
+        const dataset = chart.data.datasets[0];
+        const centerLabel = chart.data.labels?.[0] || '';
+        const liveValue = chartCache.aqiValue;
+        const live = Number.isFinite(liveValue);
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = gaugeColor;
+        ctx.fillStyle = dataset?.backgroundColor?.[0] || gaugeColor;
         ctx.font = 'bold 24px sans-serif';
-        ctx.fillText(hasData ? String(Math.round(safeValue)) : '—', left + width / 2, top + height / 2 - 8);
+        ctx.fillText(live ? String(Math.round(liveValue)) : '—', left + width / 2, top + height / 2 - 8);
         ctx.font = '11px sans-serif';
         ctx.fillStyle = tickColor();
-        ctx.fillText(label, left + width / 2, top + height / 2 + 15);
+        ctx.fillText(centerLabel, left + width / 2, top + height / 2 + 15);
         ctx.restore();
       },
     }],
@@ -438,7 +493,6 @@ export function drawDepthHistogram(earthquakes = []) {
   const canvas = document.getElementById('depth-chart');
   if (!canvas) return;
 
-  destroyChart('depth');
   cacheData('depthEarthquakes', earthquakes);
 
   const bins = [
@@ -455,7 +509,7 @@ export function drawDepthHistogram(earthquakes = []) {
   }).length);
   const hasData = counts.some(count => count > 0);
 
-  chartInstances.depth = new Chart(canvas.getContext('2d'), {
+  upsertChart('depth', canvas, {
     type: 'bar',
     data: {
       labels: bins.map(bin => bin.label),
@@ -480,8 +534,8 @@ export function drawDepthHistogram(earthquakes = []) {
       scales: {
         x: {
           beginAtZero: true,
+          ticks: { color: tickColor(), precision: 0 },
           grid: { color: gridColor() },
-          ticks: { color: tickColor() },
         },
         y: {
           grid: { display: false },
@@ -513,10 +567,10 @@ export function drawLagScanChart(lagData = []) {
   const canvas = document.getElementById('lag-scan-chart');
   if (!canvas) return;
 
-  destroyChart('lagScan');
   cacheData('lagData', lagData);
 
   if (!lagData.length) {
+    destroyChart('lagScan');
     renderCanvasNotice(canvas, 'Run analysis to populate chart');
     return;
   }
@@ -530,7 +584,7 @@ export function drawLagScanChart(lagData = []) {
   );
   const pointSizes = ratios.map((_, i) => (i >= 25 && i <= 30) ? 6 : 2);
 
-  chartInstances.lagScan = new Chart(canvas.getContext('2d'), {
+  upsertChart('lagScan', canvas, {
     type: 'line',
     data: {
       labels,
@@ -580,7 +634,6 @@ export function drawLagScanChart(lagData = []) {
             },
           },
         },
-        // Shade the hypothesis window 25–30d
         annotation: undefined,
       },
       scales: {
@@ -602,6 +655,8 @@ export function drawLagScanChart(lagData = []) {
             text: 'Event ratio',
             color: tickColor(),
           },
+          beginAtZero: true,
+          suggestedMax: 2,
           ticks: { color: tickColor() },
           grid: { color: gridColor() },
         },
@@ -621,44 +676,80 @@ export function drawCorrelationTimeline(storms = [], earthquakes = []) {
   const canvas = document.getElementById('correlation-timeline');
   if (!canvas) return null;
 
-  destroyChart('correlation');
   cacheData('storms', storms);
   cacheData('correlationEarthquakes', earthquakes);
 
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  const STORM_LANE = 2;
+  const QUAKE_LANE = 1;
   const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * MS_PER_DAY);
+  const inWindow = x => Number.isFinite(x) && x >= 0 && x <= 30;
 
-  const stormPoints = storms.map(s => ({
-    x: (s.date - thirtyDaysAgo) / (24 * 60 * 60 * 1000),
-    y: 100 + (Number(s.kp) || 0) * 10,
-    label: `Kp${Number(s.kp || 0).toFixed(1)}`,
-  }));
+  const stormPoints = storms.map(s => {
+    const x = (s.date - thirtyDaysAgo) / MS_PER_DAY;
+    const kp = Number(s.kp) || 0;
+    return {
+      x,
+      y: STORM_LANE,
+      label: `Storm Kp${kp.toFixed(1)}`,
+      r: Math.min(10, 4 + kp * 0.5),
+    };
+  }).filter(point => inWindow(point.x));
 
-  const eqPoints = earthquakes.map(e => ({
-    x: (e.date - thirtyDaysAgo) / (24 * 60 * 60 * 1000),
-    y: -100 - (Number(e.mag) || 0) * 10,
-    label: `M${Number(e.mag || 0).toFixed(1)}`,
-  }));
+  const eqPoints = earthquakes.map(e => {
+    const x = (e.date - thirtyDaysAgo) / MS_PER_DAY;
+    const mag = Number(e.mag) || 0;
+    return {
+      x,
+      y: QUAKE_LANE,
+      label: `M${mag.toFixed(1)}`,
+      r: Math.min(10, 4 + Math.max(0, mag - 4.5)),
+    };
+  }).filter(point => inWindow(point.x));
 
   let correlationCount = 0;
+  const pairSegments = [];
   storms.forEach(storm => {
-    const lagDate = new Date(storm.date.getTime() + 27.5 * 24 * 60 * 60 * 1000);
+    const stormX = (storm.date - thirtyDaysAgo) / MS_PER_DAY;
+    const lagDate = new Date(storm.date.getTime() + 27.5 * MS_PER_DAY);
     earthquakes.forEach(eq => {
-      const diffDays = Math.abs(eq.date - lagDate) / (24 * 60 * 60 * 1000);
-      if (diffDays <= 3) correlationCount++;
+      const diffDays = Math.abs(eq.date - lagDate) / MS_PER_DAY;
+      if (diffDays > 3) return;
+      correlationCount++;
+      const eqX = (eq.date - thirtyDaysAgo) / MS_PER_DAY;
+      if (inWindow(stormX) && inWindow(eqX)) {
+        pairSegments.push(
+          { x: stormX, y: STORM_LANE },
+          { x: eqX, y: QUAKE_LANE },
+          null,
+        );
+      }
     });
   });
 
-  chartInstances.correlation = new Chart(canvas.getContext('2d'), {
+  upsertChart('correlation', canvas, {
     type: 'scatter',
     data: {
       datasets: [
+        {
+          type: 'line',
+          label: '27–28 day lag pairs',
+          data: pairSegments,
+          hidden: pairSegments.length === 0,
+          borderColor: 'rgba(76, 175, 80, 0.7)',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          showLine: true,
+          spanGaps: false,
+          fill: false,
+        },
         {
           label: 'Geomagnetic Storms',
           data: stormPoints,
           pointBackgroundColor: '#FF9800',
           pointBorderColor: '#FF5722',
-          pointRadius: 6,
+          pointRadius: ctx => ctx.raw?.r ?? 6,
           pointHoverRadius: 8,
         },
         {
@@ -666,7 +757,7 @@ export function drawCorrelationTimeline(storms = [], earthquakes = []) {
           data: eqPoints,
           pointBackgroundColor: '#FFC107',
           pointBorderColor: '#F44336',
-          pointRadius: 5,
+          pointRadius: ctx => ctx.raw?.r ?? 5,
           pointHoverRadius: 7,
           pointStyle: 'triangle',
         },
@@ -678,13 +769,14 @@ export function drawCorrelationTimeline(storms = [], earthquakes = []) {
       plugins: {
         legend: {
           display: true,
-          labels: { color: tickColor() },
+          labels: { color: tickColor(), boxWidth: 12, font: { size: 10 } },
         },
         emptyStateMessage: {
           hasData: stormPoints.length + eqPoints.length > 0,
           message: 'Waiting for storm and earthquake data',
         },
         tooltip: {
+          filter: item => item.dataset.type !== 'line',
           callbacks: {
             label: (ctx) => ctx.raw?.label || `Day ${Math.round(ctx.raw?.x || 0)}`,
           },
@@ -700,7 +792,17 @@ export function drawCorrelationTimeline(storms = [], earthquakes = []) {
           grid: { color: gridColor() },
         },
         y: {
-          ticks: { color: tickColor() },
+          min: 0.4,
+          max: 2.6,
+          ticks: {
+            color: tickColor(),
+            stepSize: 1,
+            callback(value) {
+              if (value === STORM_LANE) return 'Storms';
+              if (value === QUAKE_LANE) return 'M5+ quakes';
+              return '';
+            },
+          },
           grid: { color: gridColor() },
         },
       },

@@ -36,6 +36,21 @@ function loadLocalEnv(rootDir) {
   }
 }
 
+function toIsoZ(date) {
+  return date.toISOString().replace(/\.\d{3}Z$/, 'Z');
+}
+
+function gfzKpUrl(hours = 72) {
+  const end = new Date();
+  const start = new Date(end.getTime() - hours * 3600 * 1000);
+  const params = new URLSearchParams({
+    start: toIsoZ(start),
+    end: toIsoZ(end),
+    index: 'Kp',
+  });
+  return `https://kp.gfz.de/app/json/?${params}`;
+}
+
 function parseNumber(value) {
   const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : null;
@@ -129,15 +144,23 @@ async function fetchJsonFeed(url, fetchWithTimeout) {
   }
 }
 
-function buildLiveContext({ mag, plasma, kp, xrays, dst, protons, seismic }) {
-  const magRows = asArray(mag.data);
-  const plasmaRows = asArray(plasma.data);
+function operationalRows(rows) {
+  const list = asArray(rows);
+  const hasActiveFlag = list.some(row => row && typeof row === 'object' && 'active' in row);
+  if (!hasActiveFlag) return list;
+  const active = list.filter(row => row && row.active === true);
+  return active.length > 0 ? active : list;
+}
+
+function buildLiveContext({ mag, plasma, kp, gfz, xrays, dst, protons, seismic }) {
+  const magRows = operationalRows(mag.data);
+  const plasmaRows = operationalRows(plasma.data);
   const latestMag = latestByTime(magRows, row => Date.parse(row?.time_tag));
   const latestPlasma = latestByTime(plasmaRows, row => Date.parse(row?.time_tag));
   const bt = parseNumber(latestMag?.bt);
   const bz = parseNumber(latestMag?.bz_gsm);
-  const speed = parseNumber(latestPlasma?.speed);
-  const density = parseNumber(latestPlasma?.density);
+  const speed = parseNumber(latestPlasma?.speed ?? latestPlasma?.proton_speed);
+  const density = parseNumber(latestPlasma?.density ?? latestPlasma?.proton_density);
 
   const solarWind = {};
   if (bt != null) solarWind.bt_nT = bt;
@@ -146,13 +169,31 @@ function buildLiveContext({ mag, plasma, kp, xrays, dst, protons, seismic }) {
   if (speed != null) solarWind.speed_kms = speed;
   if (density != null) solarWind.density_pcc = density;
   if (latestPlasma?.time_tag) solarWind.plasma_time = latestPlasma.time_tag;
-  if (!latestPlasma) {
-    solarWind.plasma_note = 'plasma feed unavailable (IMAP transition)';
+  if (speed == null && density == null) {
+    solarWind.plasma_note = 'solar-wind speed/density unavailable';
   }
 
   const kpRows = asArray(kp.data);
   const latestKp = latestByTime(kpRows, row => Date.parse(row?.time_tag));
-  const kpValue = parseNumber(latestKp?.kp_index ?? latestKp?.kp);
+  let kpValue = parseNumber(latestKp?.kp_index ?? latestKp?.kp);
+  let kpTime = latestKp?.time_tag || null;
+  if (kpValue == null && gfz) {
+    const gfzData = gfz.data;
+    const points = asArray(gfzData?.points);
+    if (points.length > 0) {
+      const last = points[points.length - 1];
+      kpValue = parseNumber(last.kp);
+      kpTime = last.time || kpTime;
+    } else {
+      const times = asArray(gfzData?.datetime);
+      const values = asArray(gfzData?.Kp);
+      if (times.length > 0 && values.length > 0) {
+        const i = Math.min(times.length, values.length) - 1;
+        kpValue = parseNumber(values[i]);
+        kpTime = times[i] || kpTime;
+      }
+    }
+  }
 
   const xrayRows = asArray(xrays.data).filter(row => {
     if (!row || typeof row !== 'object') return false;
@@ -199,7 +240,7 @@ function buildLiveContext({ mag, plasma, kp, xrays, dst, protons, seismic }) {
     geomagnetic: kpValue == null ? null : {
       kp_index: kpValue,
       status: kpStatus(kpValue),
-      time: latestKp?.time_tag || null,
+      time: kpTime,
     },
     solar_wind: Object.keys(solarWind).length ? solarWind : null,
     solar_flares: {
@@ -229,11 +270,11 @@ function buildLiveContext({ mag, plasma, kp, xrays, dst, protons, seismic }) {
 function systemPrompt(mode) {
   const shared = [
     'You are the TECTONIC-SOLAR situation briefing assistant.',
-    'You explain live NOAA space-weather and USGS/EMSC seismic monitoring data in plain language.',
+    'You explain live NOAA space-weather and USGS/EMSC/GEOFON seismic monitoring data in plain language.',
     'Ground every factual claim in the provided LIVE SNAPSHOT JSON. If a field is missing, say so; do not invent numbers.',
     'USGS and most seismologists find no proven causal link between space weather and earthquakes. Never predict an earthquake. Never imply a forecast, warning, or all-clear for people.',
     'The 27–28 day storm-lag idea is an unproven research hypothesis under test in this app. Describe it only as a hypothesis, and do not treat the live snapshot as confirmation or falsification of that hypothesis.',
-    'Prefer conservative wording: quiet vs unsettled vs storming, observed counts, largest event, data gaps (especially NOAA plasma during the IMAP transition).',
+    'Prefer conservative wording: quiet vs unsettled vs storming, observed counts, largest event, and any real data gaps.',
     'Use markdown with short headings and bullets. Do not wrap the whole answer in a code fence.',
   ];
 
@@ -533,7 +574,7 @@ function composeLocalBriefing(context, { mode = 'briefing', question = '' } = {}
 
     return [
       ...header,
-      'I can only restate the **live monitors** (NOAA space weather + USGS/EMSC M4.5+). I cannot predict, and I cannot use a language model unless a server-side Grok key is set.',
+      'I can only restate the **live monitors** (NOAA space weather + USGS/EMSC/GEOFON M4.5+). I cannot predict, and I cannot use a language model unless a server-side Grok key is set.',
       '',
       spaceWeatherSection(context),
       '',
@@ -585,17 +626,18 @@ function createAiBriefingHandler({ fetchWithTimeout, loadGlobalSeismic, upstream
     req.on('close', onClose);
 
     try {
-      const [mag, plasma, kp, xrays, dst, protons, seismic] = await Promise.all([
+      const [mag, plasma, kp, gfz, xrays, dst, protons, seismic] = await Promise.all([
         fetchJsonFeed(upstream.noaa.rtswMag, fetchWithTimeout),
-        fetchJsonFeed(upstream.noaa.rtswPlasma, fetchWithTimeout),
+        fetchJsonFeed(upstream.noaa.rtswWind || upstream.noaa.rtswPlasma, fetchWithTimeout),
         fetchJsonFeed(upstream.noaa.kp1m, fetchWithTimeout),
+        fetchJsonFeed(gfzKpUrl(72), fetchWithTimeout),
         fetchJsonFeed(upstream.noaa.xray7d, fetchWithTimeout),
         fetchJsonFeed(upstream.noaa.dst, fetchWithTimeout),
         fetchJsonFeed(upstream.noaa.proton6h, fetchWithTimeout),
         loadGlobalSeismic().catch(() => ({ features: [], metadata: { sourceLabel: 'seismic merge unavailable' } })),
       ]);
 
-      const context = buildLiveContext({ mag, plasma, kp, xrays, dst, protons, seismic });
+      const context = buildLiveContext({ mag, plasma, kp, gfz, xrays, dst, protons, seismic });
       context.briefing_engine = apiKey ? 'grok' : 'local';
       writeSse(res, { context });
 
