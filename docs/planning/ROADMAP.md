@@ -40,6 +40,8 @@
 | Statistical Prediction Engine | Lag scan + empirical conditional probability for M5+ post-storm windows |
 | Matched Control Contrast | Paired 25–30d target windows versus mirrored 11–16d / 39–44d controls for closed storms |
 | Friendly Local Launch | `npm run launch` auto-starts or reuses local server and opens the app |
+| AI Situation Briefing | Local snapshot briefing / Q&A / digest via `/api/ai/briefing` (no key). Optional server-only Grok; key never in the public repo or browser |
+| Panel reorder + collapse | Per-device panel order, drag/keyboard move, collapse, and Settings → Reset Layout |
 
 ---
 

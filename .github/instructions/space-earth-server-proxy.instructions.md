@@ -8,7 +8,7 @@ applyTo: "server.js"
 
 - Keep `server.js` in CommonJS (`require`, `module.exports` if needed); do not mix in frontend ES module syntax.
 - Keep Node/Express as the public entry point and `public/` as the only browser-served web root.
-- All upstream feeds must stay public and keyless unless explicitly discussed; do not introduce authenticated APIs or secrets.
+- All upstream feeds must stay public and keyless unless explicitly discussed; do not introduce authenticated APIs or secrets. The optional AI briefing is the documented exception: `XAI_API_KEY` is read only in Node (`ai-briefing.js` / `.env`) and is never sent to the browser.
 - Validate and sanitize incoming query parameters before proxying upstream.
 - Do not add server-side databases, ORM layers, Redis, or silent caching layers.
 - Keep any Python research service local-only and proxy it through Node rather than exposing Python directly to the browser.

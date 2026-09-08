@@ -111,6 +111,11 @@ export const RESEARCH_APIS = {
   bvalue: IS_PROXY_MODE ? resolveApiUrl('/research/bvalue', null) : null,
 };
 
+// ===== OPTIONAL AI BRIEFING (Node proxy + server-side XAI_API_KEY) =====
+export const AI_APIS = {
+  briefing: IS_PROXY_MODE ? resolveApiUrl('/ai/briefing', null) : null,
+};
+
 // ===== DEFAULT ALERT SETTINGS =====
 export const DEFAULT_ALERT_SETTINGS = {
   earthquakeMagnitude: 6.0,

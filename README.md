@@ -68,8 +68,9 @@ Additional catalogs should be added only after verifying response format, licens
 | **Seismic** | Dynamic USGS earthquake list (newest first, time-ago), statistics (M5+/M6+ counts, largest), magnitude + depth distribution charts, and a resizable split workspace |
 | **Environment** | Real-time weather (temp, feels-like, humidity, pressure, wind, condition) and air quality (PM2.5, PM10, CO, NO₂, European AQI) via Open-Meteo free API, AQI gauge doughnut chart, and a resizable split workspace |
 | **Correlation** | Quick correlation readout: research background, current 27–28 day window status, descriptive probability card, 30-day storms-vs-seismic timeline, and summary stats |
+| **AI Briefing** | Plain-language briefing / digest / Q&A from `/api/ai/briefing`. Default writer is local (same live NOAA + USGS/EMSC snapshot, no API key). Optional Grok uses a **server-only** `XAI_API_KEY` in gitignored `.env` — never the public repo, never the browser. Informational only — not a forecast. |
 | **Research Lab** | Historical USGS ComCat + NOAA storm + Kyoto Dst archive loading; selectable storm definitions (Kp ≥ 5 baseline, Dst ≤ −50 nT, pressure pulses); regional stratification (Global / Circum-Pacific via PB2002 tagging); multiple-comparison-aware bootstrap null calibration through a local Python sidecar; 0–60 day lag scan; Gutenberg–Richter b-value; JSON run-artifact and CSV export; live coupling-driver readout |
-| **Settings** | Configurable alert thresholds, dark mode toggle (☀️/🌙), notifications, localStorage persistence, and a resizable split workspace |
+| **Settings** | Configurable alert thresholds, dark mode toggle (☀️/🌙), notifications, localStorage persistence, **Reset Layout** for panel order/collapse, and a resizable split workspace |
 
 ### Sprint 1-4 Enhancements (MVP Redesign)
 
@@ -234,6 +235,8 @@ Containerization note: **Docker is a future optional reproducibility/deployment 
 ```
 tectonic-solar/
 ├── server.js                 # Node proxy server + security headers + research feed validation
+├── ai-briefing.js            # Optional Grok briefing SSE: live NOAA/USGS context + SpaceXAI stream
+├── .env.example              # Server-side XAI_API_KEY template (copy to .env locally)
 ├── package.json              # Runtime scripts (`launch`, `start`, `test:tabs`)
 ├── requirements.txt          # Python research environment dependencies
 ├── public/                   # Browser-served web root
@@ -253,7 +256,7 @@ tectonic-solar/
 │   ├── research_sidecar.py   # Local-only Flask sidecar for bootstrap null calibration
 │   ├── research_stats.py     # Pure NumPy research helpers used by the sidecar
 │   ├── hypothesis-sim.mjs    # Deterministic lag-analysis sanity harness
-│   ├── tab-smoke-test.mjs    # 7-tab Playwright smoke test
+│   ├── tab-smoke-test.mjs    # 8-tab Playwright smoke test
 │   ├── verify-visuals.js
 │   ├── lighthouse-automation.js
 │   ├── restart-server.js

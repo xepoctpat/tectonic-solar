@@ -1,7 +1,7 @@
 // ===== SERVICE WORKER: OFFLINE & CACHING SUPPORT =====
 
-const CACHE_NAME = 'tectonic-solar-v11';
-const API_CACHE_NAME = 'tectonic-solar-api-v11';
+const CACHE_NAME = 'tectonic-solar-v12';
+const API_CACHE_NAME = 'tectonic-solar-api-v12';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -14,7 +14,11 @@ const STATIC_ASSETS = [
   './src/css/map.css',
   './src/css/notifications.css',
   './src/css/hud.css',
+  './src/css/ai.css',
+  './src/css/panels.css',
   './src/js/main.js',
+  './src/js/layout.js',
+  './src/js/panels.js',
   './src/js/store.js',
   './src/js/utils.js',
   './src/js/charts.js',
@@ -30,6 +34,7 @@ const STATIC_ASSETS = [
   './src/js/db.js',
   './src/js/error-logger.js',
   './src/js/prediction.js',
+  './src/js/ai.js',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
   'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',

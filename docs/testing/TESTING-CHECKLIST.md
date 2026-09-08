@@ -109,6 +109,16 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Timeline**: 30-day storm vs M5+ timeline renders without console errors
 - [ ] **Summary Stats**: storm count, M5+ count, and lag-pair count render without overlap
 
+### ✦ AI Briefing Tab
+- [ ] **Tab**: ✦ AI Briefing appears between Correlation and Research Lab
+- [ ] **Empty state**: prompt chips and composer render without console errors
+- [ ] **Generate Briefing**: streams a real markdown briefing from the live snapshot with no API key (Local snapshot chip). Optional Grok only if the server has a gitignored `XAI_API_KEY`
+- [ ] **Context chips**: Kp / Bz / Dst / flare / quake counts appear from the live snapshot even when Grok is not configured
+- [ ] **Daily Digest**: card appears, can be hidden, and refresh regenerates
+- [ ] **Saved questions**: starring a prompt keeps it above the composer
+- [ ] **Disclaimer**: monitoring-not-prediction copy is visible
+- [ ] **No browser key**: DevTools must not show `XAI_API_KEY`; the browser only POSTs `/api/ai/briefing`
+
 ### 🧪 Research Lab Tab
 - [ ] **Foundation Button**: "Load Full Research Foundation" is visible and starts the combined archive workflow
 - [ ] **Data Foundation**: Historical-load status and corpus span appear
@@ -121,6 +131,8 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Historical Load**: "Load 2-Year History" button loads ComCat data without breaking the page
 
 ### ⚙️ Settings Tab
+- [ ] **Reset Layout**: restores default panel order, sizes, and collapsed state
+- [ ] **Panel tools**: dashboard cards show ▲ ▼ ⋮⋮ ▾ on hover; collapse hides the body; drag reorders
 - [ ] **Dark Mode Toggle**: 🌙/☀️ button in header works
 - [ ] **Dark Mode Applied**: All colors invert correctly (background dark, text light)
 - [ ] **Chart Dark Mode**: Charts rerender with dark colors on toggle
