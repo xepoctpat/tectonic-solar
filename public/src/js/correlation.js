@@ -1,9 +1,75 @@
 // ===== CORRELATION MODULE =====
-import { historicalStorms, historicalEarthquakes } from './store.js';
-import { DEMO_STORMS } from './config.js';
+import { historicalStorms, historicalEarthquakes, volcanoFeatures } from './store.js';
+import { DEMO_STORMS, TECTONIC_DATASET } from './config.js';
 import { drawCorrelationTimeline } from './charts.js';
 import { setText } from './utils.js';
 import { showInAppNotification } from './notifications.js';
+import { summarizeVolcanoSeismicity } from './volcanoAnalytics.mjs';
+
+let tongaGeometry = null;
+let tongaGeometryPromise = null;
+
+async function loadTongaGeometry() {
+  if (tongaGeometry) return tongaGeometry;
+  if (tongaGeometryPromise) return tongaGeometryPromise;
+  tongaGeometryPromise = fetch(TECTONIC_DATASET.platesUrl)
+    .then(response => response.json())
+    .then((data) => {
+      const plate = (data.features || []).find(feature => feature.properties?.plateCode === 'TO');
+      tongaGeometry = plate?.geometry || null;
+      return tongaGeometry;
+    })
+    .catch(() => {
+      tongaGeometry = null;
+      return null;
+    });
+  return tongaGeometryPromise;
+}
+
+function setMetric(id, value) {
+  setText(id, value);
+}
+
+export async function updateVolcanoQuakePanel() {
+  const summaryEl = document.getElementById('volcano-quake-summary');
+  if (!summaryEl) return;
+
+  const geometry = await loadTongaGeometry();
+  const summary = summarizeVolcanoSeismicity({
+    volcanoes: volcanoFeatures,
+    earthquakes: historicalEarthquakes,
+    tongaGeometry: geometry,
+  });
+
+  setMetric('vq-quakes', summary.quakeCount);
+  setMetric('vq-near', summary.quakesNearVolcano);
+  setMetric('vq-unrest', summary.unrestCount);
+  setMetric('vq-tonga-eq', summary.tonga.quakeCount);
+  setMetric('vq-tonga-volc', summary.tonga.volcanoCount);
+  setMetric('vq-tonga-near', summary.tonga.quakesNearVolcano);
+
+  const hungaEl = document.getElementById('vq-hunga');
+  if (hungaEl) {
+    hungaEl.textContent = summary.tonga.hungaName
+      ? `${summary.tonga.hungaName} · ${summary.tonga.hungaClass || 'catalogued'}`
+      + (summary.tonga.hungaYear ? ` · last eruption ${summary.tonga.hungaYear}` : '')
+      : 'Hunga Tonga-Hunga Haʻapai not in this snapshot';
+  }
+
+  const list = document.getElementById('vq-pairs');
+  if (list) {
+    list.replaceChildren();
+    if (summary.nearbyPairs.length === 0) {
+      list.textContent = 'No live M4.5+ within 150 km of an unrest/active volcano.';
+    } else {
+      summary.nearbyPairs.forEach((pair) => {
+        const row = document.createElement('li');
+        row.textContent = `${pair.name} · ${pair.quakeCount} quake(s), max M${pair.maxMag.toFixed(1)}, nearest ${pair.nearestKm} km (${pair.class})`;
+        list.appendChild(row);
+      });
+    }
+  }
+}
 
 /** Return geomagnetic storms within a date range (merges real + demo data). */
 export function getGeomagneticStorms(startDate, endDate) {
@@ -52,7 +118,7 @@ export function updateCorrelationWindow() {
 }
 
 /** Redraw the full correlation timeline and update stats. */
-export function refreshCorrelationData() {
+export function refreshCorrelationData({ notify = false } = {}) {
   updateCorrelationWindow();
 
   const now = new Date();
@@ -67,7 +133,10 @@ export function refreshCorrelationData() {
     setText('correlation-strength', result.correlationCount);
   }
 
-  showInAppNotification('Correlation Data Updated', 'Timeline refreshed with latest data', 'info');
+  if (notify) {
+    showInAppNotification('Correlation Data Updated', 'Timeline refreshed with latest data', 'info');
+  }
+  updateVolcanoQuakePanel().catch(() => {});
 }
 
 // ===== STATISTICAL ENHANCEMENTS =====

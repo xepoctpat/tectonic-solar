@@ -6,8 +6,9 @@ import {
   TECTONIC_DATASET,
   DEMO_EARTHQUAKES,
   USGS_APIS,
+  VOLCANO_APIS,
 } from './config.js';
-import { setHistoricalEarthquakes, magnitudeFilter, setDataMode, setMagnitudeFilter } from './store.js';
+import { setHistoricalEarthquakes, setVolcanoFeatures, magnitudeFilter, setDataMode, setMagnitudeFilter } from './store.js';
 import { setText, fetchWithRetry } from './utils.js';
 import { addEarthquake } from './db.js';
 
@@ -22,6 +23,8 @@ export function setEarthquakeDisplayCallback(fn) { _earthquakeDisplayCallback = 
 let map = null;
 let allEarthquakes = [];   // raw fetched list (unfiltered)
 let earthquakeMarkers = [];
+let volcanoCatalog = [];
+let volcanoMarkers = [];
 let tectonicOverlays = [];
 let currentTileLayer = null;
 let tectonicBoundaryDataset = null;
@@ -664,6 +667,8 @@ export function initializeMap() {
   map.getPane('tectonicPane').style.zIndex = 400;
   map.createPane('boundaryPane');
   map.getPane('boundaryPane').style.zIndex = 430;
+  map.createPane('volcanoPane');
+  map.getPane('volcanoPane').style.zIndex = 640;
   map.createPane('eventPane');
   map.getPane('eventPane').style.zIndex = 650;
 
@@ -673,9 +678,13 @@ export function initializeMap() {
   L.control.scale({ position: 'bottomleft' }).addTo(map);
 
   // Track zoom level display
-  map.on('zoom', () => setText('zoom-display', `Z${map.getZoom()}`));
+  map.on('zoom', () => {
+    setText('zoom-display', `Z${map.getZoom()}`);
+    addVolcanoMarkers();
+  });
   setText('zoom-display', `Z${map.getZoom()}`);
   setTectonicSourceStatus(TECTONIC_SOURCE_STATUS.loading);
+  fetchVolcanoCatalog();
 
   return map;
 }
@@ -981,6 +990,144 @@ export function addEarthquakeMarkers(earthquakes) {
 
   setText('eq-count', filtered.length);
   setText('eq-filter-count', filtered.length);
+  addVolcanoMarkers();
+}
+
+function kmBetween(lat1, lon1, lat2, lon2) {
+  const toRad = degrees => degrees * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+
+function formatEruptionYear(year) {
+  if (!Number.isFinite(year)) return 'unknown';
+  if (year < 0) return `${Math.abs(year)} BCE`;
+  return String(year);
+}
+
+function volcanoVisible(klass, nearQuake) {
+  const enabled = document.getElementById('l-volcanoes')?.checked ?? true;
+  if (!enabled) return false;
+  if (klass === 'unrest' || nearQuake) return true;
+  const worldView = (map?.getZoom?.() ?? 2) < 5;
+  if (worldView) return false;
+  if (klass === 'active') {
+    return document.getElementById('l-volcanoes-active')?.checked ?? false;
+  }
+  if (klass === 'dormant' || klass === 'unknown') {
+    return document.getElementById('l-volcanoes-dormant')?.checked ?? false;
+  }
+  return false;
+}
+
+function addVolcanoMarkers() {
+  if (!map) return;
+  volcanoMarkers.forEach(marker => map.removeLayer(marker));
+  volcanoMarkers = [];
+
+  const NEAR_KM = 150;
+  let shown = 0;
+  let unrest = 0;
+  let near = 0;
+
+  volcanoCatalog.forEach(feature => {
+    const props = feature.properties || {};
+    const klass = props.class || 'unknown';
+    const lon = feature.geometry.coordinates[0];
+    const lat = feature.geometry.coordinates[1];
+    let nearestKm = null;
+    for (const eq of allEarthquakes) {
+      if (!Number.isFinite(eq.lat) || !Number.isFinite(eq.lon)) continue;
+      const km = kmBetween(lat, lon, eq.lat, eq.lon);
+      if (nearestKm == null || km < nearestKm) nearestKm = km;
+    }
+    const nearQuake = nearestKm != null && nearestKm <= NEAR_KM;
+    if (!volcanoVisible(klass, nearQuake)) return;
+    if (klass === 'unrest') unrest += 1;
+    if (nearQuake) near += 1;
+    shown += 1;
+
+    const color = klass === 'unrest' ? '#F97316' : klass === 'active' ? '#EF4444' : '#A78BFA';
+    const size = klass === 'unrest' || nearQuake ? 16 : 12;
+    const icon = L.divIcon({
+      className: `volcano-marker volcano-${klass}${nearQuake ? ' volcano-near-quake' : ''}`,
+      html: `<span class="volcano-glyph" style="color:${color}">▲</span>`,
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size - 1],
+    });
+
+    const popup = document.createElement('div');
+    popup.style.cssText = 'color:#000;font-family:Arial;min-width:200px';
+    const title = document.createElement('h3');
+    title.style.cssText = `margin:0 0 10px 0;color:${color}`;
+    title.textContent = props.name || 'Volcano';
+    popup.appendChild(title);
+
+    const classLabel = klass === 'unrest'
+      ? `Unrest (${props.alert || 'USGS'} ${props.alertLevel || ''})`.trim()
+      : klass === 'active'
+        ? 'Active (eruption since 1800)'
+        : 'Dormant Holocene';
+
+    [
+      ['Status', classLabel],
+      ['Type', props.volcanoType || '—'],
+      ['Last eruption', formatEruptionYear(props.lastEruptionYear)],
+      ['Country', props.country || '—'],
+      ['Near live M4.5+', nearQuake ? `yes · ${Math.round(nearestKm)} km` : 'no'],
+    ].forEach(([label, value]) => {
+      const p = document.createElement('p');
+      p.style.margin = '5px 0';
+      const strong = document.createElement('strong');
+      strong.textContent = `${label}: `;
+      p.appendChild(strong);
+      p.appendChild(document.createTextNode(value));
+      popup.appendChild(p);
+    });
+
+    if (props.vnum) {
+      const link = document.createElement('a');
+      link.href = `https://volcano.si.edu/volcano.cfm?vn=${encodeURIComponent(props.vnum)}`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = 'Smithsonian GVP record';
+      popup.appendChild(link);
+    }
+
+    const marker = L.marker([lat, lon], {
+      icon,
+      pane: 'volcanoPane',
+      zIndexOffset: klass === 'unrest' ? 400 : 100,
+    }).bindPopup(popup);
+    marker.addTo(map);
+    volcanoMarkers.push(marker);
+  });
+
+  const status = volcanoCatalog.length === 0
+    ? 'Volcanoes loading…'
+    : `${shown} on map · ${unrest} unrest · ${near} near live quakes (world view hides the rest)`;
+  setText('map-volcano-status', status);
+}
+
+export async function fetchVolcanoCatalog() {
+  if (!VOLCANO_APIS.catalog) {
+    setText('map-volcano-status', 'Volcanoes: proxy required');
+    return;
+  }
+  try {
+    const response = await fetchWithRetry(VOLCANO_APIS.catalog);
+    const data = await response.json();
+    volcanoCatalog = Array.isArray(data.features) ? data.features : [];
+    setVolcanoFeatures(volcanoCatalog);
+    addVolcanoMarkers();
+    window.dispatchEvent(new CustomEvent('space-earth:volcanoes'));
+  } catch {
+    volcanoCatalog = [];
+    setText('map-volcano-status', 'Volcano catalog unavailable');
+  }
 }
 
 // ===== LAYER TOGGLE =====
@@ -993,6 +1140,7 @@ export async function updateMapLayers() {
   } else {
     earthquakeMarkers.forEach(marker => map.removeLayer(marker));
   }
+  addVolcanoMarkers();
 }
 
 export function activatePlateGuideView() {
@@ -1052,6 +1200,7 @@ export async function fetchRealEarthquakeData() {
     setText('data-source', sourceLabel);
     setText('map-event-status', `${earthquakes.length} live earthquakes · ${sourceLabel}`);
     setDataMode('live');
+    window.dispatchEvent(new CustomEvent('space-earth:earthquakes'));
   } catch {
     const demo = DEMO_EARTHQUAKES.map(eq => ({ ...eq, date: new Date(), time: new Date().toLocaleString() }));
     allEarthquakes = demo;

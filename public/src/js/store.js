@@ -77,6 +77,12 @@ export function setHistoricalEarthquakes(earthquakes) {
   historicalEarthquakes = earthquakes;
 }
 
+/** Thinned Smithsonian GVP + USGS unrest catalog for map + correlation. */
+export let volcanoFeatures = [];
+export function setVolcanoFeatures(features) {
+  volcanoFeatures = Array.isArray(features) ? features : [];
+}
+
 export function addHistoricalStorm(storm) {
   historicalStorms.push(storm);
   pruneHistoricalStorms();

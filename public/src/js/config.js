@@ -19,15 +19,18 @@ function buildNoaaHistoricalDayIndexUrl(date) {
 export const NOAA_APIS = {
   // Real-time magnetometer data (Bt, Bz field components)
   solarWindMag: resolveApiUrl('/noaa/rtsw-mag', 'https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json'),
-  // Real-time solar wind plasma (speed, density, temperature) – enabled in proxy mode
-  // Direct browser mode (:8000) can hit CORS blocks on this endpoint, so it is disabled there.
+  // Real-time solar wind (speed, density, temperature). SCN 26-21 successor:
+  // rtsw_wind_1m.json. Proxy path stays /noaa/rtsw-plasma for existing clients.
+  // Direct browser mode (:8000) can hit CORS, so this is proxy-only.
   solarWindPlasma: IS_PROXY_MODE
-    ? resolveApiUrl('/noaa/rtsw-plasma', 'https://services.swpc.noaa.gov/json/rtsw/rtsw_plasma_1m.json')
+    ? resolveApiUrl('/noaa/rtsw-plasma', 'https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json')
     : null,
   // 1-minute Kp index
   kpIndex: resolveApiUrl('/noaa/kp-1m', 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json'),
-  // 3-day Kp history for charting
+  // 3-day Kp history for charting (object rows after SCN 26-21)
   kpHistory: resolveApiUrl('/noaa/kp-history', 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json'),
+  // Official IAGA Kp nowcast from GFZ (CC BY 4.0, 3-hour). Proxy-only.
+  kpGfz: IS_PROXY_MODE ? resolveApiUrl('/gfz/kp?hours=72', null) : null,
   // GOES X-ray flux (solar flares, 7-day window)
   xrayFlux: resolveApiUrl('/noaa/xrays', 'https://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json'),
   // Proton flux (radiation storm indicator)
@@ -48,8 +51,12 @@ export const NOAA_APIS = {
 // Legacy alias kept for backward compatibility
 export const NOAA_APIS_SOLAR_WIND = NOAA_APIS.solarWindMag;
 
+export const VOLCANO_APIS = {
+  catalog: resolveApiUrl('/volcanoes/global', null),
+};
+
 export const USGS_APIS = {
-  // Ranked global M4.5+ feed: USGS primary + EMSC SeismicPortal fallback/independent coverage.
+  // Ranked global M4.5+ feed: USGS > EMSC SeismicPortal > GFZ GEOFON.
   earthquakes: resolveApiUrl('/seismic/global', 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson'),
   // Direct USGS-only path retained for diagnostics and historical compatibility.
   earthquakesPrimary: resolveApiUrl('/usgs/eq-4.5-day', 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson'),
@@ -173,6 +180,7 @@ export const MAP_REGIONS = {
   ring: { center: [0, -140], zoom: 3 },
   japan: { center: [37, 137], zoom: 6 },
   cali: { center: [37, -120], zoom: 7 },
+  tonga: { center: [-20.5, -175], zoom: 6 },
 };
 
 // ===== TECTONIC DATASET =====

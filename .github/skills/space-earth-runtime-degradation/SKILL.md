@@ -12,7 +12,7 @@ Runs a focused troubleshooting workflow for Space-Earth Monitor runtime and prox
 
 ## When to use
 
-- `/api/health` returns `503`
+- `/api/health` shows `status: "degraded"` or a check is `ok: false`
 - The app launches but one or more proxy-backed features degrade
 - A smoke test fails even though recent UI or data-layer work seemed validated
 - A specific route, feed, or sidecar path looks broken and needs isolation
@@ -30,8 +30,9 @@ Runs a focused troubleshooting workflow for Space-Earth Monitor runtime and prox
      - client-side asset or rendering regression
 
 2. **Interpret `/api/health` honestly**
-   - A `503` on `/api/health` can mean the local Node server is running while one or more upstream feeds are degraded.
-   - Do not equate a `503` health response with total app failure unless the local app shell or static assets also fail.
+   - HTTP `200` on `/api/health` means the local Node process is serving.
+   - JSON `ok: false` / `status: "degraded"` means one or more upstream feeds failed. That is not total app failure.
+   - Connection refused is the actual “server down” case.
    - Check the failing upstream category before changing unrelated frontend code.
 
 3. **Isolate the narrowest failing surface**

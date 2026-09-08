@@ -32,8 +32,10 @@ npm run launch
 ### Check 4: Health Endpoint
 Open `http://localhost:3000/api/health`
 
-- `200` means the local proxy is healthy and upstreams are currently reachable
-- `503` can still mean the local server is fine but one or more upstream feeds are degraded
+- HTTP `200` means the local Node process is serving
+- JSON `ok: true` / `status: "ok"` means the checked upstreams answered
+- JSON `ok: false` / `status: "degraded"` means Node is up but one or more upstreams failed (see `checks`)
+- A missing response (connection refused) is the actual “server down” case
 
 ---
 
@@ -48,8 +50,8 @@ Open `http://localhost:3000/api/health`
 | **All Tabs** | Console shows fetch attempts | Wait 5-10s; some feeds refresh on timers |
 
 Expected quirk:
-- NOAA plasma may log a fallback `404` in the local server output. That is expected and should degrade to `[]`, not a broken UI.
-- Repeated copies of the same NOAA plasma fallback should now be throttled; an occasional first-hit warning is normal, but a flood of identical lines usually means the server has not been restarted onto the latest code.
+- If NOAA wind/mag is briefly down, the proxy may serve **last-good** (`X-Feed-Freshness: last-good`) or `[]` (`empty`). Empty is not a quiet Sun.
+- Repeated identical fallback lines are throttled; a flood usually means the server has not been restarted onto the latest code.
 
 ---
 

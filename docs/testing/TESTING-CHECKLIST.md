@@ -26,6 +26,13 @@ Expected outcome:
 - implanted 27-day signal peaks near 25–30d
 - off-target signal does not get mislabeled as 27–28d support
 
+### Panel / chart interaction (records video)
+```powershell
+npm run test:ux
+```
+
+Expected outcome: 0 failures, 0 page errors. Artifacts in `test-results/ux-interaction/` include a `.webm` plus per-tab PNGs. Charts in the active tab must not be `overflow: hidden` clipped; the correlation timeline Y scale is swimlanes (~0.4–2.6), not a 150–170 scatter.
+
 ### If you changed hypothesis-related files
 
 | Changed file(s) | Treat as | Minimum validation |
@@ -80,8 +87,8 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Status**: No 404 errors in DevTools Console
 
 ### ⚡ Space Weather Tab
-- [ ] **Solar Wind Chart**: Line chart appears with speed values (km/s)
-- [ ] **Kp Index Chart**: Bar chart appears with 24-hour history, color-coded (teal/yellow/orange/red)
+- [ ] **Solar Wind Chart**: Line chart appears with speed values (km/s) inside a dedicated chart box (not clipped by the card)
+- [ ] **Kp Index Chart**: Bar chart appears with 24-hour history, color-coded (teal/yellow/orange/red), plus a Kp 5 storm-threshold line
 - [ ] **X-Ray Flares**: Flare log shows GOES classification (A/B/C/M/X)
 - [ ] **Real Data**: Values are current (from NOAA endpoints)
 - [ ] **Chart Hover**: Hover over chart points → tooltip shows exact value
@@ -91,7 +98,7 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Earthquake List**: Earthquakes displayed newest-first
 - [ ] **Columns**: Magnitude, Location, Depth, Time shown
 - [ ] **Time Format**: "minutes ago" / "hours ago" labels update
-- [ ] **Magnitude Distribution**: Histogram chart appears (M4-M5, M5-M6, M6+)
+- [ ] **Magnitude Distribution**: Histogram chart appears (M4–4.9, M5–5.9, M6–6.9, M7+) with Y starting at 0
 - [ ] **Statistics**: Shows M5+ count, M6+ count, largest magnitude
 - [ ] **Real Data**: Multiple earthquakes from USGS
 
@@ -106,7 +113,7 @@ Use the Python static server only for layout/static verification. The Node proxy
 - [ ] **Research Background**: background card renders legibly in the left pane
 - [ ] **Prediction Card**: Statistical prediction card renders with probability / confidence state
 - [ ] **Active Window**: current 27–28 day window state renders clearly
-- [ ] **Timeline**: 30-day storm vs M5+ timeline renders without console errors
+- [ ] **Timeline**: 30-day storm vs M5+ timeline is a two-lane chart (Storms / M5+ quakes), not a 150–170 numeric scatter; green lag-pair lines only when pairs exist
 - [ ] **Summary Stats**: storm count, M5+ count, and lag-pair count render without overlap
 
 ### ✦ AI Briefing Tab
@@ -145,7 +152,8 @@ Use the Python static server only for layout/static verification. The Node proxy
 ## PART 2: Data Source Validation
 
 ### NOAA Live Data (Space Weather)
-- [ ] **Solar Wind Endpoint**: `/api/noaa/rtsw-mag` and `/api/noaa/rtsw-plasma` respond via the local proxy
+- [ ] **Solar Wind Endpoint**: `/api/noaa/rtsw-mag` and `/api/noaa/rtsw-plasma` (alias `/api/noaa/rtsw-wind`) respond via the local proxy with `speed`/`density` aliases on wind rows
+- [ ] **Kp**: `/api/noaa/kp-1m` and `/api/noaa/kp-history` parse; `/api/gfz/kp` returns `{points}` (CC BY 4.0). Space Weather chart is not empty when NOAA 3-day objects are live. `npm run test:kp-index` passes
 - [ ] **Kp Index**: Real-time Kp values populate chart
 - [ ] **Flare Data**: X-ray flux shows current solar activity
 - [ ] **Historical Storm Archive Endpoint**: `/api/noaa/dayind?date=2024-05-10` returns a NOAA/NCEI dayind text file through the local proxy
@@ -168,7 +176,9 @@ Use the Python static server only for layout/static verification. The Node proxy
 ### Ranked Global Seismic Intake
 - [ ] **Merged Feed**: `/api/seismic/global` returns a GeoJSON FeatureCollection with provider metadata
 - [ ] **Provider Health**: metadata distinguishes USGS and EMSC availability/counts
-- [ ] **Deduplication**: overlapping USGS/EMSC events are not double-counted; metadata states the matching rule
+- [ ] **Deduplication**: overlapping USGS/EMSC/GEOFON events are not double-counted; metadata states the matching rule and rank USGS > EMSC > GFZ GEOFON
+- [ ] **GEOFON**: `/api/seismic/global` metadata includes a GFZ GEOFON provider row; `npm run test:seismic-merge` passes
+- [ ] **Volcanoes**: `/api/volcanoes/global` returns thinned GVP Holocene features with class unrest/active/dormant; map triangles + dormant toggle; `npm run test:volcanoes` passes
 - [ ] **Fallback**: temporarily unavailable USGS or EMSC does not blank the map when the other provider remains live
 - [ ] **Attribution**: map source label reports the live provider set rather than claiming USGS-only data
 

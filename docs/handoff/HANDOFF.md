@@ -16,6 +16,11 @@ Keep this file for:
 
 ### Standalone handoffs (newest first)
 
+- [`2026-09-09-ux-panels-and-graphs.md`](./2026-09-09-ux-panels-and-graphs.md) — HUD panel overflow/chart boxes, two-lane timeline, honest Dst 0 / newest solar-wind window; wrap-up also lands the 2026-09-08 ranked-feed checkpoint
+- [`2026-09-08-map-volcanoes.md`](./2026-09-08-map-volcanoes.md) — Smithsonian GVP Holocene + USGS unrest colors on the map; near live M4.5+
+- [`2026-09-08-gfz-kp-ranked.md`](./2026-09-08-gfz-kp-ranked.md) — GFZ official IAGA Kp as rank 2; NOAA 3-day object-row parser
+- [`2026-09-08-geofon-ranked-seismic.md`](./2026-09-08-geofon-ranked-seismic.md) — GFZ GEOFON as rank-3 live M4.5+ partner (FDSN text, CC-BY-4.0); USGS > EMSC > GEOFON
+- [`2026-09-08-rtsw-wind-successor.md`](./2026-09-08-rtsw-wind-successor.md) — NOAA `rtsw_wind_1m` successor, operational spacecraft, per-feed health 200/`degraded`, process last-good; plan: `docs/planning/2026-09-08-always-on-feeds-and-outbound-alerts.md`
 - [`2026-09-08-operator-tui-split-and-tasks.md`](./2026-09-08-operator-tui-split-and-tasks.md) — operator is HITL orchestrator; Grok TUI in Windows Terminal; VS Code tasks for Node / sidecar / Grok; still no workspace `settings.json`
 - [`2026-09-08-vscode-1.136-alignment.md`](./2026-09-08-vscode-1.136-alignment.md) — 1.136.2 host align is operator+Grok (`~/.grok/docs/vscode-host`); no app/runtime change for the bump; 8/8 tab smoke was last recorded in the pre-update session
 - [`2026-09-08-pre-vscode-update-checkpoint.md`](./2026-09-08-pre-vscode-update-checkpoint.md) — pre–VS Code update freeze: Dependabot sync, no public API key, local briefing default, CodeQL sidecar/SPA fixes, qs 6.16.0 override
@@ -380,7 +385,7 @@ ba75ef2 Update HANDOFF.md with full session recap
 
 ## Known State / Behaviors
 
-- **NOAA plasma 404**: `[proxy] rtsw_plasma_1m.json fell back to default (status 404)` in server logs is **expected**. NOAA DSCOVR endpoint is intermittently unavailable. `fallbackOnError: true` returns `200 []` so the client degrades gracefully.
+- **NOAA plasma 404 (historical):** the retired `rtsw_plasma_1m.json` 404 was expected through 2026-08. **Superseded 2026-09-08:** the proxy now uses `rtsw_wind_1m.json`. See [`2026-09-08-rtsw-wind-successor.md`](./2026-09-08-rtsw-wind-successor.md).
 - **CodeQL workflow**: `.github/workflows/codeql.yml` runs on push to main. All 6 alerts should show as closed after the restructure push. Check at: `https://github.com/xepoctpat/tectonic-solar/security/code-scanning`
 - **Service worker cache**: `tectonic-solar-v2` / `tectonic-solar-api-v2` — bump to `v3` if making breaking changes to static assets.
 

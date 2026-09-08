@@ -260,6 +260,12 @@ header h1 {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32), 0 0 14px rgba(0, 180, 255, 0.08);
 }
 
+.data-card.resizable-panel:hover,
+.info-card.resizable-panel:hover,
+.timeline-container.resizable-panel:hover {
+  transform: none;
+}
+
 .metric,
 .stat,
 .analysis-item,

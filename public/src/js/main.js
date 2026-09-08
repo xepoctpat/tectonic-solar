@@ -21,8 +21,8 @@ import {
   updateSeismicDisplay,
 } from './seismic.js';
 import { initLocationSelector, fetchEnvironmentData } from './environment.js';
-import { refreshCorrelationData, updateCorrelationWindow } from './correlation.js';
-import { drawSpaceCharts, drawLagScanChart, redrawCachedCharts } from './charts.js';
+import { refreshCorrelationData, updateCorrelationWindow, updateVolcanoQuakePanel } from './correlation.js';
+import { drawSpaceCharts, drawLagScanChart, redrawCachedCharts, resizeOpenCharts } from './charts.js';
 import { loadSettings, syncSettingsForm, saveAlertSettings, toggleAlerts, resetSettings } from './settings.js';
 import { requestNotificationPermission, initNotificationStatus, showInAppNotification } from './notifications.js';
 import { REFRESH_INTERVALS } from './config.js';
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function scheduleLayoutRefresh(delay = 100) {
     window.clearTimeout(layoutRefreshTimer);
     layoutRefreshTimer = window.setTimeout(() => {
-      redrawCachedCharts();
+      resizeOpenCharts();
       if (document.getElementById('map-tab')?.classList.contains('active')) {
         resizeMapViewport();
       }
@@ -130,6 +130,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     'l-divergent': true,
     'l-transform': true,
     'l-earthquakes': true,
+    'l-volcanoes': true,
+    'l-volcanoes-active': false,
+    'l-volcanoes-dormant': false,
     'l-vectors': false,
   };
   Object.entries(defaultLayerState).forEach(([id, checked]) => {
@@ -165,7 +168,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Region zoom button listeners
   document.querySelectorAll('[data-region]').forEach(btn => {
-    btn.addEventListener('click', () => zoomToRegion(btn.getAttribute('data-region')));
+    btn.addEventListener('click', () => {
+      document.getElementById('tab-map')?.click();
+      zoomToRegion(btn.getAttribute('data-region'));
+    });
+  });
+
+  window.addEventListener('space-earth:volcanoes', () => {
+    updateVolcanoQuakePanel().catch(() => {});
+  });
+  window.addEventListener('space-earth:earthquakes', () => {
+    updateVolcanoQuakePanel().catch(() => {});
   });
 
   document.getElementById('btn-plate-guide')?.addEventListener('click', () => {
@@ -226,7 +239,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   withButtonBusy('btn-refresh-eq', () => refreshEarthquakeData(fetchRealEarthquakeData));
   withButtonBusy('btn-refresh-seismic', () => refreshEarthquakeData(fetchRealEarthquakeData));
   withButtonBusy('btn-refresh-space', refreshSpaceData);
-  withButtonBusy('btn-refresh-correlation', refreshCorrelationData);
+  withButtonBusy('btn-refresh-correlation', () => refreshCorrelationData({ notify: true }));
   withButtonBusy('btn-refresh-env', () => {
     const select = document.getElementById('location-select');
     if (select) return fetchEnvironmentData(select.value);

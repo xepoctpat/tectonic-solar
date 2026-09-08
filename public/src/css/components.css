@@ -684,6 +684,7 @@
   border: 1px solid var(--color-card-border);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
+  min-width: 0;
 }
 
 .analysis-item-wide {
@@ -702,6 +703,15 @@
   color: var(--color-text);
   font-size: var(--font-size-sm);
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.analysis-item .form-control {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .analysis-badge {

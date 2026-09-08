@@ -107,7 +107,7 @@ export function buildAnalysisRunArtifact(analysisResult, bootstrapResult, extraM
         usgsLiveFeed: !meta.historicalEarthquakesLoaded || true,
       },
       feeds: {
-        solarWind: 'NOAA SWPC DSCOVR/ACE/IMAP rtsw (mag live; plasma retired upstream 2026-08)',
+        solarWind: 'NOAA SWPC DSCOVR/ACE/IMAP rtsw (mag + rtsw_wind_1m operational stream)',
         kp: 'NOAA SWPC planetary Kp (live + dayind archive)',
         dst: 'NOAA SWPC/Kyoto WDC hourly Dst (live + Kyoto monthly archive)',
         protons: 'NOAA SWPC GOES integral protons >=10 MeV',

@@ -42,7 +42,7 @@
       <span class="status-dot status-loading" id="status-dot"></span>
       <span id="status-text">Loading…</span>
       <span>•</span>
-      <span>USGS + NOAA + Open-Meteo</span>
+      <span>USGS + EMSC + GEOFON + NOAA</span>
     </div>
   </header>
 
@@ -96,7 +96,10 @@
             <h3><span class="section-kicker live-kicker">LIVE</span> Events</h3>
             <label class="layer-option"><input type="checkbox" id="l-earthquakes" checked><span class="layer-copy"><span class="layer-title">Earthquakes</span><span class="layer-note">Dots show live M4.5+ events. Color = magnitude; border thickness = depth.</span></span></label>
             <div class="event-availability"><span class="availability-dot"></span><span id="map-event-status">Live seismic feed loading…</span></div>
-            <div class="event-availability event-availability-muted">Volcanic eruptions: not currently wired into this map.</div>
+            <label class="layer-option"><input type="checkbox" id="l-volcanoes" checked><span class="layer-copy"><span class="layer-title">Volcanoes</span><span class="layer-note">Default: USGS unrest + triangles within 150 km of a live M4.5+. World zoom stays sparse.</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-volcanoes-active"><span class="layer-copy"><span class="layer-title">Historically active (≥1800)</span><span class="layer-note">All GVP last-eruption ≥1800. Off by default — saturates the world view. Zoom in (≥Z5) to draw them.</span></span></label>
+            <label class="layer-option"><input type="checkbox" id="l-volcanoes-dormant"><span class="layer-copy"><span class="layer-title">Dormant Holocene</span><span class="layer-note">Last eruption before 1800. Also hidden at world zoom.</span></span></label>
+            <div class="event-availability"><span class="availability-dot"></span><span id="map-volcano-status">Volcano catalog loading…</span></div>
           </div>
 
           <div class="control-section">
@@ -138,6 +141,7 @@
             <button class="region-btn" data-region="ring">🔥 Ring of Fire</button>
             <button class="region-btn" data-region="japan">🇯🇵 Japan</button>
             <button class="region-btn" data-region="cali">🇺🇸 California</button>
+            <button class="region-btn" data-region="tonga">🇹🇴 Tonga plate</button>
           </div>
 
           <div class="control-section">
@@ -211,7 +215,7 @@
               <p><strong>Boundary families</strong> describe relative plate interaction: red = convergent, cyan/green = divergent, amber = transform.</p>
               <p><strong>Earthquake markers</strong> are the active layer: they sit above the static context, pulse gently, and grow with magnitude. Color represents magnitude; border thickness represents depth.</p>
               <p><strong>Motion arrows</strong> are Bird (2003) Euler-pole-derived reference-frame vectors, not real-time GPS velocities.</p>
-              <p><strong>Volcanic eruptions</strong> are not shown yet; the map does not claim a live volcano-event feed.</p>
+              <p><strong>Volcanoes</strong> default to USGS unrest plus any triangle within 150 km of a live M4.5+. Historically active / dormant catalogs stay off at world zoom so the map does not fill with triangles. Numbers and Tonga-plate counts are on the Correlation tab. Not an eruption forecast.</p>
               <p class="map-guide-hint">Use the <strong>Controls</strong> button to toggle layers, basemaps, regions, and the magnitude filter.</p>
             </div>
           </details>
@@ -219,7 +223,7 @@
 
         <div class="map-display" aria-label="Interactive earthquake and tectonic map">
           <div class="map-layer-status" aria-label="Map layer status">
-            <span class="map-layer-status-item map-layer-status-live"><span class="status-symbol status-symbol-live">●</span><strong>LIVE EVENTS</strong><span>earthquakes</span></span>
+            <span class="map-layer-status-item map-layer-status-live"><span class="status-symbol status-symbol-live">●</span><strong>LIVE EVENTS</strong><span>earthquakes + volcano unrest</span></span>
             <span class="map-layer-status-item map-layer-status-context"><span class="status-symbol status-symbol-context">▰</span><strong>STATIC CONTEXT</strong><span>plates + boundaries</span></span>
           </div>
           <div id="map-display" aria-label="Interactive earthquake and tectonic map"></div>
@@ -236,8 +240,11 @@
           <span class="legend-item"><span class="color dot" style="background:#FFC107"></span> M4.5–5.4</span>
           <span class="legend-item"><span class="color dot" style="background:#FF9800"></span> M5.5–5.9</span>
           <span class="legend-item"><span class="color dot" style="background:#F44336"></span> M6+</span>
+          <span class="legend-item"><span class="volcano-legend-mark unrest">▲</span> Unrest</span>
+          <span class="legend-item"><span class="volcano-legend-mark active">▲</span> Active (≥1800)</span>
+          <span class="legend-item"><span class="volcano-legend-mark dormant">▲</span> Dormant Holocene</span>
         </div>
-        <span class="attribution">Earthquakes: USGS · <span id="tectonic-attribution">Tectonics: loading Bird PB2002 local artifact…</span> · Basemaps: OSM / Esri / OpenTopoMap / CARTO</span>
+        <span class="attribution">Earthquakes: USGS · Volcanoes: Smithsonian GVP + USGS VNS · <span id="tectonic-attribution">Tectonics: loading Bird PB2002 local artifact…</span> · Basemaps: OSM / Esri / OpenTopoMap / CARTO</span>
       </div>
 
     </section>
@@ -286,6 +293,10 @@
             <span><span class="value" id="solar-wind-bz">—</span><span class="unit">nT</span>
               <span style="font-size:10px;color:var(--color-text-secondary);margin-left:4px">(– = active)</span></span>
           </div>
+          <div class="chart-box">
+            <canvas id="solar-wind-chart" aria-label="Solar wind history chart"></canvas>
+          </div>
+          <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">Last ~2 h (newest samples) • breaks in the fill are minutes with magnetometer but no matching wind sample • click legend to toggle density / pressure</div>
           <div class="metric">
             <span class="label">Dynamic Pressure <span id="solar-wind-pdyn-band" style="font-weight:normal">—</span></span>
             <span><span class="value" id="solar-wind-pdyn">—</span></span>
@@ -298,8 +309,6 @@
             <span class="label">Last Update</span>
             <span class="value" id="space-last-update">Loading…</span>
           </div>
-          <canvas id="solar-wind-chart" width="300" height="100" aria-label="Solar wind history chart"></canvas>
-          <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">Last ~2 h • click legend to toggle density / pressure • P<sub>dyn</sub> = ρv² (proton momentum flux on the magnetopause)</div>
         </div>
 
         <!-- Geomagnetic Activity -->
@@ -315,7 +324,9 @@
               <span class="status" id="kp-status">Loading…</span>
             </span>
           </div>
-          <canvas id="kp-chart" width="300" height="100" aria-label="Kp index 3-day history chart"></canvas>
+          <div class="chart-box">
+            <canvas id="kp-chart" aria-label="Kp index 3-day history chart"></canvas>
+          </div>
           <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">3-day Kp history • Orange line = storm threshold (Kp 5)</div>
 
           <div class="metric" style="margin-top:16px">
@@ -328,8 +339,10 @@
           <div id="dst-source" style="font-size:11px;color:var(--color-text-secondary);margin:4px 0 8px 0">
             Checking NOAA/Kyoto Dst feed…
           </div>
-          <canvas id="dst-chart" width="300" height="100" aria-label="Dst index hourly history chart"></canvas>
-          <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">Ring-current storm index • moderate ≤ −50 nT • intense ≤ −100 nT (Kyoto WDC via SWPC)</div>
+          <div class="chart-box">
+            <canvas id="dst-chart" aria-label="Dst index hourly history chart"></canvas>
+          </div>
+          <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">Ring-current storm index • 0 nT is plotted (quiet) • moderate ≤ −50 nT • intense ≤ −100 nT (Kyoto WDC via SWPC)</div>
 
           <div class="metric" style="margin-top:16px">
             <span class="label">Proton Flux ≥10 MeV <span id="proton-status" style="font-weight:normal">Loading…</span></span>
@@ -485,11 +498,15 @@
           <div class="stat"><span class="label">Total M4.5+</span><span class="value" id="stat-total">—</span></div>
           <div style="margin-top:12px">
             <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:6px">MAGNITUDE DISTRIBUTION</div>
-            <canvas id="magnitude-chart" width="250" height="130" aria-label="Magnitude distribution chart"></canvas>
+            <div class="chart-box chart-box-compact">
+              <canvas id="magnitude-chart" aria-label="Magnitude distribution chart"></canvas>
+            </div>
           </div>
           <div style="margin-top:12px">
             <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:6px">DEPTH DISTRIBUTION</div>
-            <canvas id="depth-chart" width="250" height="130" aria-label="Earthquake depth distribution chart"></canvas>
+            <div class="chart-box chart-box-compact">
+              <canvas id="depth-chart" aria-label="Earthquake depth distribution chart"></canvas>
+            </div>
           </div>
         </div>
 
@@ -602,6 +619,9 @@
             <span class="value" id="aqi">—</span>
             <span class="status" id="aqi-status">—</span>
           </div>
+          <div class="chart-box chart-box-gauge">
+            <canvas id="aqi-chart" aria-label="Air quality index gauge"></canvas>
+          </div>
           <div class="metric">
             <span class="label">PM2.5</span>
             <span><span class="value" id="pm25">—</span><span class="unit">µg/m³</span></span>
@@ -618,7 +638,6 @@
             <span class="label">NO₂</span>
             <span><span class="value" id="no2">—</span><span class="unit">µg/m³</span></span>
           </div>
-          <canvas id="aqi-chart" width="250" height="60" aria-label="Air quality index gauge"></canvas>
           <div style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">
             European AQI scale (0–20 Good → 80–100 Very Poor)<br>
             Updated: <span id="aq-last-update">—</span>
@@ -664,7 +683,7 @@
       <div class="tab-header">
         <div class="tab-heading">
           <h2>Space Weather – Earthquake Correlation</h2>
-          <p class="tab-subtitle">Current window, quick evidence summary, and the live 30-day storm-versus-seismic timeline.</p>
+          <p class="tab-subtitle">27–28 day storm lag (unproven) plus live volcano–quake co-location. Co-location is not causation and is not the lag test.</p>
         </div>
         <button id="btn-refresh-correlation" class="btn btn-primary">↻ Refresh</button>
       </div>
@@ -706,6 +725,32 @@
           </div>
         </div>
 
+        <div class="info-card resizable-panel" data-resizable-panel data-panel-id="correlation-volcano-quake">
+          <h3>Volcanoes &amp; live seismicity</h3>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-bottom:12px">
+            Observational co-location on the live M4.5+ feed vs Smithsonian GVP / USGS unrest.
+            Arc quakes next to volcanoes are expected tectonics (Tonga plate is a small PB2002 plate on that arc).
+            This is <strong>not</strong> a test that volcanoes cause quakes, or the reverse, and it is not the 27–28 day lag.
+          </p>
+          <div class="vq-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px">
+            <div class="stat-card"><h4>Live M4.5+</h4><div class="value" id="vq-quakes">—</div></div>
+            <div class="stat-card"><h4>Within 150 km of a volcano</h4><div class="value" id="vq-near">—</div></div>
+            <div class="stat-card"><h4>USGS unrest</h4><div class="value" id="vq-unrest">—</div></div>
+          </div>
+          <h4 style="margin:12px 0 8px">Tonga plate / Hunga</h4>
+          <div class="vq-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:8px">
+            <div class="stat-card"><h4>Quakes in/near Tonga</h4><div class="value" id="vq-tonga-eq">—</div></div>
+            <div class="stat-card"><h4>GVP volcanoes there</h4><div class="value" id="vq-tonga-volc">—</div></div>
+            <div class="stat-card"><h4>Those quakes near a volcano</h4><div class="value" id="vq-tonga-near">—</div></div>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary)" id="vq-hunga">Hunga Tonga…</p>
+          <p style="font-size:var(--font-size-xs);margin:8px 0">
+            <button type="button" class="btn btn-secondary" data-region="tonga">Show Tonga plate on map</button>
+          </p>
+          <h4 style="margin:12px 0 6px">Live pairs (150 km)</h4>
+          <ul id="vq-pairs" style="font-size:var(--font-size-sm);margin:0;padding-left:18px;color:var(--color-text-secondary)"></ul>
+        </div>
+
         <div class="info-card resizable-panel" id="prediction-card" data-resizable-panel data-panel-id="correlation-prediction-card">
           <h3>📊 Statistical Prediction</h3>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-bottom:12px">
@@ -737,7 +782,9 @@
 
         <div class="timeline-container resizable-panel panel-fill" data-resizable-panel data-panel-id="correlation-timeline-panel">
           <h3>30-Day Timeline (Storms vs. M5+ Earthquakes)</h3>
-          <canvas id="correlation-timeline" aria-label="30-day geomagnetic storm and earthquake correlation timeline"></canvas>
+          <div class="chart-box chart-box-tall">
+            <canvas id="correlation-timeline" aria-label="30-day geomagnetic storm and earthquake correlation timeline"></canvas>
+          </div>
           <div style="font-size:10px;color:var(--color-text-secondary);margin-top:8px">
             🟠 Geomagnetic storms (top) · 🟡 Major earthquakes (bottom) · Green lines = 27–28 day lag pairs
           </div>
@@ -801,7 +848,7 @@
           <div class="ai-empty" id="ai-empty">
             <span class="ai-empty-mark">✦</span>
             <h3>Ask about the current Space-Earth situation</h3>
-            <p>Tap <strong>Generate Briefing</strong> for a full plain-language summary, <strong>☀ Daily Digest</strong> for today's one-screen recap of notable storms and quakes, or ask a specific question below. Star a question to keep it one tap away. Answers are written from the live NOAA solar-wind, Kp, Dst, flare, and USGS/EMSC feeds — no browser API key.</p>
+            <p>Tap <strong>Generate Briefing</strong> for a full plain-language summary, <strong>☀ Daily Digest</strong> for today's one-screen recap of notable storms and quakes, or ask a specific question below. Star a question to keep it one tap away. Answers are written from the live NOAA solar-wind, Kp, Dst, flare, and USGS/EMSC/GEOFON feeds — no browser API key.</p>
             <div class="ai-prompts">
               <button type="button" class="ai-prompt-chip" data-ai-prompt="What's the current space weather situation in simple terms?" data-testid="ai-prompt-space">What's the space weather doing right now?</button>
               <button type="button" class="ai-prompt-chip" data-ai-prompt="Are there any notable earthquakes in the last 24 hours, and where?" data-testid="ai-prompt-seismic">Any notable earthquakes today?</button>
@@ -837,7 +884,7 @@
       <div class="tab-header">
         <div class="tab-heading">
           <h2>Research Lab</h2>
-          <p class="tab-subtitle">Archive loading, null calibration, lag-scan diagnostics, and the browser-to-Python research boundary.</p>
+          <p class="tab-subtitle">27–28 day lag scan and null tests. Volcano–quake co-location (Tonga plate, Hunga) lives on Correlation — it is not this lag test and is not causation.</p>
         </div>
         <button id="btn-run-analysis" class="btn btn-primary">▶ Run Analysis</button>
         <button id="btn-export-run" class="btn btn-secondary" title="Download the full run artifact: catalogs, scan, interpretation, bootstrap result, and provenance">⬇ Export Run (JSON)</button>
@@ -906,7 +953,7 @@
               <div class="analysis-item">
                 <div class="analysis-label">Storm definition selector</div>
                 <div class="analysis-value">
-                  <select id="storm-definition-select" class="form-control" aria-label="Storm definition for lag analysis" style="min-width:200px">
+                  <select id="storm-definition-select" class="form-control" aria-label="Storm definition for lag analysis">
                     <option value="kp" selected>Kp ≥ 5 (baseline)</option>
                     <option value="dst">Dst ≤ −50 nT</option>
                     <option value="pressure">Pressure pulse (P_dyn)</option>
@@ -924,7 +971,7 @@
               <div class="analysis-item">
                 <div class="analysis-label">Region selector</div>
                 <div class="analysis-value">
-                  <select id="region-select" class="form-control" aria-label="Regional stratification for lag analysis" style="min-width:200px">
+                  <select id="region-select" class="form-control" aria-label="Regional stratification for lag analysis">
                     <option value="global" selected>Global (no stratification)</option>
                     <option value="ring-of-fire">Circum-Pacific (Ring of Fire)</option>
                   </select>
@@ -1013,7 +1060,9 @@
               control window. Ratio &gt;1 = elevated seismicity. <strong style="color:#FF9800">Amber dots</strong> = 27–28d hypothesis zone.
               A null result (ratio ≈ 1 everywhere) falsifies the hypothesis.
             </p>
-            <canvas id="lag-scan-chart" height="180" aria-label="Cross-lag scan: event ratio 0-60 days after geomagnetic storm"></canvas>
+            <div class="chart-box chart-box-tall">
+              <canvas id="lag-scan-chart" aria-label="Cross-lag scan: event ratio 0-60 days after geomagnetic storm"></canvas>
+            </div>
             <div id="lag-scan-verdict" class="analysis-callout tone-muted">
               Run analysis to see hypothesis test result.
             </div>

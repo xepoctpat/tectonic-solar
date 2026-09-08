@@ -1,41 +1,86 @@
 {
   "appUrl": "http://localhost:3000",
-  "generatedAt": "2026-09-08T16:33:45.559Z",
+  "generatedAt": "2026-09-08T22:40:38.352Z",
   "health": {
     "ok": true,
+    "upstreamOk": false,
     "status": 200,
     "body": {
-      "ok": true,
+      "ok": false,
+      "status": "degraded",
+      "local": true,
       "mode": "deployment-simulation",
-      "uptimeSeconds": 52,
-      "durationMs": 275,
+      "uptimeSeconds": 5322,
+      "durationMs": 10616,
       "checks": {
-        "noaa": {
+        "noaa_kp": {
           "ok": true,
-          "status": 200
+          "status": 200,
+          "freshness": "live",
+          "lastGoodAt": "2026-09-08T22:39:18.720Z"
+        },
+        "noaa_wind": {
+          "ok": true,
+          "status": 200,
+          "freshness": "live",
+          "lastGoodAt": "2026-09-08T22:39:18.779Z"
         },
         "usgs": {
           "ok": true,
-          "status": 200
+          "status": 200,
+          "freshness": "live"
+        },
+        "noaa_mag": {
+          "ok": true,
+          "status": 200,
+          "freshness": "live",
+          "lastGoodAt": "2026-09-08T22:39:18.755Z"
+        },
+        "geofon": {
+          "ok": true,
+          "status": 200,
+          "freshness": "live"
         },
         "openmeteo": {
           "ok": true,
-          "status": 200
+          "status": 200,
+          "freshness": "live"
+        },
+        "gfz_kp": {
+          "ok": true,
+          "status": 200,
+          "freshness": "live"
+        },
+        "gvp": {
+          "ok": true,
+          "status": 200,
+          "freshness": "live"
+        },
+        "usgs_volcano": {
+          "ok": true,
+          "status": 200,
+          "freshness": "live"
         },
         "emsc": {
-          "ok": true,
-          "status": 200
+          "ok": false,
+          "error": "fetch failed",
+          "freshness": "none"
         }
       }
     }
   },
   "consoleErrorCount": 0,
   "pageErrorCount": 0,
-  "requestFailureCount": 0,
+  "requestFailureCount": 1,
   "httpErrorCount": 0,
   "consoleErrors": [],
   "pageErrors": [],
-  "requestFailures": [],
+  "requestFailures": [
+    {
+      "url": "http://localhost:3000/api/seismic/global",
+      "reason": "net::ERR_ABORTED"
+    }
+  ],
   "httpErrors": [],
   "tabResults": [
     {
@@ -60,10 +105,10 @@
         "x": 15,
         "y": 229.28125,
         "width": 1410,
-        "height": 530.71875,
+        "height": 500.71875,
         "top": 229.28125,
         "right": 1425,
-        "bottom": 760,
+        "bottom": 730,
         "left": 15
       }
     },
@@ -86,14 +131,14 @@
         "left": 0
       },
       "probeRect": {
-        "x": 39,
-        "y": 659.578125,
-        "width": 763,
-        "height": 142,
-        "top": 659.578125,
-        "right": 802,
-        "bottom": 801.578125,
-        "left": 39
+        "x": 43,
+        "y": 497.1875,
+        "width": 754.953125,
+        "height": 200,
+        "top": 497.1875,
+        "right": 797.953125,
+        "bottom": 697.1875,
+        "left": 43
       }
     },
     {
@@ -115,14 +160,14 @@
         "left": 0
       },
       "probeRect": {
-        "x": 39,
+        "x": 43,
         "y": 266.6875,
-        "width": 762.953125,
-        "height": 1173,
+        "width": 754.953125,
+        "height": 158,
         "top": 266.6875,
-        "right": 801.953125,
-        "bottom": 1439.6875,
-        "left": 39
+        "right": 797.953125,
+        "bottom": 424.6875,
+        "left": 43
       }
     },
     {
@@ -173,14 +218,14 @@
         "left": 0
       },
       "probeRect": {
-        "x": 893.953125,
-        "y": 291.6875,
-        "width": 503,
-        "height": 442,
-        "top": 291.6875,
-        "right": 1396.953125,
-        "bottom": 733.6875,
-        "left": 893.953125
+        "x": 897.953125,
+        "y": 318.28125,
+        "width": 495.046875,
+        "height": 332.71875,
+        "top": 318.28125,
+        "right": 1393,
+        "bottom": 651,
+        "left": 897.953125
       }
     },
     {
@@ -231,14 +276,14 @@
         "left": 0
       },
       "probeRect": {
-        "x": 37,
-        "y": 520.65625,
+        "x": 41,
+        "y": 547.25,
         "width": 254,
         "height": 38,
-        "top": 520.65625,
-        "right": 291,
-        "bottom": 558.65625,
-        "left": 37
+        "top": 547.25,
+        "right": 295,
+        "bottom": 585.25,
+        "left": 41
       }
     },
     {
@@ -260,14 +305,14 @@
         "left": 0
       },
       "probeRect": {
-        "x": 39,
+        "x": 43,
         "y": 326.6875,
-        "width": 762.953125,
+        "width": 754.953125,
         "height": 38,
         "top": 326.6875,
-        "right": 801.953125,
+        "right": 797.953125,
         "bottom": 364.6875,
-        "left": 39
+        "left": 43
       }
     }
   ]

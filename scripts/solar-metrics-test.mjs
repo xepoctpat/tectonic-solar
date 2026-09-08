@@ -10,6 +10,8 @@ import {
   detectPressurePulses,
   detectProtonEvents,
 } from '../public/src/js/solarMetrics.mjs';
+import { operationalRtswRows, windDensity, windSpeed } from '../public/src/js/rtswWind.mjs';
+import { finiteOrNull, latestChronological } from '../public/src/js/utils.js';
 
 let failures = 0;
 function check(name, actual, expected) {
@@ -106,6 +108,32 @@ const protonRecords = [
 const protonEvents = detectProtonEvents(protonRecords);
 check('Proton events detected: 2', protonEvents.length, 2);
 check('Wrong energy channel ignored', protonEvents[0]?.peakFluxPfu, 20);
+
+// --- RTSW wind successor (SCN 26-21 proton_* aliases + active spacecraft) ---
+check('windSpeed reads proton_speed', windSpeed({ proton_speed: 412.5 }), 412.5);
+check('windSpeed prefers speed alias', windSpeed({ speed: 400, proton_speed: 1 }), 400);
+check('windDensity reads proton_density', windDensity({ proton_density: 6.2 }), 6.2);
+const mixed = [
+  { time_tag: 't1', active: false, source: 'ACE', proton_speed: 300 },
+  { time_tag: 't2', active: true, source: 'SOLAR1', proton_speed: 487 },
+  { time_tag: 't3', active: false, source: 'IMAP', proton_speed: 350 },
+];
+const operational = operationalRtswRows(mixed);
+check('operational rows keep only active', operational.length, 1);
+check('operational row is SOLAR1', operational[0]?.source, 'SOLAR1');
+check('no active flag keeps all rows', operationalRtswRows([{ proton_speed: 1 }]).length, 1);
+
+check('finiteOrNull keeps Dst 0', finiteOrNull(0), 0);
+check('finiteOrNull keeps negative Dst', finiteOrNull(-39), -39);
+check('finiteOrNull maps empty to null', finiteOrNull('') === null, true);
+const newestFirst = [
+  { time: '2026-09-08T22:00:00', speed: 500 },
+  { time: '2026-09-08T21:59:00', speed: 490 },
+  { time: '2026-09-07T23:00:00', speed: 300 },
+];
+const latest = latestChronological(newestFirst, 2);
+check('latestChronological does not take the oldest tail of newest-first data', latest[0]?.speed, 490);
+check('latestChronological ends at newest sample', latest[1]?.speed, 500);
 
 console.log(failures === 0 ? '\nAll solar-metrics checks passed.' : `\n${failures} check(s) FAILED.`);
 process.exit(failures === 0 ? 0 : 1);

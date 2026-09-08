@@ -1,0 +1,615 @@
+{
+  "artifactType": "tectonic-solar-archive-analysis",
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-08T21:47:41.935Z",
+  "hypothesis": "27-28 day geomagnetic-storm to M5+ earthquake lag (exploratory; no established mechanism)",
+  "sources": {
+    "earthquakes": "USGS ComCat M5+ via local /api/usgs/comcat, 730 days",
+    "storms": "GFZ Potsdam IAGA Kp JSON, Kp≥5, CC BY 4.0",
+    "dst": "Kyoto WDC monthly Dst via /api/noaa/dst-archive (0/24 months)"
+  },
+  "kp": {
+    "label": "Kp≥5 (GFZ IAGA, 2y)",
+    "assessment": {
+      "peakLag": 57,
+      "peakRatio": 1.4750060371890847,
+      "lag27ratio": 0.9893387637757547,
+      "isHypothesisSupported": false
+    },
+    "prediction": {
+      "windowActive": false,
+      "probability": 1,
+      "conditionalProbability": 1,
+      "baseProbability": 1,
+      "stormTrials": 270,
+      "stormHits": 270,
+      "triggeringStorms": 0,
+      "triggeringDetails": [],
+      "confidence": "high",
+      "dataPoints": {
+        "storms": 272,
+        "earthquakes": 3988,
+        "dataSpanDays": 731
+      }
+    },
+    "interpretation": {
+      "state": "off-target-peak",
+      "stateLabel": "Off-target peak",
+      "verdict": "⚠️ Stronger activity appears at 57d at 1.48×, not in the 25–30 day hypothesis window. That is activity in the corpus, not support for the target lag.",
+      "powerLevel": "powered",
+      "targetPeak": {
+        "lag": 28,
+        "windowCount": 8301,
+        "controlCount": 8177,
+        "eventRatio": 1.0151644857527211
+      },
+      "globalPeak": {
+        "lag": 57,
+        "windowCount": 12216,
+        "controlCount": 8282,
+        "eventRatio": 1.4750060371890847
+      },
+      "targetRank": 18
+    },
+    "matchedControls": {
+      "targetWindow": "25–30d",
+      "controlWindows": [
+        "11–16d",
+        "39–44d"
+      ],
+      "trials": 267,
+      "targetCount": 6824,
+      "controlCount": 6742,
+      "targetRate": 25.55805243445693,
+      "controlRate": 25.250936329588015,
+      "rateRatio": 1.0121625630376743,
+      "meanDifference": 0.30711610486891383,
+      "positivePairs": 108,
+      "negativePairs": 156,
+      "ties": 3
+    },
+    "topLags": [
+      "57d=1.48×",
+      "59d=1.45×",
+      "58d=1.42×",
+      "60d=1.41×",
+      "56d=1.40×",
+      "55d=1.26×",
+      "49d=1.14×",
+      "54d=1.11×"
+    ],
+    "scanResults": [
+      {
+        "lag": 0,
+        "eventRatio": 1.0517198713189804,
+        "windowCount": 8500,
+        "controlCount": 8082
+      },
+      {
+        "lag": 1,
+        "eventRatio": 1.000539212749386,
+        "windowCount": 8350,
+        "controlCount": 8345.5
+      },
+      {
+        "lag": 2,
+        "eventRatio": 0.9697966858620285,
+        "windowCount": 8252,
+        "controlCount": 8509
+      },
+      {
+        "lag": 3,
+        "eventRatio": 0.9563831670896535,
+        "windowCount": 8102,
+        "controlCount": 8471.5
+      },
+      {
+        "lag": 4,
+        "eventRatio": 0.9449200070842435,
+        "windowCount": 8003,
+        "controlCount": 8469.5
+      },
+      {
+        "lag": 5,
+        "eventRatio": 0.9445330497962077,
+        "windowCount": 7995,
+        "controlCount": 8464.5
+      },
+      {
+        "lag": 6,
+        "eventRatio": 0.9625591565326783,
+        "windowCount": 8034,
+        "controlCount": 8346.5
+      },
+      {
+        "lag": 7,
+        "eventRatio": 0.9917643522693117,
+        "windowCount": 8249,
+        "controlCount": 8317.5
+      },
+      {
+        "lag": 8,
+        "eventRatio": 1.0475200293560027,
+        "windowCount": 8564,
+        "controlCount": 8175.5
+      },
+      {
+        "lag": 9,
+        "eventRatio": 1.0194922392010588,
+        "windowCount": 8473,
+        "controlCount": 8311
+      },
+      {
+        "lag": 10,
+        "eventRatio": 1.0089577030313817,
+        "windowCount": 8504,
+        "controlCount": 8428.5
+      },
+      {
+        "lag": 11,
+        "eventRatio": 1.0024946336369438,
+        "windowCount": 8640,
+        "controlCount": 8618.5
+      },
+      {
+        "lag": 12,
+        "eventRatio": 0.99751975543635,
+        "windowCount": 8647,
+        "controlCount": 8668.5
+      },
+      {
+        "lag": 13,
+        "eventRatio": 0.994467907917435,
+        "windowCount": 8359,
+        "controlCount": 8405.5
+      },
+      {
+        "lag": 14,
+        "eventRatio": 0.9699422653413488,
+        "windowCount": 8148,
+        "controlCount": 8400.5
+      },
+      {
+        "lag": 15,
+        "eventRatio": 0.9785277928990503,
+        "windowCount": 8089,
+        "controlCount": 8266.5
+      },
+      {
+        "lag": 16,
+        "eventRatio": 0.9762490770366724,
+        "windowCount": 7933,
+        "controlCount": 8126
+      },
+      {
+        "lag": 17,
+        "eventRatio": 0.9440805434255216,
+        "windowCount": 7783,
+        "controlCount": 8244
+      },
+      {
+        "lag": 18,
+        "eventRatio": 0.9223289315726291,
+        "windowCount": 7683,
+        "controlCount": 8330
+      },
+      {
+        "lag": 19,
+        "eventRatio": 0.9144839134074871,
+        "windowCount": 7646,
+        "controlCount": 8361
+      },
+      {
+        "lag": 20,
+        "eventRatio": 0.9065577708383378,
+        "windowCount": 7548,
+        "controlCount": 8326
+      },
+      {
+        "lag": 21,
+        "eventRatio": 0.9462921612410389,
+        "windowCount": 8052,
+        "controlCount": 8509
+      },
+      {
+        "lag": 22,
+        "eventRatio": 0.9390537289494787,
+        "windowCount": 8197,
+        "controlCount": 8729
+      },
+      {
+        "lag": 23,
+        "eventRatio": 0.9875611625302129,
+        "windowCount": 8376,
+        "controlCount": 8481.5
+      },
+      {
+        "lag": 24,
+        "eventRatio": 1.0166706077086782,
+        "windowCount": 8599,
+        "controlCount": 8458
+      },
+      {
+        "lag": 25,
+        "eventRatio": 1.0121823877479985,
+        "windowCount": 8724,
+        "controlCount": 8619
+      },
+      {
+        "lag": 26,
+        "eventRatio": 1.011636658368552,
+        "windowCount": 8737,
+        "controlCount": 8636.5
+      },
+      {
+        "lag": 27,
+        "eventRatio": 0.9893387637757547,
+        "windowCount": 8259,
+        "controlCount": 8348
+      },
+      {
+        "lag": 28,
+        "eventRatio": 1.0151644857527211,
+        "windowCount": 8301,
+        "controlCount": 8177
+      },
+      {
+        "lag": 29,
+        "eventRatio": 1.001162292775433,
+        "windowCount": 8183,
+        "controlCount": 8173.5
+      },
+      {
+        "lag": 30,
+        "eventRatio": 0.9428958689374742,
+        "windowCount": 8000,
+        "controlCount": 8484.5
+      },
+      {
+        "lag": 31,
+        "eventRatio": 0.9507936507936507,
+        "windowCount": 8386,
+        "controlCount": 8820
+      },
+      {
+        "lag": 32,
+        "eventRatio": 0.962263102317568,
+        "windowCount": 8657,
+        "controlCount": 8996.5
+      },
+      {
+        "lag": 33,
+        "eventRatio": 0.9518979057591623,
+        "windowCount": 8727,
+        "controlCount": 9168
+      },
+      {
+        "lag": 34,
+        "eventRatio": 0.9331889550622632,
+        "windowCount": 8618,
+        "controlCount": 9235
+      },
+      {
+        "lag": 35,
+        "eventRatio": 0.9180756949170288,
+        "windowCount": 8769,
+        "controlCount": 9551.5
+      },
+      {
+        "lag": 36,
+        "eventRatio": 0.9658992180712423,
+        "windowCount": 8894,
+        "controlCount": 9208
+      },
+      {
+        "lag": 37,
+        "eventRatio": 0.9611683459753199,
+        "windowCount": 8490,
+        "controlCount": 8833
+      },
+      {
+        "lag": 38,
+        "eventRatio": 0.9639051220350636,
+        "windowCount": 8412,
+        "controlCount": 8727
+      },
+      {
+        "lag": 39,
+        "eventRatio": 0.9752169228151761,
+        "windowCount": 8598,
+        "controlCount": 8816.5
+      },
+      {
+        "lag": 40,
+        "eventRatio": 0.9502616359129716,
+        "windowCount": 8626,
+        "controlCount": 9077.5
+      },
+      {
+        "lag": 41,
+        "eventRatio": 0.8908954904894208,
+        "windowCount": 8337,
+        "controlCount": 9358
+      },
+      {
+        "lag": 42,
+        "eventRatio": 0.826509543234124,
+        "windowCount": 8206,
+        "controlCount": 9928.5
+      },
+      {
+        "lag": 43,
+        "eventRatio": 0.8096475317417521,
+        "windowCount": 8258,
+        "controlCount": 10199.5
+      },
+      {
+        "lag": 44,
+        "eventRatio": 0.8810022912299518,
+        "windowCount": 9036,
+        "controlCount": 10256.5
+      },
+      {
+        "lag": 45,
+        "eventRatio": 0.9063491333731782,
+        "windowCount": 9857,
+        "controlCount": 10875.5
+      },
+      {
+        "lag": 46,
+        "eventRatio": 0.9373153325151143,
+        "windowCount": 10310,
+        "controlCount": 10999.5
+      },
+      {
+        "lag": 47,
+        "eventRatio": 1.0090141110953796,
+        "windowCount": 10690,
+        "controlCount": 10594.5
+      },
+      {
+        "lag": 48,
+        "eventRatio": 1.0925277583274982,
+        "windowCount": 10922,
+        "controlCount": 9997
+      },
+      {
+        "lag": 49,
+        "eventRatio": 1.1355322646937938,
+        "windowCount": 11051,
+        "controlCount": 9732
+      },
+      {
+        "lag": 50,
+        "eventRatio": 1.0572108421270432,
+        "windowCount": 10219,
+        "controlCount": 9666
+      },
+      {
+        "lag": 51,
+        "eventRatio": 1.0444069702079821,
+        "windowCount": 9290,
+        "controlCount": 8895
+      },
+      {
+        "lag": 52,
+        "eventRatio": 1.0369459570232449,
+        "windowCount": 8855,
+        "controlCount": 8539.5
+      },
+      {
+        "lag": 53,
+        "eventRatio": 1.04793271775569,
+        "windowCount": 8909,
+        "controlCount": 8501.5
+      },
+      {
+        "lag": 54,
+        "eventRatio": 1.1116619452313503,
+        "windowCount": 9418,
+        "controlCount": 8472
+      },
+      {
+        "lag": 55,
+        "eventRatio": 1.2576067348165965,
+        "windowCount": 10457,
+        "controlCount": 8315
+      },
+      {
+        "lag": 56,
+        "eventRatio": 1.4028528072837634,
+        "windowCount": 11556,
+        "controlCount": 8237.5
+      },
+      {
+        "lag": 57,
+        "eventRatio": 1.4750060371890847,
+        "windowCount": 12216,
+        "controlCount": 8282
+      },
+      {
+        "lag": 58,
+        "eventRatio": 1.4162186633467262,
+        "windowCount": 12513,
+        "controlCount": 8835.5
+      },
+      {
+        "lag": 59,
+        "eventRatio": 1.4465068456085286,
+        "windowCount": 13365,
+        "controlCount": 9239.5
+      },
+      {
+        "lag": 60,
+        "eventRatio": 1.4103594080338266,
+        "windowCount": 13342,
+        "controlCount": 9460
+      }
+    ],
+    "stormCount": 272,
+    "eqCount": 3988
+  },
+  "dst": null,
+  "bootstrap": {
+    "ok": true,
+    "scan": {
+      "eventRatios": [
+        1.0517198713189804,
+        1.000539212749386,
+        0.9697966858620285,
+        0.9563831670896535,
+        0.9449200070842435,
+        0.9445330497962077,
+        0.9625591565326783,
+        0.9917643522693117,
+        1.0475200293560027,
+        1.0194922392010588,
+        1.0089577030313817,
+        1.0024946336369438,
+        0.99751975543635,
+        0.994467907917435,
+        0.9699422653413488,
+        0.9785277928990503,
+        0.9762490770366724,
+        0.9440805434255216,
+        0.9223289315726291,
+        0.9144839134074871,
+        0.9065577708383378,
+        0.9462921612410389,
+        0.9390537289494787,
+        0.9875611625302129,
+        1.0166706077086782,
+        1.0121823877479985,
+        1.011636658368552,
+        0.9893387637757547,
+        1.0151644857527211,
+        1.001162292775433,
+        0.9428958689374742,
+        0.9507936507936507,
+        0.962263102317568,
+        0.9518979057591623,
+        0.9331889550622632,
+        0.9180756949170288,
+        0.9658992180712423,
+        0.9611683459753199,
+        0.9639051220350636,
+        0.9752169228151761,
+        0.9502616359129716,
+        0.8908954904894208,
+        0.826509543234124,
+        0.8096475317417521,
+        0.8810022912299518,
+        0.9063491333731782,
+        0.9373153325151143,
+        1.0090141110953796,
+        1.0925277583274982,
+        1.1355322646937938,
+        1.0572108421270432,
+        1.0444069702079821,
+        1.0369459570232449,
+        1.04793271775569,
+        1.1116619452313503,
+        1.2576067348165965,
+        1.4028528072837634,
+        1.4750060371890847,
+        1.4162186633467262,
+        1.4465068456085286,
+        1.4103594080338266
+      ],
+      "lags": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60
+      ]
+    },
+    "summary": {
+      "basicData": true,
+      "bonferroniAlpha": 0.000819672131147541,
+      "calibratedSignalThreshold95": 1.346726964852019,
+      "closedWindows": 270,
+      "correctedGlobalPValue": 0.04095904095904096,
+      "dataSpanDays": 730,
+      "earthquakeCount": 3988,
+      "empiricalPValue": 0.6233766233766234,
+      "exceedanceCount": 623,
+      "globalExceedanceCount": 40,
+      "null95Percentile": 1.346726964852019,
+      "null99Percentile": 1.4618874717830137,
+      "nullGlobal95Percentile": 1.4723572456522156,
+      "nullMean": 1.070116363776903,
+      "nullStd": 0.1255373561050759,
+      "observedGlobalPeakLag": 57,
+      "observedGlobalPeakRatio": 1.4750060371890847,
+      "observedTargetPeakLag": 28,
+      "observedTargetPeakRatio": 1.0151644857527211,
+      "observedTargetRank": 18,
+      "permutations": 1000,
+      "poweredData": true,
+      "randomSeed": 42,
+      "stormCount": 272,
+      "supportLevel": "marginal-elevation",
+      "targetWindow": "25–30d",
+      "tone": "warn",
+      "verdict": "Target-window peak is elevated, but not decisively beyond the null range",
+      "whyText": "The observed target-window bump is above the null mean but not strong enough for a clean empirical-p read."
+    }
+  }
+}

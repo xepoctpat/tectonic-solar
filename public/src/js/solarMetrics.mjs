@@ -111,7 +111,7 @@ export function detectDstStorms(dstRecords, threshold = DST_BANDS.moderate) {
 
 // Discrete solar-wind pressure pulses: either an absolute compression
 // (P_dyn >= absoluteNPa) or a jump of at least jumpNPa within one hour.
-// Records are `{time, pdyn}` samples (1-minute plasma feed).
+// Records are `{time, pdyn}` samples (1-minute RTSW wind feed).
 export function detectPressurePulses(samples, { absoluteNPa = 8, jumpNPa = 4, cooldownMs = 3 * 3600 * 1000 } = {}) {
   const events = [];
   let lastEventTime = -Infinity;
@@ -134,7 +134,7 @@ export function detectPressurePulses(samples, { absoluteNPa = 8, jumpNPa = 4, co
         date: new Date(time),
         peakPdynNPa: pdyn,
         metric: 'pdyn',
-        source: 'NOAA SWPC DSCOVR/ACE plasma (derived)',
+        source: 'NOAA SWPC DSCOVR/ACE/IMAP wind (derived)',
       });
       lastEventTime = time;
     }

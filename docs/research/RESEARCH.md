@@ -67,8 +67,8 @@ When updating docs or reviewing results, keep these concerns separate. A bug in 
 | **Bt (total field)** | NOAA DSCOVR magnetometer (1-min) | Total magnetic field magnitude, proxy for CME passage |
 | **Kp index** | NOAA SWPC (1-min + 3-day history) | Proxy for global geomagnetic disturbance (0–9 scale) |
 | **Dst index** | NOAA/Kyoto WDC | Ring current strength — best single-number proxy for storm intensity |
-| **Solar wind speed** | NOAA DSCOVR plasma (1-min) | Arrival speed of solar wind; high speed = compressed magnetosphere |
-| **Solar wind density** | NOAA DSCOVR plasma (1-min) | Dynamic pressure on magnetosphere |
+| **Solar wind speed** | NOAA RTSW wind (1-min, `proton_speed`) | Arrival speed of solar wind; high speed = compressed magnetosphere |
+| **Solar wind density** | NOAA RTSW wind (1-min, `proton_density`) | Dynamic pressure on magnetosphere |
 | **X-ray flux (GOES)** | NOAA GOES primary (7-day) | Solar flare proxy; X-class flares precede CME arrivals |
 | **Proton flux (GOES)** | NOAA GOES primary (6-hour) | SEP (solar energetic particle) events; radiation storm indicator |
 
@@ -76,12 +76,12 @@ When updating docs or reviewing results, keep these concerns separate. A bug in 
 
 | Variable | Source | Threshold |
 |---|---|---|
-| Live earthquake feed | Ranked USGS + EMSC M4.5+ past day, deduplicated through the Node proxy | Used for map and alerts; provider provenance is retained |
+| Live earthquake feed | Ranked USGS + EMSC + GFZ GEOFON M4.5+ past day, deduplicated through the Node proxy | Used for map and alerts; provider provenance is retained |
 | Weekly earthquake feed | USGS M2.5+ past week | Used for magnitude statistics |
 | 7-day M4.5+ feed | USGS M4.5+ past week | Used for correlation analysis |
 | Historical window | IndexedDB, 90-day rolling | Pearson r + Fisher p-value computation |
 
-The live provider merge is an availability and coverage improvement, not an automatic increase in independent sample size. USGS is preferred when an EMSC record matches within the documented time/location/magnitude tolerance; EMSC-only events remain visible with source attribution. Historical hypothesis tests should continue to use a clearly defined catalog and magnitude policy rather than combining catalogs retrospectively without a completeness and magnitude-harmonization study.
+The live provider merge is an availability and coverage improvement, not an automatic increase in independent sample size. USGS is preferred when an EMSC or GEOFON record matches within the documented time/location/magnitude tolerance; later-catalog-only events remain visible with source attribution. GEOFON magnitudes are mixed mb/Mw and are not homogenized with USGS. Historical hypothesis tests should continue to use a clearly defined catalog and magnitude policy rather than combining catalogs retrospectively without a completeness and magnitude-harmonization study.
 
 ### 2.3 Current Analysis Workflow
 
@@ -396,7 +396,7 @@ The app is well-positioned to be a live, open-source demonstration of citizen-sc
 
 ### Evidence status after ranked seismic intake
 
-The USGS + EMSC merge improves operational resilience and exposes more globally reported events, but it does **not** prove or disprove the 27–28 day claim. A decisive result still requires a preregistered storm definition, a fixed historical earthquake catalog, magnitude-completeness checks, deduplication rules, matched controls, an all-lag scan with multiple-comparison correction, and out-of-sample or forward validation. Until those checks are run, the hypothesis remains unproven; the current implementation is instrumentation, not evidence of causation.
+The USGS + EMSC + GEOFON merge improves operational resilience and exposes more globally reported events, but it does **not** prove or disprove the 27–28 day claim. A decisive result still requires a preregistered storm definition, a fixed historical earthquake catalog, magnitude-completeness checks, deduplication rules, matched controls, an all-lag scan with multiple-comparison correction, and out-of-sample or forward validation. Until those checks are run, the hypothesis remains unproven; the current implementation is instrumentation, not evidence of causation.
 
 ---
 
