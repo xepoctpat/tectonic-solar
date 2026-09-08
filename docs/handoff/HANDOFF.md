@@ -16,6 +16,8 @@ Keep this file for:
 
 ### Standalone handoffs (newest first)
 
+- [`2026-09-08-operator-tui-split-and-tasks.md`](./2026-09-08-operator-tui-split-and-tasks.md) — operator is HITL orchestrator; Grok TUI in Windows Terminal; VS Code tasks for Node / sidecar / Grok; still no workspace `settings.json`
+- [`2026-09-08-vscode-1.136-alignment.md`](./2026-09-08-vscode-1.136-alignment.md) — 1.136.2 host align is operator+Grok (`~/.grok/docs/vscode-host`); no app/runtime change for the bump; 8/8 tab smoke was last recorded in the pre-update session
 - [`2026-09-08-pre-vscode-update-checkpoint.md`](./2026-09-08-pre-vscode-update-checkpoint.md) — pre–VS Code update freeze: Dependabot sync, no public API key, local briefing default, CodeQL sidecar/SPA fixes, qs 6.16.0 override
 - [`2026-09-08-ai-briefing-and-panel-layout.md`](./2026-09-08-ai-briefing-and-panel-layout.md) — ports the Emergent preview upgrade (AI Situation Briefing + panel reorder/collapse) onto the local no-build Node stack; briefing is local-by-default, optional Grok is server-only and never in the public repo
 - [`2026-08-16-complete-research-plan.md`](./2026-08-16-complete-research-plan.md) — the full four-pillar research plan: two-sided averaged control windows, max-statistic permutation null with corrected global p-values, seed-swept sim gate with live sidecar scenarios, Kyoto WDC Dst archive backfill (with the h2/ALPN upstream quirks documented), PB2002 regional stratification via stereographic winding, JSON/CSV run exports, depth histogram, and the Aki-MLE b-value endpoint (formula bug caught and fixed)

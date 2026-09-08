@@ -1,0 +1,82 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Launch app",
+      "detail": "Node proxy at http://localhost:3000 (reuses an instance if one is already up)",
+      "type": "npm",
+      "script": "launch",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "runOptions": {
+        "instanceLimit": 1
+      }
+    },
+    {
+      "label": "Sidecar",
+      "detail": "Python research sidecar on 127.0.0.1:5051 (solar-env, local-only)",
+      "type": "process",
+      "command": "${workspaceFolder}/solar-env/Scripts/python.exe",
+      "args": [
+        "${workspaceFolder}/scripts/research_sidecar.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "runOptions": {
+        "instanceLimit": 1
+      }
+    },
+    {
+      "label": "Grok in Windows Terminal",
+      "detail": "One Grok TUI in a new Windows Terminal window (cwd = this repo). Keep Node/Sidecar in VS Code.",
+      "type": "process",
+      "command": "wt.exe",
+      "args": [
+        "-w",
+        "new",
+        "nt",
+        "--title",
+        "Grok",
+        "-d",
+        "${workspaceFolder}",
+        "${env:USERPROFILE}\\.grok\\bin\\grok.exe"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "echo": false,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "close": true
+      },
+      "problemMatcher": [],
+      "runOptions": {
+        "instanceLimit": 1
+      }
+    }
+  ]
+}

@@ -93,6 +93,17 @@ These are file-scoped guardrails, not general-purpose prompts: they attach when 
 
 Use prompts for single reusable tasks, skills for multi-step workflows, and file instructions for auto-applied rules on matching files.
 
+## Editor (VS Code)
+
+Current operator install at last audit: **1.136.2**. Notes: https://code.visualstudio.com/updates/v1_136  
+Handoffs: [`2026-09-08-vscode-1.136-alignment.md`](../handoff/2026-09-08-vscode-1.136-alignment.md) (editor bump), [`2026-09-08-operator-tui-split-and-tasks.md`](../handoff/2026-09-08-operator-tui-split-and-tasks.md) (HITL + WT Grok + tasks).
+
+- Do **not** add `.vscode/settings.json` for editor-agent features (Agent Merge, multi-root, chat backgrounds) or for layout density (`workbench.experimental.modernUI` / `window.density.layout`). Density is a **user** Customize Layout choice; it is not the same as `workbench.activityBar.compact` or tab height.
+- Leave `.vscode/mcp.json` empty (`servers: {}`).
+- Workspace tasks live in `.vscode/tasks.json` (Terminal → Run Task). **Launch app** is the default build (`Ctrl+Shift+B`): `npm run launch` in a dedicated VS Code terminal. **Sidecar** runs `solar-env\Scripts\python.exe scripts\research_sidecar.py` (127.0.0.1:5051). **Grok in Windows Terminal** opens one external TUI in a new WT window at the repo root — keep Node and the sidecar in VS Code; do not start a second `npm run launch` from Grok.
+- Do **not** pin `*.html` to the integrated browser; the app of record is `npm run launch` on port 3000.
+- Copilot context is `.github/copilot-instructions.md` plus the agent/skills/prompts above. There is no `AGENTS.md`.
+
 ---
 
 ## Documentation Workflow
