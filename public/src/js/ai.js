@@ -142,7 +142,11 @@ function appendMessage(role, initialText = '') {
     star.addEventListener('click', () => addSavedQuestion(initialText));
     wrap.appendChild(star);
   } else {
-    bubble.innerHTML = initialText || CURSOR;
+    if (initialText) {
+      bubble.textContent = initialText;
+    } else {
+      bubble.innerHTML = CURSOR;
+    }
   }
 
   wrap.prepend(bubble);
