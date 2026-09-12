@@ -1,4 +1,5 @@
 // ===== MAIN APPLICATION ENTRY POINT =====
+import { initAnalytics } from './analytics.js';
 import { errorLogger } from './error-logger.js';
 import { initLayoutControls } from './layout.js';
 import { initTabs } from './tabs.js';
@@ -49,6 +50,9 @@ import {
 } from './export.mjs';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // ---- Initialize Vercel Web Analytics ----
+  initAnalytics();
+
   // ---- Register Service Worker (PWA) ----
   if ('serviceWorker' in navigator) {
     try {

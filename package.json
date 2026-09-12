@@ -23,6 +23,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.1"
   },
