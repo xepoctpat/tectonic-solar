@@ -17,10 +17,10 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 const REQUEST_TIMEOUT_MS = 15000;
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
-  "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com",
+  "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdn.vercel-insights.com",
   "style-src 'self' 'unsafe-inline' https://unpkg.com",
   "img-src 'self' data: https:",
-  "connect-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://services.swpc.noaa.gov https://earthquake.usgs.gov https://api.open-meteo.com https://air-quality-api.open-meteo.com https://www.ngdc.noaa.gov",
+  "connect-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://services.swpc.noaa.gov https://earthquake.usgs.gov https://api.open-meteo.com https://air-quality-api.open-meteo.com https://www.ngdc.noaa.gov https://vitals.vercel-insights.com",
   "font-src 'self' data: https:",
   "manifest-src 'self'",
   "worker-src 'self'",
